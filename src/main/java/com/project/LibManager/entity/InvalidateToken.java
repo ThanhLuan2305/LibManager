@@ -1,7 +1,9 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.entity;
 
-import java.time.LocalDate;
+import java.util.Date;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,15 +12,13 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
-	String id;
-	String email;
-	String password;
-    String fullName;
-    LocalDate birthDate;
-    Boolean isVerified;
+@Entity
+public class InvalidateToken {
+    @Id
+    String id;
+    Date expiryTime;  
 }

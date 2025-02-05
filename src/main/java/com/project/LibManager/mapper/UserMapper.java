@@ -1,7 +1,6 @@
 package com.project.LibManager.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.UserResponse;

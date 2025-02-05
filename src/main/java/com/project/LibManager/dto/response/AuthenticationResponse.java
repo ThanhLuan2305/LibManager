@@ -1,7 +1,5 @@
 package com.project.LibManager.dto.response;
 
-import java.time.LocalDate;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +12,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
-	String id;
-	String email;
-	String password;
-    String fullName;
-    LocalDate birthDate;
-    Boolean isVerified;
+public class AuthenticationResponse {
+    boolean authenticate;
+    String token;
 }
