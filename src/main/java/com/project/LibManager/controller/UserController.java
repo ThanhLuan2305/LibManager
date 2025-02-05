@@ -1,7 +1,8 @@
-package com.project.LibManager.Controller;
+package com.project.LibManager.controller;
 
-import com.project.LibManager.dto.request.RegisterRequest;
+import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.ApiResponse;
+import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,9 @@ public class UserController {
     @Autowired
     UserService userService;
     @PostMapping
-    ApiResponse<String> registerUser(@RequestBody @Valid RegisterRequest registerRequest) {
-        ApiResponse<String> apiRs = new ApiResponse<String>();
-        apiRs.setMessage("Tao tai khoan thanh cong");
-        apiRs.setResult(userService.createUser(registerRequest));
-        return apiRs;
+    ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.createUser(userCreateRequest))
+                .build();
     }
 }

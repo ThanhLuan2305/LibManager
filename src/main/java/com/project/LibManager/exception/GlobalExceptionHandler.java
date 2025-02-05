@@ -22,21 +22,17 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiResponse> handlingAppException(AppException appException) {
         ErrorCode errorCode = appException.getErrorCode();
         ApiResponse apiRespones = new ApiResponse();
+        
         apiRespones.setCode(errorCode.getCode());
         apiRespones.setMessage(errorCode.getMessage());
-        return ResponseEntity.badRequest().body(apiRespones);
+        
+        return ResponseEntity.status(errorCode.getStatusCode()).body(apiRespones);
     }
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingVadidation(MethodArgumentNotValidException ex) {
         String enumKey = ex.getFieldError().getDefaultMessage();
 
-        ErrorCode errorCode = ErrorCode.INVALID_KEY;
-
-        try {
-            errorCode = ErrorCode.valueOf(enumKey);
-        } catch (IllegalAccessError i) {
-
-        }
+        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
 
         ApiResponse apiRespones = new ApiResponse();
         apiRespones.setCode(errorCode.getCode());
