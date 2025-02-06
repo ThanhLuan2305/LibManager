@@ -24,11 +24,14 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.IntrospectRequest;
+import com.project.LibManager.dto.request.LogoutRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
+import com.project.LibManager.entity.InvalidateToken;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
 import com.project.LibManager.exception.ErrorCode;
+import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.UserRepository;
 
 import lombok.AccessLevel;
@@ -43,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthenticationService {
     UserRepository userRepository;
+    InvalidateTokenRepository invalidateTokenRepository;
 
     @NonFinal
     @Value("${jwt.signing.key}")
@@ -52,6 +56,8 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(aRequest.getEmail());
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        if(!user.getIsVerified()) 
+            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if(!rs)
@@ -91,7 +97,30 @@ public class AuthenticationService {
     // Verify token
     public IntrospectResponse introspectToken(IntrospectRequest iRequest) throws JOSEException, ParseException {
         String token = iRequest.getToken();
+        boolean invalid = true;
 
+        try {
+            verifyToken(token);
+        } catch (Exception e) {
+            invalid = false;
+        }
+
+        return IntrospectResponse.builder().valid(invalid).build(); 
+    }
+
+    // Logout user
+    public void logout(LogoutRequest aRequest) throws Exception, ParseException {
+        var signToken = verifyToken(aRequest.getToken()); 
+        String jwtID = signToken.getJWTClaimsSet().getJWTID();
+        Date expTime = signToken.getJWTClaimsSet().getExpirationTime();
+        InvalidateToken invalidateToken = InvalidateToken.builder()
+                .id(jwtID)
+                .expiryTime(expTime)
+                .build();
+        invalidateTokenRepository.save(invalidateToken);    
+    }
+
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGN_KEY.getBytes());
 
         SignedJWT signedJWT = SignedJWT.parse(token);
@@ -100,7 +129,12 @@ public class AuthenticationService {
 
         boolean rs = signedJWT.verify(verifier);
 
-        return IntrospectResponse.builder().valid(rs && expTime.after(new Date())).build(); 
-           
+        if(!(rs && expTime.after(new Date()))) 
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        if(invalidateTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        
+        return signedJWT;
     }
 }

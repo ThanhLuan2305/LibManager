@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.IntrospectRequest;
+import com.project.LibManager.dto.request.LogoutRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
@@ -38,6 +39,13 @@ public class AuthenticationController {
     ApiResponse<IntrospectResponse> introspectToken(@RequestBody IntrospectRequest introspectRequest) throws JOSEException, ParseException {
         return ApiResponse.<IntrospectResponse>builder()
                           .result(aService.introspectToken(introspectRequest))
+                          .build();
+    }
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(@RequestBody LogoutRequest lRequest) throws ParseException, Exception {
+        aService.logout(lRequest);
+        return ApiResponse.<Void>builder()
+                          .message("Logout successfully")
                           .build();
     }
 }
