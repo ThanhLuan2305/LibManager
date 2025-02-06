@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.AuthenticationRequest;
-import com.project.LibManager.dto.request.IntrospectRequest;
-import com.project.LibManager.dto.request.LogoutRequest;
+import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
@@ -36,16 +35,23 @@ public class AuthenticationController {
                           .build();
     }
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspectToken(@RequestBody IntrospectRequest introspectRequest) throws JOSEException, ParseException {
+    ApiResponse<IntrospectResponse> introspectToken(@RequestBody TokenRequest introspectRequest) throws JOSEException, ParseException {
         return ApiResponse.<IntrospectResponse>builder()
                           .result(aService.introspectToken(introspectRequest))
                           .build();
     }
     @PostMapping("/logout")
-    ApiResponse<Void> logout(@RequestBody LogoutRequest lRequest) throws ParseException, Exception {
+    ApiResponse<Void> logout(@RequestBody TokenRequest lRequest) throws ParseException, Exception {
         aService.logout(lRequest);
         return ApiResponse.<Void>builder()
                           .message("Logout successfully")
+                          .build();
+    }
+
+    @PostMapping("/refresh")
+    ApiResponse<AuthenticationResponse> refreshToken(@RequestBody TokenRequest rfRequest) throws JOSEException, ParseException {
+        return ApiResponse.<AuthenticationResponse>builder()
+                          .result(aService.refreshToken(rfRequest))
                           .build();
     }
 }
