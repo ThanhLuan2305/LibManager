@@ -23,6 +23,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.TokenRequest;
+import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.entity.InvalidateToken;
@@ -44,7 +45,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthenticationService {
     UserRepository userRepository;
+    UserService userService;
     InvalidateTokenRepository invalidateTokenRepository;
+    MailService mailService;
 
     @NonFinal
     @Value("${jwt.signing.key}")
@@ -68,22 +71,30 @@ public class AuthenticationService {
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if(!rs)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        String token = generateToken(aRequest.getEmail());
+        String token = generateToken(aRequest.getEmail(), false);
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
     } 
 
-    private String generateToken(String email) {
+    private String generateToken(String email, boolean verifyEmail) {
         //Header
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
 
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                                .subject(email).issuer("NTL")
-                                .issueTime(new Date())
-                                .expirationTime(new Date(
-                                    Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
-                                ))
-                                .jwtID(UUID.randomUUID().toString())
-                                .build();
+        JWTClaimsSet jwtClaimsSet =(verifyEmail) ? new JWTClaimsSet.Builder()
+                                                            .subject(email).issuer("NTL")
+                                                            .issueTime(new Date())
+                                                            .expirationTime(new Date(
+                                                                Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
+                                                            ))
+                                                            .jwtID(UUID.randomUUID().toString())
+                                                            .build()
+                                                : new JWTClaimsSet.Builder()
+                                                            .subject(email).issuer("NTL")
+                                                            .issueTime(new Date())
+                                                            .expirationTime(new Date(
+                                                                Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
+                                                            ))
+                                                            .jwtID(UUID.randomUUID().toString())
+                                                            .build();
         //Payload
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
 
@@ -161,6 +172,7 @@ public class AuthenticationService {
 
         String jwtID = signedJWT.getJWTClaimsSet().getJWTID();
         Date expTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+
         InvalidateToken invalidateToken = InvalidateToken.builder()
                 .id(jwtID)
                 .expiryTime(expTime)
@@ -172,8 +184,33 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email);
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
-        String token = generateToken(email);
+        String token = generateToken(email, false);
         return AuthenticationResponse.builder().authenticate(true).token(token).build();
-
     }
+
+    public String registerUser(UserCreateRequest userCreateRequest) {
+        var createdUser = userService.createUser(userCreateRequest);
+
+        String token = generateToken(createdUser.getEmail(), true);
+
+        // send email verify
+        mailService.sendEmail(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
+        return token;
+    }
+
+    public boolean verifyEmail(String token) throws JOSEException, ParseException {
+        boolean rs = introspectToken(new TokenRequest().builder().token(token).build()).isValid();
+        if(rs) {
+            var signedJWT = verifyToken(token, false);
+            String email = signedJWT.getJWTClaimsSet().getSubject();
+            User user = userRepository.findByEmail(email);
+            if(user == null) 
+                throw new AppException(ErrorCode.USER_NOT_EXISTED);
+            user.setIsVerified(true);
+            userRepository.save(user);
+        }
+        else throw new AppException(ErrorCode.UNAUTHENTICATED);
+        return true;
+    }
+
 }
