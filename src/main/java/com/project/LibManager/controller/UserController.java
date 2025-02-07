@@ -10,9 +10,11 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     UserService userService;
     MailService mailService;
@@ -37,12 +40,17 @@ public class UserController {
     }
     @GetMapping
     ApiResponse<List<UserResponse>> getUsers() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        log.info("User: {}", authentication.getName());
+        authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
+        
         return ApiResponse.<List<UserResponse>>builder()
                 .result(userService.getUsers())
                 .build();
     }
     @GetMapping("/{userId}")
-    ApiResponse<UserResponse> getUsers(@PathVariable Long userId) {
+    ApiResponse<UserResponse> getUser(@PathVariable Long userId) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getUser(userId))
                 .build();
@@ -53,6 +61,13 @@ public class UserController {
         mailService.sendEmail(fullName, token, email);
         return ApiResponse.<String>builder()
                 .result("Email sent successfully")
+                .build();
+    }
+
+    @GetMapping("/info")
+    ApiResponse<UserResponse> getMyInfo() {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
                 .build();
     }
 }

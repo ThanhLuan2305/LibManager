@@ -12,7 +12,7 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1005, "User not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
-    ROLE_NOT_EXISTED(1008, "Role not existed", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_EXISTED(1008, "Role not existed", HttpStatus.NOT_FOUND),
     NOT_BLANK(1009, "Can not be blank", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_VERIFIED(1010, "Your email is not verified", HttpStatus.BAD_REQUEST)
     ;

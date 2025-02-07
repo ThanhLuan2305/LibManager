@@ -1,27 +1,36 @@
 package com.project.LibManager.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "books")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(nullable = false)
-    private String title;
+    String title;
 
     @Column(nullable = false)
-    private String author;
+    String author;
 
     @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
-    private BookType type;
+    BookType type;
 
     @Column(nullable = false)
-    private int stock;
+    int stock;
 }
 

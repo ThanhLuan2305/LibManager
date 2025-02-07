@@ -3,9 +3,12 @@ package com.project.LibManager.service;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.Date;
+import java.util.StringJoiner;
 import java.util.UUID;
 
+import org.mapstruct.ap.shaded.freemarker.template.utility.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +29,7 @@ import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
+import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.InvalidateToken;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
@@ -61,6 +65,10 @@ public class AuthenticationService {
     @Value("${jwt.refresh-duration}")
     protected Long REFRESH_DURATION;
 
+    @NonFinal
+    @Value("${jwt.mail-duration}")
+    protected Long MAIL_DURATION; 
+
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
         User user = userRepository.findByEmail(aRequest.getEmail());
         if(user == null) 
@@ -71,29 +79,31 @@ public class AuthenticationService {
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if(!rs)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        String token = generateToken(aRequest.getEmail(), false);
+        String token = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
     } 
 
-    private String generateToken(String email, boolean verifyEmail) {
+    private String generateToken(User user, boolean verifyEmail) {
         //Header
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet =(verifyEmail) ? new JWTClaimsSet.Builder()
-                                                            .subject(email).issuer("NTL")
+                                                            .subject(user.getEmail()).issuer("NTL")
                                                             .issueTime(new Date())
                                                             .expirationTime(new Date(
-                                                                Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
+                                                                Instant.now().plus(MAIL_DURATION,ChronoUnit.SECONDS).toEpochMilli()
                                                             ))
                                                             .jwtID(UUID.randomUUID().toString())
+                                                            .claim("scope", buildScope(user))
                                                             .build()
                                                 : new JWTClaimsSet.Builder()
-                                                            .subject(email).issuer("NTL")
+                                                            .subject(user.getEmail()).issuer("NTL")
                                                             .issueTime(new Date())
                                                             .expirationTime(new Date(
                                                                 Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
                                                             ))
                                                             .jwtID(UUID.randomUUID().toString())
+                                                            .claim("scope", buildScope(user))
                                                             .build();
         //Payload
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -184,18 +194,18 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email);
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
-        String token = generateToken(email, false);
+        String token = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(true).token(token).build();
     }
 
-    public String registerUser(UserCreateRequest userCreateRequest) {
+    public UserResponse registerUser(UserCreateRequest userCreateRequest) {
         var createdUser = userService.createUser(userCreateRequest);
-
-        String token = generateToken(createdUser.getEmail(), true);
+        User user = userRepository.findByEmail(createdUser.getEmail());
+        String token = generateToken(user, true);
 
         // send email verify
         mailService.sendEmail(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
-        return token;
+        return createdUser;
     }
 
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
@@ -211,6 +221,13 @@ public class AuthenticationService {
         }
         else throw new AppException(ErrorCode.UNAUTHENTICATED);
         return true;
+    }
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        if(!user.getRoles().isEmpty()) {
+            user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
+        }
+        return stringJoiner.toString();
     }
 
 }

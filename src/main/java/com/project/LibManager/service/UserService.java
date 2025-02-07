@@ -1,5 +1,6 @@
 package com.project.LibManager.service;
 
+import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.Role;
@@ -17,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,16 +39,20 @@ public class UserService {
 
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
         if(userRepository.existsByEmail(request.getEmail())) 
         	throw new AppException(ErrorCode.USER_EXISTED);
-        Role role = roleRepository.findById(1L).orElseThrow(() -> 
+
+        Role role = roleRepository.findById(PredefinedRole.USER_ROLE).orElseThrow(() -> 
             new AppException(ErrorCode.ROLE_NOT_EXISTED));
         Set<Role> roles = new HashSet<>();
         roles.add(role);
         user.setRoles(roles);
-
+        user.setIsVerified(false);
+        
         try {
             userRepository.save(user);
         } catch (DataIntegrityViolationException exception) {
@@ -54,11 +61,21 @@ public class UserService {
 
         return userMapper.toUserResponse(user);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
         return userRepository.findAll().stream().map(userMapper::toUserResponse).toList();
     }
     public UserResponse getUser(Long id) {
         return userMapper.toUserResponse(
                     userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+    }
+
+    public UserResponse getMyInfo() {
+        var jwtContex = SecurityContextHolder.getContext();
+
+        User u = userRepository.findByEmail(jwtContex.getAuthentication().getName()); 
+        if(u == null) throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        return userMapper.toUserResponse(u);
     }
 }

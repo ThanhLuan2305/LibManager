@@ -1,38 +1,44 @@
 package com.project.LibManager.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(unique = true, nullable = false)
-    private String email;
+    String email;
 
     @Column(nullable = false)
-    private String password;
+    String password;
 
     @Column(nullable = false)
-    private Boolean isVerified = false;
+    Boolean isVerified;
 
     @Column(nullable = false)
-    private String fullName;
+    String fullName;
 
     @Column(nullable = true)
-    private LocalDate birthDate;
+    LocalDate birthDate;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
+    @ManyToMany
+    @Column(nullable = false)
+    Set<Role> roles;
 }

@@ -19,6 +19,7 @@ import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.AuthenticationService;
 
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -68,8 +69,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    ApiResponse<String> register(@RequestBody UserCreateRequest ucrRequest) throws JOSEException, ParseException {
-        return ApiResponse.<String>builder()
+    ApiResponse<UserResponse> register(@RequestBody @Valid UserCreateRequest ucrRequest) throws JOSEException, ParseException {
+        return ApiResponse.<UserResponse>builder()
                           .result(aService.registerUser(ucrRequest))
                           .message("Register successfully, please verify your email to login!")
                           .build();
