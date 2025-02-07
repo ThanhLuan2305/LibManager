@@ -13,7 +13,8 @@ public enum ErrorCode {
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
     ROLE_NOT_EXISTED(1008, "Role not existed", HttpStatus.BAD_REQUEST),
-    NOT_BLANK(1009, "Can not be blank", HttpStatus.BAD_REQUEST);
+    NOT_BLANK(1009, "Can not be blank", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_VERIFIED(1010, "Your email is not verified", HttpStatus.BAD_REQUEST)
     ;
 	private int code;
     private String message;

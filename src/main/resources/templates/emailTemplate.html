@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Xác thực Email</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        .email-container {
+            max-width: 500px;
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .email-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .email-content {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        /* Nút xác thực (dùng <a> thay vì <button>) */
+        .verify-button {
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white !important;
+            background: linear-gradient(45deg, #28a745, #218838);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: 0.3s;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .verify-button:hover {
+            background: linear-gradient(45deg, #218838, #1e7e34);
+            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .email-footer {
+            font-size: 12px;
+            color: gray;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <h2 class="email-title">Xác thực Email của bạn</h2>
+        <p class="email-content">
+            Xin chào, <strong><span th:text="${name}"></span></strong>! <br>
+            Cảm ơn bạn đã đăng ký tài khoản. Vui lòng nhấn vào nút dưới đây để xác thực email của bạn.
+        </p>
+
+        <!-- Thay nút bằng thẻ <a> để hoạt động trong email -->
+        <a class="verify-button" th:href="${verifyUrl}">
+            Xác thực Email
+        </a>
+
+        <p class="email-footer">
+            Liên kết xác thực chỉ có hiệu lực trong 1 giờ. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+        </p>
+    </div>
+</body>
+</html>
