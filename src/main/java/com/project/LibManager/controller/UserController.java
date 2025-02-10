@@ -58,7 +58,7 @@ public class UserController {
 
     @GetMapping("/email")
     ApiResponse<String> sendEmail(@RequestParam("fullName") String fullName, @RequestParam("token") String token, @RequestParam("email") String email) {
-        mailService.sendEmail(fullName, token, email);
+        mailService.sendEmailVerify(fullName, token, email);
         return ApiResponse.<String>builder()
                 .result("Email sent successfully")
                 .build();

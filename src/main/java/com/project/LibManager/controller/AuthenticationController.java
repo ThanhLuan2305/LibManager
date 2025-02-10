@@ -3,6 +3,7 @@ package com.project.LibManager.controller;
 import java.text.ParseException;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.AuthenticationRequest;
+import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.ApiResponse;
@@ -20,6 +22,7 @@ import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.AuthenticationService;
 
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -73,6 +76,40 @@ public class AuthenticationController {
         return ApiResponse.<UserResponse>builder()
                           .result(aService.registerUser(ucrRequest))
                           .message("Register successfully, please verify your email to login!")
+                          .build();
+    }
+
+    @PostMapping("/change-password")
+    ApiResponse<Boolean> changePassword(@RequestBody ChangePasswordRequest cpRequest) throws JOSEException, ParseException {
+        boolean rs = aService.changePassword(cpRequest);
+        return ApiResponse.<Boolean>builder()
+                          .message("Change password successfully")
+                          .result(rs)
+                          .build();
+    }
+
+    @PostMapping("/forget-password")
+    ApiResponse<String> forgetPassword(@RequestParam("email") String email) throws JOSEException, ParseException {
+        aService.forgetPassword(email);
+        return ApiResponse.<String>builder()
+                          .message("Please check your email to reset password")
+                          .result("success")
+                          .build();
+    }
+
+    @PostMapping("/verify-otp")
+    ApiResponse<AuthenticationResponse> verifyOtp(@RequestParam("otp") Integer otp, @RequestParam("email") String email ) throws JOSEException, ParseException {
+        return ApiResponse.<AuthenticationResponse>builder()
+                          .message("Verify OTP successfully")
+                          .result(aService.verifyOTP(otp, email))
+                          .build();
+    }
+
+    @PostMapping("/reset-password")
+    ApiResponse<String> resetPasssword(@RequestBody TokenRequest tokenRequest ) throws Exception {
+        return ApiResponse.<String>builder()
+                          .message("Reset password successfully, you can login with new password")
+                          .result(aService.resetPassword(tokenRequest.getToken()))
                           .build();
     }
 }

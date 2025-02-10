@@ -25,7 +25,7 @@ public class MailService {
      JavaMailSender javaMailSender;
      TemplateEngine templateEngine;
 
-    public void sendEmail(String fullName, String token, String email) {
+    public void sendEmailVerify(String fullName, String token, String email) {
         try {
            MimeMessage message = javaMailSender.createMimeMessage();
            MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -35,6 +35,33 @@ public class MailService {
             context.setVariable("name", fullName);
             context.setVariable("verifyUrl", "http://localhost:8080/auth/verify-email?token=" + token);
            String html = templateEngine.process("emailTemplate", context);
+
+           // Set email properties
+           helper.setTo(email);
+           helper.setSubject("Xác thực Email");
+           helper.setText(html, true);
+
+           //send the email
+           javaMailSender.send(message);
+
+        } catch (Exception e) {
+            log.error("Failed to send email", e);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+    public void sendEmailOTP( Integer otp, String email, boolean isChangePassword, String name) {
+        try {
+           MimeMessage message = javaMailSender.createMimeMessage();
+           MimeMessageHelper helper = new MimeMessageHelper(message, true);
+           
+           String caption = isChangePassword ? "Xác thực thay đổi mật khẩu" : "Xác thực thay đổi email";
+           // Process the template with the given context
+           Context context = new Context();
+            context.setVariable("caption", caption);
+            context.setVariable("name", name);
+            context.setVariable("request", caption);
+            context.setVariable("otpCode", otp);
+           String html = templateEngine.process("emailOtpTemplate", context);
 
            // Set email properties
            helper.setTo(email);
