@@ -1,6 +1,13 @@
 package com.project.LibManager.entity;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,37 +15,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
-import java.util.Set;
-
 @Entity
-@Table(name = "users")
+@Table(name = "otp_verification")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
+public class OtpVerification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(unique = true, nullable = false)
-    String email;
+    @Column(nullable = false)
+    private String email;
 
     @Column(nullable = false)
-    String password;
+    private Integer otp;
 
     @Column(nullable = false)
-    Boolean isVerified;
-
-    @Column(nullable = false)
-    String fullName;
-
-    @Column(nullable = true)
-    LocalDate birthDate;
-
-    @ManyToMany
-    @Column(nullable = false)
-    Set<Role> roles;
+    private LocalDateTime expiredAt;
 }

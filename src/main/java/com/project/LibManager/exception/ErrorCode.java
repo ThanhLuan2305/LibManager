@@ -12,9 +12,13 @@ public enum ErrorCode {
     USER_NOT_EXISTED(1005, "User not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
-    ROLE_NOT_EXISTED(1008, "Role not existed", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_EXISTED(1008, "Role not existed", HttpStatus.NOT_FOUND),
     NOT_BLANK(1009, "Can not be blank", HttpStatus.BAD_REQUEST),
-    EMAIL_NOT_VERIFIED(1010, "Your email is not verified", HttpStatus.BAD_REQUEST)
+    EMAIL_NOT_VERIFIED(1010, "Your email is not verified", HttpStatus.BAD_REQUEST),
+    OTP_NOT_EXISTED(1011, "Otp not existed", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1012, "OTP has expired", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1013, "New password must equal confirm password", HttpStatus.BAD_REQUEST),
+    PASSWORD_DUPLICATED(1014, "New password must be different from old password", HttpStatus.BAD_REQUEST),
     ;
 	private int code;
     private String message;

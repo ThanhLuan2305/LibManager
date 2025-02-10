@@ -1,6 +1,5 @@
-package com.project.LibManager.entity;
+package com.project.LibManager.dto.response;
 
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,17 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-@Entity
-@Table(name = "roles")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Role {
-    @Id
-    @Column(unique = true, nullable = false)
+public class RoleResponse {
     String name;
-
     String description;
 }

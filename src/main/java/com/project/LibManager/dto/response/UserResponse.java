@@ -1,6 +1,7 @@
 package com.project.LibManager.dto.response;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,8 +18,8 @@ import lombok.experimental.FieldDefaults;
 public class UserResponse {
 	Long id;
 	String email;
-	String password;
     String fullName;
     LocalDate birthDate;
     Boolean isVerified;
+    Set<RoleResponse> role;
 }

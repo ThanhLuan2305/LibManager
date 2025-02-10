@@ -1,13 +1,18 @@
 package com.project.LibManager.service;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Random;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,15 +27,19 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.dto.request.AuthenticationRequest;
+import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
+import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.InvalidateToken;
+import com.project.LibManager.entity.OtpVerification;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
 import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.repository.InvalidateTokenRepository;
+import com.project.LibManager.repository.OtpVerificationRepository;
 import com.project.LibManager.repository.UserRepository;
 
 import lombok.AccessLevel;
@@ -48,6 +57,8 @@ public class AuthenticationService {
     UserService userService;
     InvalidateTokenRepository invalidateTokenRepository;
     MailService mailService;
+    OtpVerificationRepository otpRepository;
+    PasswordEncoder passwordEncoder;
 
     @NonFinal
     @Value("${jwt.signing.key}")
@@ -61,39 +72,48 @@ public class AuthenticationService {
     @Value("${jwt.refresh-duration}")
     protected Long REFRESH_DURATION;
 
+    @NonFinal
+    @Value("${jwt.mail-duration}")
+    protected Long MAIL_DURATION; 
+
+    
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    private static final SecureRandom random = new SecureRandom();
+
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
         User user = userRepository.findByEmail(aRequest.getEmail());
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
         if(!user.getIsVerified()) 
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if(!rs)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        String token = generateToken(aRequest.getEmail(), false);
+        String token = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
     } 
 
-    private String generateToken(String email, boolean verifyEmail) {
+    private String generateToken(User user, boolean verifyEmail) {
         //Header
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet =(verifyEmail) ? new JWTClaimsSet.Builder()
-                                                            .subject(email).issuer("NTL")
+                                                            .subject(user.getEmail()).issuer("NTL")
                                                             .issueTime(new Date())
                                                             .expirationTime(new Date(
-                                                                Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
+                                                                Instant.now().plus(MAIL_DURATION,ChronoUnit.SECONDS).toEpochMilli()
                                                             ))
                                                             .jwtID(UUID.randomUUID().toString())
+                                                            .claim("scope", buildScope(user))
                                                             .build()
                                                 : new JWTClaimsSet.Builder()
-                                                            .subject(email).issuer("NTL")
+                                                            .subject(user.getEmail()).issuer("NTL")
                                                             .issueTime(new Date())
                                                             .expirationTime(new Date(
                                                                 Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
                                                             ))
                                                             .jwtID(UUID.randomUUID().toString())
+                                                            .claim("scope", buildScope(user))
                                                             .build();
         //Payload
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -184,18 +204,18 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email);
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
-        String token = generateToken(email, false);
+        String token = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(true).token(token).build();
     }
 
-    public String registerUser(UserCreateRequest userCreateRequest) {
+    public UserResponse registerUser(UserCreateRequest userCreateRequest) {
         var createdUser = userService.createUser(userCreateRequest);
-
-        String token = generateToken(createdUser.getEmail(), true);
+        User user = userRepository.findByEmail(createdUser.getEmail());
+        String token = generateToken(user, true);
 
         // send email verify
-        mailService.sendEmail(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
-        return token;
+        mailService.sendEmailVerify(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
+        return createdUser;
     }
 
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
@@ -211,6 +231,88 @@ public class AuthenticationService {
         }
         else throw new AppException(ErrorCode.UNAUTHENTICATED);
         return true;
+    }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        if(!user.getRoles().isEmpty()) {
+            user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
+        }
+        return stringJoiner.toString();
+    }
+
+    public boolean changePassword(ChangePasswordRequest cpRequest) {
+        var jwtContex = SecurityContextHolder.getContext();
+        String email = jwtContex.getAuthentication().getName();
+        
+        User user = userRepository.findByEmail(email);
+        if(user == null) 
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        if(!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) 
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        boolean rs = passwordEncoder.matches(cpRequest.getOldPassword(), user.getPassword());
+        if(!rs) 
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if(passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
+        }
+        user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
+        userRepository.save(user);
+        return true;
+    }
+    public void forgetPassword(String email) {
+        User user = userRepository.findByEmail(email);
+        if(user == null) 
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        if (!user.getIsVerified()) {
+            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+            
+        }
+        Integer otp = generateOTP(email);
+        mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
+    }
+    private Integer generateOTP(String email) {
+        Random random = new Random();
+        Integer otp = random.nextInt(100000,999999);
+        LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(5);
+
+        otpRepository.save(OtpVerification.builder()
+                .email(email)
+                .otp(otp)
+                .expiredAt(expiredAt)
+                .build());
+        return otp;
+    }
+    public AuthenticationResponse verifyOTP(Integer token, String email) {
+        OtpVerification otp = otpRepository.findByOtp(token);
+        User user = userRepository.findByEmail(email);
+        String tokenJWT = "";
+        if(otp == null) 
+            throw new AppException(ErrorCode.OTP_NOT_EXISTED);
+        if(otp.getExpiredAt().isBefore(LocalDateTime.now())) 
+            throw new AppException(ErrorCode.OTP_EXPIRED);
+        tokenJWT = generateToken(user, false);
+        return AuthenticationResponse.builder().authenticate(true).token(tokenJWT).build();
+    }
+    public String resetPassword(String token) throws Exception {
+        var signedJWT = verifyToken(token, false);
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+        User user = userRepository.findByEmail(email);
+        if(user == null) 
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        String password = generatePassword(9);
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+        logout(TokenRequest.builder().token(token).build());
+        return password;
+    }
+
+    public static String generatePassword(int length) {
+        StringBuilder password = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return password.toString();
     }
 
 }
