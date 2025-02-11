@@ -8,6 +8,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Data
@@ -24,6 +26,7 @@ public class UserCreateRequest {
     private String password;
     @NotBlank(message = "NOT_BLANK")
     private String fullName;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
+    @DateTimeFormat(pattern = "yyyy/MM/d") 
     private LocalDate birthDate;
 }

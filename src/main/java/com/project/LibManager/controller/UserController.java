@@ -1,6 +1,8 @@
 package com.project.LibManager.controller;
 
+import com.project.LibManager.dto.request.SearchUserRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
+import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.MailService;
@@ -14,10 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,14 +46,15 @@ public class UserController {
                 .build();
     }
     @GetMapping
-    ApiResponse<List<UserResponse>> getUsers() {
+    ApiResponse<Page<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int offset,
+                                            @RequestParam(defaultValue = "10") int limit) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
         log.info("User: {}", authentication.getName());
         authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
-        
-        return ApiResponse.<List<UserResponse>>builder()
-                .result(userService.getUsers())
+        Pageable pageable = PageRequest.of(offset, limit);
+        return ApiResponse.<Page<UserResponse>>builder()
+                .result(userService.getUsers(pageable))
                 .build();
     }
     @GetMapping("/{userId}")
@@ -68,6 +76,32 @@ public class UserController {
     ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getMyInfo())
+                .build();
+    }
+
+    @PutMapping("{id}")
+    ApiResponse<UserResponse> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
+        return ApiResponse.<UserResponse>builder()
+                .message("Update user successfully")
+                .result(userService.updateUser(id, userUpdateRequest))
+                .build();
+    }
+    
+    @DeleteMapping("{id}")
+    ApiResponse<String> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ApiResponse.<String>builder()
+                .message("Delete user successfully")
+                .build();
+    }
+
+    @GetMapping("/search") 
+    ApiResponse<Page<UserResponse>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
+                                               @RequestParam(defaultValue = "0") int offset,
+                                               @RequestParam(defaultValue = "10") int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        return ApiResponse.<Page<UserResponse>>builder()
+                .result(userService.searchUsers(searchUserRequest, pageable))
                 .build();
     }
 }
