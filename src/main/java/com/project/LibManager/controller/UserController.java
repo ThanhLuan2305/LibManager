@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -95,7 +93,7 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping("/search") 
+    @PostMapping("/search") 
     ApiResponse<Page<UserResponse>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
                                                @RequestParam(defaultValue = "0") int offset,
                                                @RequestParam(defaultValue = "10") int limit) {

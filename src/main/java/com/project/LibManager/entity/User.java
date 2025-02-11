@@ -41,4 +41,8 @@ public class User {
     @ManyToMany
     @Column(nullable = false)
     Set<Role> roles;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @Column(nullable = true)
+    Set<Borrowing> borrowings;
 }
