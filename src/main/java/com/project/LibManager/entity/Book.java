@@ -1,5 +1,8 @@
 package com.project.LibManager.entity;
 
+import java.time.LocalDate;
+import java.util.Set;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,6 +34,25 @@ public class Book {
     BookType type;
 
     @Column(nullable = false)
-    int stock;
+    int stock;  
+
+    @Column(nullable = false)
+    String publisher;
+
+    @Column(nullable = false)
+    LocalDate publishedDate;
+
+    @Column(nullable = false)
+    int maxBorrowDays;
+
+    @Column(nullable = false)
+    String location;
+
+    @Column(nullable = false)
+    String coverImageUrl;
+
+    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    @Column(nullable = true)
+    Set<Borrowing> borrowings;
 }
 

@@ -19,6 +19,8 @@ public enum ErrorCode {
     OTP_EXPIRED(1012, "OTP has expired", HttpStatus.BAD_REQUEST),
     PASSWORD_NOT_MATCH(1013, "New password must equal confirm password", HttpStatus.BAD_REQUEST),
     PASSWORD_DUPLICATED(1014, "New password must be different from old password", HttpStatus.BAD_REQUEST),
+    BOOK_NOT_EXISTED(1015, "Book not existed", HttpStatus.BAD_REQUEST),
+    BOOKTYPE_NOT_EXISTED(1015, "Book type not existed", HttpStatus.BAD_REQUEST),
     ;
 	private int code;
     private String message;

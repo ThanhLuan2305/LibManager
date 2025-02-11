@@ -1,9 +1,5 @@
-package com.project.LibManager.entity;
+package com.project.LibManager.dto.response;
 
-import java.util.Date;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,13 +8,11 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Entity
-public class InvalidateToken {
-    @Id
-    String id;
-    Date expiryTime;
+public class BookTypeResponse {
+    Long id;
+    String name;
 }
