@@ -40,6 +40,7 @@ public class MailService {
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
+           helper.setFrom("libmanage.support@gmail.com");
 
            //send the email
            javaMailSender.send(message);
@@ -67,6 +68,7 @@ public class MailService {
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
+           helper.setFrom("linmanage.support@gmail.com");
 
            //send the email
            javaMailSender.send(message);
@@ -75,5 +77,15 @@ public class MailService {
             log.error("Failed to send email", e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+    }
+
+    public void sendSimpleEmail(String to, String subject, String body) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(body);
+        message.setFrom("libmanage.support@gmail.com");
+        
+        javaMailSender.send(message);
     }
 }

@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.AuthenticationRequest;
+import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
+import com.project.LibManager.dto.request.VerifyChangeMailRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
@@ -110,6 +112,23 @@ public class AuthenticationController {
         return ApiResponse.<String>builder()
                           .message("Reset password successfully, you can login with new password")
                           .result(aService.resetPassword(tokenRequest.getToken()))
+                          .build();
+    }
+
+   @PostMapping("/change-mail")
+    ApiResponse<String> changeMail(@RequestBody ChangeMailRequest eMailRequest ) throws Exception {
+        aService.changeEmail(eMailRequest);
+        return ApiResponse.<String>builder()
+                          .message("Please verify your new email to change new email")
+                          .result("success")
+                          .build();
+    }
+    @PostMapping("/verify-change-mail")
+    ApiResponse<String> verifyChangeMail(@RequestBody VerifyChangeMailRequest eMailRequest ) throws Exception {
+        aService.verifyChangeEmail(eMailRequest);
+        return ApiResponse.<String>builder()
+                          .message("Change email successfully, you can login with new email")
+                          .result("success")
                           .build();
     }
 }
