@@ -27,9 +27,11 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.dto.request.AuthenticationRequest;
+import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
+import com.project.LibManager.dto.request.VerifyChangeMailRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
@@ -315,4 +317,39 @@ public class AuthenticationService {
         return password.toString();
     }
 
+    public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
+        OtpVerification otp = otpRepository.findByOtp(changeMailRequest.getOtp());
+        if (otp == null) {
+            throw new AppException(ErrorCode.OTP_NOT_EXISTED);
+        }
+
+        User user = userRepository.findByEmail(changeMailRequest.getOldEmail());
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
+        if (otp.getExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new AppException(ErrorCode.OTP_EXPIRED);
+        }
+
+        user.setEmail(changeMailRequest.getNewEmail());
+        userRepository.save(user);
+    }
+    
+    public void changeEmail(ChangeMailRequest cMailRequest) {
+       var jwtContex = SecurityContextHolder.getContext();
+        String email = jwtContex.getAuthentication().getName();
+
+        if(!email.equals(cMailRequest.getOldEmail())) 
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            
+        User user = userRepository.findByEmail(email);  
+        if(user == null) 
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        int otp = generateOTP(cMailRequest.getNewEmail());
+        mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
+        mailService.sendSimpleEmail(cMailRequest.getOldEmail(),"Thông báo tài khoản yêu cầu đổi email",
+                "Tài khoản của bạn đã yêu cầu đổi email, nếu không phải bạn vui lòng liên hệ với chúng tôi");
+    }
 }
