@@ -2,6 +2,7 @@ package com.project.LibManager.service;
 
 import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.UserCreateRequest;
+import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
@@ -11,6 +12,7 @@ import com.project.LibManager.mapper.UserMapper;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -36,7 +38,9 @@ public class UserService {
     UserRepository userRepository;
     RoleRepository roleRepository;
     UserMapper userMapper;
+    PasswordEncoder passwordEncoder;
 
+    @Transactional
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
 
@@ -78,4 +82,31 @@ public class UserService {
 
         return userMapper.toUserResponse(u);
     }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse updateUser(Long id, UserUpdateRequest request) {
+        try {
+            User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            userMapper.updateUser(u, request);
+            u.setPassword(passwordEncoder.encode(request.getPassword()));
+
+            var roles = roleRepository.findAllById(request.getRoles());
+            u.setRoles(new HashSet<>(roles));
+
+            userRepository.save(u);
+            return userMapper.toUserResponse(u);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(Long userId) {
+        userRepository.deleteById(userId);
+    }
+    
+
 }
