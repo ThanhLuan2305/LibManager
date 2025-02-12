@@ -5,7 +5,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Random;
 import java.util.StringJoiner;
@@ -90,7 +89,7 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if(!rs)
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
         String token = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
     } 
@@ -127,8 +126,7 @@ public class AuthenticationService {
         try {
             jwsObject.sign(new MACSigner(SIGN_KEY.getBytes()));
         } catch (JOSEException e) {
-            log.error("Cannot create token ", e);
-            e.printStackTrace();
+            log.error("Cannot create token ", e.getMessage());
         }
         return jwsObject.serialize();
     }

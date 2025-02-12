@@ -3,7 +3,6 @@ package com.project.LibManager.controller;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
+import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.BookResponse;
+import com.project.LibManager.dto.response.BorrowingResponse;
 import com.project.LibManager.service.BookService;
 
 import jakarta.validation.Valid;
@@ -40,12 +41,14 @@ public class BookController {
                 .result(bookService.getBooks(pageable))
                 .build();
     }
+
     @GetMapping("/{BookId}")
     ApiResponse<BookResponse> getBook(@PathVariable Long BookId) {
         return ApiResponse.<BookResponse>builder()
                 .result(bookService.getBook(BookId))
                 .build();
     }
+
     @PostMapping
     ApiResponse<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
         return ApiResponse.<BookResponse>builder()
@@ -79,4 +82,31 @@ public class BookController {
                 .result(bookService.searchBooks(searchBookRequest, pageable))
                 .build();
     }
+
+    @PostMapping("/borrow") 
+    ApiResponse<BorrowingResponse> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
+        return ApiResponse.<BorrowingResponse>builder()
+                .message("Borrow book is successfully!")
+                .result(bookService.borrowBook(borrowingRequest))
+                .build();
+    }
+
+    @PostMapping("/return") 
+    ApiResponse<BorrowingResponse> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
+        return ApiResponse.<BorrowingResponse>builder()
+                .message("Return book is successfully!")
+                .result(bookService.returnBook(borrowingRequest))
+                .build();
+    }
+
+    @GetMapping("/borrow-by-user")
+    ApiResponse<Page<BookResponse>> getBookBorrowByUser(@RequestParam Long userId, 
+                                                        @RequestParam(defaultValue = "0") int offset,
+                                                        @RequestParam(defaultValue = "10") int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        return ApiResponse.<Page<BookResponse>>builder()
+                .result(bookService.getBookBorrowByUser(userId, pageable))
+                .build();
+    }
 }
+
