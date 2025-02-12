@@ -46,7 +46,6 @@ public class UserService {
     PasswordEncoder passwordEncoder;
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
 
@@ -65,11 +64,11 @@ public class UserService {
         
         try {
             userRepository.save(user);
+            return userMapper.toUserResponse(user);
         } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
 
-        return userMapper.toUserResponse(user);
     }
     @PreAuthorize("hasRole('ADMIN')")
     public Page<UserResponse> getUsers(Pageable pageable) {

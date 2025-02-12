@@ -1,5 +1,7 @@
 package com.project.LibManager.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,9 +14,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
+import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.BookResponse;
-import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.dto.response.BorrowingResponse;
 import com.project.LibManager.entity.Book;
 import com.project.LibManager.entity.BookType;
 import com.project.LibManager.entity.Borrowing;
@@ -23,8 +26,10 @@ import com.project.LibManager.exception.AppException;
 import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.mapper.BookMapper;
 import com.project.LibManager.mapper.BookTypeMapper;
+import com.project.LibManager.mapper.BorrowwingMapper;
 import com.project.LibManager.repository.BookRepository;
 import com.project.LibManager.repository.BookTypeRepository;
+import com.project.LibManager.repository.BorrowingRepository;
 import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.specification.BookSpecification;
 
@@ -44,6 +49,8 @@ public class BookService {
     UserRepository userRepository;
     BookMapper bookMapper;
     BookTypeMapper bookTypeMapper;
+    BorrowingRepository borrowingRepository;
+    BorrowwingMapper borrowwingMapper;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -158,4 +165,81 @@ public class BookService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
+    public BorrowingResponse borrowBook(BorrowingRequest bRequest) {
+        Book book = bookRepository.findById(bRequest.getBookId())
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
+
+        if (book.getStock() <= 0) {
+            new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+        }
+        boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId());
+        if (alreadyBorrowed) {
+            throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
+        }
+
+        User user = userRepository.findById(bRequest.getUserId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        try {
+            LocalDate borrowDate = LocalDate.now();
+            LocalDate dueDate = borrowDate.plusDays(book.getMaxBorrowDays());
+
+            Borrowing borrowing = Borrowing.builder()
+                    .user(user)
+                    .book(book)
+                    .borrowDate(borrowDate)
+                    .dueDate(dueDate)
+                    .build();
+
+            book.setStock(book.getStock() - 1);
+            bookRepository.save(book);
+
+            return  borrowwingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+    public BorrowingResponse returnBook(BorrowingRequest bRequest) {
+        Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId())
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
+    
+        LocalDate returnDate = LocalDate.now();
+        borrowing.setReturnDate(returnDate);
+        if (returnDate.isAfter(borrowing.getDueDate())) {
+            throw new AppException(ErrorCode.BOOK_RETURN_LATE);
+        }
+    
+        try {
+            Book book = borrowing.getBook();
+            book.setStock(book.getStock() + 1);
+            bookRepository.save(book);
+        
+            return  borrowwingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
+        List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
+        if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+
+        try {
+            List<BookResponse> lstBook = borrowings.stream()
+                    .map(b -> bookMapper.toBookResponse(b.getBook()))
+                    .collect(Collectors.toList());
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), lstBook.size());
+            List<BookResponse> pageContent = lstBook.subList(start, end);
+
+            return new PageImpl<>(pageContent, pageable, lstBook.size());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+    
 }

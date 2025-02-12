@@ -1,7 +1,4 @@
-package com.project.LibManager.dto.response;
-
-import java.time.LocalDate;
-import java.util.Set;
+package com.project.LibManager.dto.request;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,15 +8,12 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
-	Long id;
-	String email;
-    String fullName;
-    LocalDate birthDate;
-    Boolean isVerified;
-    Set<RoleResponse> roles;
+public class BorrowingRequest {
+    Long userId;
+    
+    Long bookId;
 }

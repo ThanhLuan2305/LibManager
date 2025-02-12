@@ -10,5 +10,4 @@ import com.project.LibManager.entity.Book;
 public interface BookRepository extends JpaRepository<Book,Long> {
     Page<Book> findAll(Pageable pageable);
     Page<Book> findAll(Specification<Book> specification, Pageable pageable);
-    
 } 
