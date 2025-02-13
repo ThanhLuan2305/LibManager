@@ -25,6 +25,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
@@ -36,11 +37,13 @@ import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.InvalidateToken;
 import com.project.LibManager.entity.OtpVerification;
+import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
 import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.OtpVerificationRepository;
+import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 
 import lombok.AccessLevel;
@@ -51,31 +54,28 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class AuthenticationService {
-    UserRepository userRepository;
-    UserService userService;
-    InvalidateTokenRepository invalidateTokenRepository;
-    MailService mailService;
-    OtpVerificationRepository otpRepository;
-    PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final InvalidateTokenRepository invalidateTokenRepository;
+    private final MailService mailService;
+    private final OtpVerificationRepository otpRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final MaintenanceService maintenanceService;
+    private final RoleRepository roleRepository;
 
-    @NonFinal
     @Value("${jwt.signing.key}")
-    protected String SIGN_KEY;
+    private String SIGN_KEY;
 
-    @NonFinal
     @Value("${jwt.valid-duration}")
-    protected Long VALID_DURATION;
+    private Long VALID_DURATION;
 
-    @NonFinal
     @Value("${jwt.refresh-duration}")
-    protected Long REFRESH_DURATION;
+    private Long REFRESH_DURATION;
 
-    @NonFinal
     @Value("${jwt.mail-duration}")
-    protected Long MAIL_DURATION; 
+    private Long MAIL_DURATION; 
 
     
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -83,52 +83,66 @@ public class AuthenticationService {
 
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
         User user = userRepository.findByEmail(aRequest.getEmail());
+
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
         if(!user.getIsVerified()) 
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+        
+        // Check role user
+        Role role = roleRepository.findById(PredefinedRole.USER_ROLE).orElseThrow(() -> 
+            new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        if(maintenanceService.isMaintenanceMode() && user.getRoles().contains(role)) {
+            throw new AppException(ErrorCode.MAINTENACE_MODE);
+        }
+
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if(!rs)
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+
         String token = generateToken(user, false);
+
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
     } 
 
     private String generateToken(User user, boolean verifyEmail) {
-        //Header
-        JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
-
-        JWTClaimsSet jwtClaimsSet =(verifyEmail) ? new JWTClaimsSet.Builder()
-                                                            .subject(user.getEmail()).issuer("NTL")
-                                                            .issueTime(new Date())
-                                                            .expirationTime(new Date(
-                                                                Instant.now().plus(MAIL_DURATION,ChronoUnit.SECONDS).toEpochMilli()
-                                                            ))
-                                                            .jwtID(UUID.randomUUID().toString())
-                                                            .claim("scope", buildScope(user))
-                                                            .build()
-                                                : new JWTClaimsSet.Builder()
-                                                            .subject(user.getEmail()).issuer("NTL")
-                                                            .issueTime(new Date())
-                                                            .expirationTime(new Date(
-                                                                Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
-                                                            ))
-                                                            .jwtID(UUID.randomUUID().toString())
-                                                            .claim("scope", buildScope(user))
-                                                            .build();
-        //Payload
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-
-        //Build Token
-        JWSObject jwsObject = new JWSObject(jwsHeader, payload);
-
-        //Signature
         try {
+            //Header
+            JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
+
+            JWTClaimsSet jwtClaimsSet =(verifyEmail) ? new JWTClaimsSet.Builder()
+                                                                .subject(user.getEmail()).issuer("NTL")
+                                                                .issueTime(new Date())
+                                                                .expirationTime(new Date(
+                                                                    Instant.now().plus(MAIL_DURATION,ChronoUnit.SECONDS).toEpochMilli()
+                                                                ))
+                                                                .jwtID(UUID.randomUUID().toString())
+                                                                .claim("scope", buildScope(user))
+                                                                .build()
+                                                    : new JWTClaimsSet.Builder()
+                                                                .subject(user.getEmail()).issuer("NTL")
+                                                                .issueTime(new Date())
+                                                                .expirationTime(new Date(
+                                                                    Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
+                                                                ))
+                                                                .jwtID(UUID.randomUUID().toString())
+                                                                .claim("scope", buildScope(user))
+                                                                .build();
+            //Payload
+            Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+
+            //Build Token
+            JWSObject jwsObject = new JWSObject(jwsHeader, payload);
+                
+            //Signature
             jwsObject.sign(new MACSigner(SIGN_KEY.getBytes()));
+
+            return jwsObject.serialize();
         } catch (JOSEException e) {
             log.error("Cannot create token ", e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
-        return jwsObject.serialize();
     }
     
     // Verify token
