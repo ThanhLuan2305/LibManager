@@ -30,6 +30,10 @@ public class BookCreateRequest {
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
     String author;
+    
+    @NotBlank(message = "NOT_BLANK")
+    @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
+    String isbn;
 
     @NotNull(message = "NOT_BLANK")
     Long typeId;

@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookResponse {
     Long id;
+    String isbn;
     String title;
     String author;
     BookTypeResponse bookType;

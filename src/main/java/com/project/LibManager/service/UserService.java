@@ -96,31 +96,63 @@ public class UserService {
     }
 
     public UserResponse getMyInfo() {
-        var jwtContex = SecurityContextHolder.getContext();
-
-        User u = userRepository.findByEmail(jwtContex.getAuthentication().getName()); 
-        if(u == null) throw new AppException(ErrorCode.USER_NOT_EXISTED);
-
-        return userMapper.toUserResponse(u);
+        try {
+            var jwtContext = SecurityContextHolder.getContext();
+    
+            if (jwtContext == null || jwtContext.getAuthentication() == null || 
+                !jwtContext.getAuthentication().isAuthenticated()) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+    
+            String email = jwtContext.getAuthentication().getName();
+            User u = userRepository.findByEmail(email);
+    
+            if (u == null) {
+                throw new AppException(ErrorCode.USER_NOT_EXISTED);
+            }
+    
+            return userMapper.toUserResponse(u);
+        } catch (AppException e) {
+            log.error("Error getting user info: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error in getMyInfo: {}", e.getMessage(), e);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
+        User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (!request.getEmail().equals(u.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
         try {
-            User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            if( userRepository.existsByEmail(request.getEmail())) 
-                throw new AppException(ErrorCode.USER_EXISTED);
-            userMapper.updateUser(u, request);
-            u.setPassword(passwordEncoder.encode(request.getPassword()));
 
-            var roles = roleRepository.findAllById(request.getRoles());
-            u.setRoles(new HashSet<>(roles));
+            if (request.getPassword() != null && !request.getPassword().isBlank()) {
+                u.setPassword(passwordEncoder.encode(request.getPassword()));
+            }
+
+            userMapper.updateUser(u, request);
+
+            Set<Role> currentRoles = new HashSet<>(u.getRoles());
+
+            var requestedRoles = roleRepository.findAllById(request.getRoles())
+                .stream()
+                .filter(role -> !role.getName().equalsIgnoreCase("ADMIN"))
+                .collect(Collectors.toSet());
+            if (currentRoles.stream().anyMatch(role -> role.getName().equalsIgnoreCase("ADMIN"))) {
+                requestedRoles.addAll(currentRoles.stream()
+                    .filter(role -> role.getName().equalsIgnoreCase("ADMIN"))
+                    .collect(Collectors.toSet()));
+            }
+            u.setRoles(requestedRoles);
 
             userRepository.save(u);
             return userMapper.toUserResponse(u);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error updating user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
@@ -129,9 +161,20 @@ public class UserService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        Set<Role> roles = user.getRoles();
-        roles.clear();
-        userRepository.deleteById(userId);
+
+        try {
+            if (!user.getBorrowings().isEmpty()) {
+                user.setIsDeleted(true);
+                userRepository.save(user);
+            } else {
+                user.getRoles().clear();
+                userRepository.save(user);
+                userRepository.delete(user);
+            }
+        } catch (Exception e) {
+            log.error("Error deleting user: {}", e.getMessage(), e);
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -140,6 +183,7 @@ public class UserService {
         try {
             return mapUserPageUserResponsePage(userRepository.findAll(UserSpecification.filterUsers(SearchUserRequest.getFullName(), SearchUserRequest.getEmail(), SearchUserRequest.getRole(), SearchUserRequest.getFromDate(), SearchUserRequest.getToDate() ), pageable));
         } catch (Exception e) {
+            log.error("Error serching user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }

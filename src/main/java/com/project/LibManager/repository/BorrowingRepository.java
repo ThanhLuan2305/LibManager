@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.project.LibManager.entity.Book;
 import com.project.LibManager.entity.Borrowing;
 
 public interface BorrowingRepository extends JpaRepository<Borrowing,Long>{
@@ -12,4 +13,6 @@ public interface BorrowingRepository extends JpaRepository<Borrowing,Long>{
 
     Optional<Borrowing> findByUserIdAndBookIdAndReturnDateIsNull(Long userId, Long bookId);
     List<Borrowing> findByUserIdAndReturnDateIsNull(Long bookId);
+
+    boolean existsByBookAndReturnDateIsNull(Book book);
 }   
