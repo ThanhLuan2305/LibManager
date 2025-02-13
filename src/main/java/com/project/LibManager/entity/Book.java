@@ -8,12 +8,15 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "books")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,6 +25,9 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
+    @Column(nullable = false, unique = true)
+    String isbn;
 
     @Column(nullable = false)
     String title;
@@ -52,7 +58,6 @@ public class Book {
     String coverImageUrl;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    @Column(nullable = true)
     Set<Borrowing> borrowings;
 }
 

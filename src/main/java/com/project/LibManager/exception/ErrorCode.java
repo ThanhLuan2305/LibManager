@@ -27,7 +27,9 @@ public enum ErrorCode {
     CHARACTER_LIMIT_EXCEEDED(1021, "Character length must not exceed 255", HttpStatus.BAD_REQUEST),
     BIRTH_DATE_MUST_BE_IN_PAST(1022, "Birth date must be in past", HttpStatus.BAD_REQUEST),
     VALUE_OUT_OF_RANGE(1023, "Value is out of allowed range", HttpStatus.BAD_REQUEST),
-    MAINTENACE_MODE(503,"The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE)
+    MAINTENACE_MODE(503,"The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
+    BOOK_IS_CURRENTLY_BORROWED(1024,"This book is currently borrowed and cannot be deleted.", HttpStatus.BAD_REQUEST),
+    BOOK_EXISTED(1025, "Book existed", HttpStatus.BAD_REQUEST),
     ;
 	private int code;
     private String message;

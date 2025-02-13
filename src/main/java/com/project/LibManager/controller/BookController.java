@@ -1,8 +1,13 @@
 package com.project.LibManager.controller;
 
+import java.util.Map;
+import java.util.Objects;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BorrowingRequest;
@@ -52,7 +58,7 @@ public class BookController {
     @PostMapping
     ApiResponse<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
         return ApiResponse.<BookResponse>builder()
-                .message("Update Book successfully")
+                .message("Create Book successfully")
                 .result(bookService.createBook(bookCreateRequest))
                 .build();
     }
@@ -107,6 +113,23 @@ public class BookController {
         return ApiResponse.<Page<BookResponse>>builder()
                 .result(bookService.getBookBorrowByUser(userId, pageable))
                 .build();
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<Map<String, Object>> importBooks(@RequestParam("file") MultipartFile file) {
+        if (!Objects.equals(file.getContentType(), "text/csv") && !file.getOriginalFilename().endsWith(".csv")) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of(
+                "status", HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+                "error", "UNSUPPORTED_MEDIA_TYPE",
+                "message", "Only CSV files are supported."
+            ));
+        }
+
+        bookService.importBooks(file);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+            "status", HttpStatus.OK.value(),
+            "message", "Books imported successfully!"
+        ));
     }
 }
 

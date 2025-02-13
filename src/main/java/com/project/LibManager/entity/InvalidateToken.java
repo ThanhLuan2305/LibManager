@@ -2,6 +2,7 @@ package com.project.LibManager.entity;
 
 import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
@@ -20,5 +21,7 @@ import lombok.experimental.FieldDefaults;
 public class InvalidateToken {
     @Id
     String id;
+
+    @Column
     Date expiryTime;
 }

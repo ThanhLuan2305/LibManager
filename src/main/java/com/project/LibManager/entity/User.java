@@ -5,7 +5,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
@@ -13,9 +15,10 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
+@Builder
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
@@ -38,11 +41,16 @@ public class User {
     @Column(nullable = true)
     LocalDate birthDate;
 
-    @ManyToMany
-    @Column(nullable = false)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles",
+               joinColumns = @JoinColumn(name = "user_id"),
+               inverseJoinColumns = @JoinColumn(name = "role_id"))
     Set<Role> roles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    @Column(nullable = true)
     Set<Borrowing> borrowings;
+
+    @Column(nullable = false)
+    Boolean isDeleted = false;
 }
+
