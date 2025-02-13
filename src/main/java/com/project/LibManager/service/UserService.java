@@ -55,13 +55,13 @@ public class UserService {
         if(userRepository.existsByEmail(request.getEmail())) 
         	throw new AppException(ErrorCode.USER_EXISTED);
 
-        Role role = roleRepository.findById(PredefinedRole.USER_ROLE).orElseThrow(() -> 
+        Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
             new AppException(ErrorCode.ROLE_NOT_EXISTED));
         Set<Role> roles = new HashSet<>();
         roles.add(role);
         user.setRoles(roles);
         user.setIsVerified(false);
-        
+        user.setIsDeleted(false);
         try {
             userRepository.save(user);
             return userMapper.toUserResponse(user);
@@ -136,16 +136,14 @@ public class UserService {
 
             userMapper.updateUser(u, request);
 
-            Set<Role> currentRoles = new HashSet<>(u.getRoles());
+            var requestedRoles = new HashSet<>(roleRepository.findByNameIn(request.getRoles()));
 
-            var requestedRoles = roleRepository.findAllById(request.getRoles())
-                .stream()
-                .filter(role -> !role.getName().equalsIgnoreCase("ADMIN"))
-                .collect(Collectors.toSet());
-            if (currentRoles.stream().anyMatch(role -> role.getName().equalsIgnoreCase("ADMIN"))) {
-                requestedRoles.addAll(currentRoles.stream()
+            requestedRoles.removeIf(role -> role.getName().equalsIgnoreCase("ADMIN"));
+
+            if (requestedRoles.stream().anyMatch(role -> role.getName().equalsIgnoreCase("ADMIN"))) {
+                requestedRoles.stream()
                     .filter(role -> role.getName().equalsIgnoreCase("ADMIN"))
-                    .collect(Collectors.toSet()));
+                    .forEach(requestedRoles::add);
             }
             u.setRoles(requestedRoles);
 

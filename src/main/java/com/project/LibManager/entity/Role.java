@@ -1,5 +1,7 @@
 package com.project.LibManager.entity;
 
+import java.util.Set;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,9 +19,15 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+
     @Column(unique = true, nullable = false)
     String name;
 
     @Column
     String description;
+
+    @ManyToMany(mappedBy = "roles")
+    Set<User> users;
 }

@@ -65,6 +65,7 @@ public class BookService {
     BorrowwingMapper borrowwingMapper;
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public BookResponse createBook(BookCreateRequest bookCreateRequest) {
         if (bookCreateRequest == null) {
             log.error("BookCreateRequest is null");
@@ -96,6 +97,7 @@ public class BookService {
 
 
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public BookResponse updateBook(BookCreateRequest bookCreateRequest, Long bookId) {
         if (bookCreateRequest == null) {
             log.error("BookCreateRequest is null");

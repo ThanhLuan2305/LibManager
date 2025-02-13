@@ -91,7 +91,7 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
         
         // Check role user
-        Role role = roleRepository.findById(PredefinedRole.USER_ROLE).orElseThrow(() -> 
+        Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
             new AppException(ErrorCode.ROLE_NOT_EXISTED));
         if(maintenanceService.isMaintenanceMode() && user.getRoles().contains(role)) {
             throw new AppException(ErrorCode.MAINTENACE_MODE);
@@ -249,6 +249,9 @@ public class AuthenticationService {
 
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
+        
+        log.info("Email of user: {}",user.getEmail());
+        log.info("Role of user: {}",user.getRoles());
         if(!user.getRoles().isEmpty()) {
             user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
         }

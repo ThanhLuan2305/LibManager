@@ -47,6 +47,7 @@ public class ApplicationInitConfig {
                         .password(passwordEncoder.encode("admin123"))
                         .isVerified(true)
                         .fullName("ADMIN")
+                        .isDeleted(false)
                         .roles(roles)
                         .build();
 
