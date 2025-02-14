@@ -16,6 +16,7 @@ import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.MaintenanceResponse;
 import com.project.LibManager.service.MaintenanceService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,6 +25,7 @@ import lombok.experimental.FieldDefaults;
 @RequestMapping("/config")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@SecurityRequirement(name = "JWT Authentication")
 public class MaintenanceController {
     MaintenanceService maintenanceService;
     @PostMapping("/maintenance/{status}")

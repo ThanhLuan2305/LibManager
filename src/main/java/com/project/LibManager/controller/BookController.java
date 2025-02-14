@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
+import com.project.LibManager.dto.request.BookUpdateRequest;
 import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.ApiResponse;
@@ -27,6 +28,7 @@ import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
 import com.project.LibManager.service.BookService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ import lombok.experimental.FieldDefaults;
 @RequestMapping("/books")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@SecurityRequirement(name = "JWT Authentication")
 public class BookController {
     BookService bookService;
 
@@ -48,10 +51,10 @@ public class BookController {
                 .build();
     }
 
-    @GetMapping("/{BookId}")
-    ApiResponse<BookResponse> getBook(@PathVariable Long BookId) {
+    @GetMapping("/{bokId}")
+    ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
         return ApiResponse.<BookResponse>builder()
-                .result(bookService.getBook(BookId))
+                .result(bookService.getBook(bookId))
                 .build();
     }
 
@@ -64,10 +67,10 @@ public class BookController {
     }
 
     @PutMapping("{id}")
-    ApiResponse<BookResponse> updateBook(@RequestBody @Valid BookCreateRequest bookCreateRequest, @PathVariable Long id) {
+    ApiResponse<BookResponse> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, @PathVariable Long id) {
         return ApiResponse.<BookResponse>builder()
                 .message("Update Book successfully")
-                .result(bookService.updateBook(bookCreateRequest, id))
+                .result(bookService.updateBook(bookUpdateRequest, id))
                 .build();
     }
     

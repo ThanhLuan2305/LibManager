@@ -25,8 +25,23 @@ public class SercurityConfig {
         "/auth/verify-email",
         "/auth/forget-password",
         "/auth/reset-password",
-        "auth/verify-otp",
+        "/auth/verify-otp",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/v3/api-docs",
+        "/swagger-resources/**",
+        "/webjars/**"
     };
+    private final String[] PUBLIC_ENDPOINTS_GET = {
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/swagger-ui.html",
+        "/webjars/**",
+        "/v3/api-docs.yaml",
+        "/assets/**",
+        "/favicon.ico",
+    };
+    
 
     @Autowired
     CustomDecoder customDecoder;
@@ -34,8 +49,8 @@ public class SercurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request -> request
-        .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
-        .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINTS_GET).permitAll()
                 .anyRequest()
                 .authenticated());
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
@@ -44,7 +59,7 @@ public class SercurityConfig {
                                                     .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                             .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
         );
-        httpSecurity.csrf(httpSCCsrConfig -> httpSCCsrConfig.disable());
+        httpSecurity.csrf(csrf -> csrf.disable());
         return httpSecurity.build();
     }
 

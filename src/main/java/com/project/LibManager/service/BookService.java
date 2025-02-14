@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
+import com.project.LibManager.dto.request.BookUpdateRequest;
 import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.BookResponse;
@@ -98,8 +99,8 @@ public class BookService {
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    public BookResponse updateBook(BookCreateRequest bookCreateRequest, Long bookId) {
-        if (bookCreateRequest == null) {
+    public BookResponse updateBook(BookUpdateRequest bookUpdateRequest, Long bookId) {
+        if (bookUpdateRequest == null) {
             log.error("BookCreateRequest is null");
             throw new AppException(ErrorCode.INVALID_KEY);
         }
@@ -107,17 +108,17 @@ public class BookService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
-        BookType type = bookTypeRepository.findById(bookCreateRequest.getTypeId())
+        BookType type = bookTypeRepository.findById(bookUpdateRequest.getTypeId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED));
 
         try {
-            if (!book.getIsbn().equals(bookCreateRequest.getIsbn())) {
-                if (bookRepository.findByIsbn(bookCreateRequest.getIsbn()).isPresent()) {
+            if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())) {
+                if (bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
                     throw new AppException(ErrorCode.BOOK_EXISTED);
                 }
             }
 
-            bookMapper.updateBook(book, bookCreateRequest);
+            bookMapper.updateBook(book, bookUpdateRequest);
             book.setType(type);
             return bookMapper.toBookResponse(bookRepository.save(book));
         } catch (DataAccessException e) {
