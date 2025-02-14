@@ -8,6 +8,7 @@ import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.MailService;
 import com.project.LibManager.service.UserService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @Slf4j
+@SecurityRequirement(name = "JWT Authentication")
 public class UserController {
     UserService userService;
     MailService mailService;
