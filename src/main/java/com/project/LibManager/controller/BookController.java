@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class BookController {
     private final IBookService bookService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ApiResponse<Page<BookResponse>> getBooks(@RequestParam(defaultValue = "0") int offset,
                                             @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
@@ -48,14 +48,14 @@ public class BookController {
                 .build();
     }
 
-    @GetMapping("/{bookId}")
+    @GetMapping("/detail/{bookId}")
     public ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
         return ApiResponse.<BookResponse>builder()
                 .result(bookService.getBook(bookId))
                 .build();
     }
 
-    @PostMapping
+    @PostMapping("/admin")
     public ApiResponse<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
         return ApiResponse.<BookResponse>builder()
                 .message("Create Book successfully")
@@ -63,7 +63,7 @@ public class BookController {
                 .build();
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/admin/{id}")
     public ApiResponse<BookResponse> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, @PathVariable Long id) {
         return ApiResponse.<BookResponse>builder()
                 .message("Update Book successfully")
@@ -71,7 +71,7 @@ public class BookController {
                 .build();
     }
     
-    @DeleteMapping("{id}")
+    @DeleteMapping("/admin/{id}")
     public ApiResponse<String> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ApiResponse.<String>builder()
@@ -89,7 +89,7 @@ public class BookController {
                 .build();
     }
 
-    @PostMapping("/borrow") 
+    @PostMapping("/user/borrow") 
     public ApiResponse<BorrowingResponse> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
         return ApiResponse.<BorrowingResponse>builder()
                 .message("Borrow book is successfully!")
@@ -97,7 +97,7 @@ public class BookController {
                 .build();
     }
 
-    @PostMapping("/return") 
+    @PostMapping("/user/return") 
     public ApiResponse<BorrowingResponse> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
         return ApiResponse.<BorrowingResponse>builder()
                 .message("Return book is successfully!")
@@ -105,7 +105,7 @@ public class BookController {
                 .build();
     }
 
-    @GetMapping("/borrow-by-user")
+    @GetMapping("/admin/borrow-by-user")
     public ApiResponse<Page<BookResponse>> getBookBorrowByUser(@RequestParam Long userId, 
                                                         @RequestParam(defaultValue = "0") int offset,
                                                         @RequestParam(defaultValue = "10") int limit) {
@@ -115,7 +115,7 @@ public class BookController {
                 .build();
     }
 
-    @PostMapping("/import")
+    @PostMapping("/admin/import")
     public ResponseEntity<Map<String, Object>> importBooks(@RequestParam("file") MultipartFile file) {
         if (!Objects.equals(file.getContentType(), "text/csv") && !file.getOriginalFilename().endsWith(".csv")) {
             return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Map.of(

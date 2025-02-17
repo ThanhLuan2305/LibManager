@@ -38,13 +38,13 @@ public class UserController {
     private final IUserService userService;
     private final IMailService mailService;
 
-    @PostMapping
+    @PostMapping("/admin")
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(userCreateRequest))
                 .build();
     }
-    @GetMapping
+    @GetMapping("/admin")
     public ApiResponse<Page<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int offset,
                                             @RequestParam(defaultValue = "10") int limit) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -56,14 +56,14 @@ public class UserController {
                 .result(userService.getUsers(pageable))
                 .build();
     }
-    @GetMapping("/{userId}")
+    @GetMapping("/admin/{userId}")
     public ApiResponse<UserResponse> getUser(@PathVariable Long userId) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getUser(userId))
                 .build();
     }
 
-    @GetMapping("/email")
+    @GetMapping("/admin/email")
     public ApiResponse<String> sendEmail(@RequestParam("fullName") String fullName, @RequestParam("token") String token, @RequestParam("email") String email) {
         mailService.sendEmailVerify(fullName, token, email);
         return ApiResponse.<String>builder()
@@ -71,14 +71,14 @@ public class UserController {
                 .build();
     }
 
-    @GetMapping("/info")
+    @GetMapping("/user/info")
     public ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getMyInfo())
                 .build();
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/admin/{id}")
     public ApiResponse<UserResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .message("Update user successfully")
@@ -86,7 +86,7 @@ public class UserController {
                 .build();
     }
     
-    @DeleteMapping("{id}")
+    @DeleteMapping("/admin/{id}")
     public ApiResponse<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ApiResponse.<String>builder()
@@ -94,7 +94,7 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping("/search") 
+    @PostMapping("/admin/search") 
     public ApiResponse<Page<UserResponse>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
                                                @RequestParam(defaultValue = "0") int offset,
                                                @RequestParam(defaultValue = "10") int limit) {

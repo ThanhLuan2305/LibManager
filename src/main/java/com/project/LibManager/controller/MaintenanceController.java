@@ -24,8 +24,7 @@ import lombok.RequiredArgsConstructor;
 @SecurityRequirement(name = "JWT Authentication")
 public class MaintenanceController {
     private final IMaintenanceService maintenanceService;
-    @PostMapping("/maintenance/{status}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/admin/maintenance/{status}")
     public ApiResponse<Void> setMaintenanceMode(@PathVariable boolean status) {
         maintenanceService.setMaintenanceMode(status);
         return ApiResponse.<Void>builder()
@@ -33,8 +32,7 @@ public class MaintenanceController {
                 .build();
     }
 
-    @GetMapping("/maintenance/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/maintenance/status")
     public ApiResponse<MaintenanceResponse> getMaintenanceMode() {
         boolean isMaintenance = maintenanceService.isMaintenanceMode();
         
