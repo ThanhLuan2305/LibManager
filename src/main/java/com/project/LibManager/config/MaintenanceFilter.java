@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.LibManager.exception.ErrorCode;
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.service.MaintenanceService;
 
 import jakarta.servlet.Filter;

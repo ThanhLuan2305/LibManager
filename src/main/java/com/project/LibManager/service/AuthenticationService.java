@@ -25,6 +25,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
@@ -40,16 +41,12 @@ import com.project.LibManager.entity.OtpVerification;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.OtpVerificationRepository;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 @Service

@@ -1,14 +1,11 @@
 package com.project.LibManager.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
@@ -19,26 +16,25 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Borrowing {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    User user;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
-    Book book;
+    private Book book;
 
     @Column(nullable = false)
-    LocalDate borrowDate;
+    private LocalDate borrowDate;
 
     @Column(nullable = false)
-    LocalDate dueDate;
+    private LocalDate dueDate;
 
     @Column
-    LocalDate returnDate;
+    private LocalDate returnDate;
 }

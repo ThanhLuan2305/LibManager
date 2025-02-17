@@ -4,14 +4,11 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "books")
@@ -20,44 +17,43 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
-    String isbn;
+    private String isbn;
 
     @Column(nullable = false)
-    String title;
+    private String title;
 
     @Column(nullable = false)
-    String author;
+    private String author;
 
     @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
-    BookType type;
+    private BookType type;
 
     @Column(nullable = false)
-    int stock;  
+    private int stock;  
 
     @Column(nullable = false)
-    String publisher;
+    private String publisher;
 
     @Column(nullable = false)
-    LocalDate publishedDate;
+    private LocalDate publishedDate;
 
     @Column(nullable = false)
-    int maxBorrowDays;
+    private int maxBorrowDays;
 
     @Column(nullable = false)
-    String location;
+    private String location;
 
     @Column(nullable = false)
-    String coverImageUrl;
+    private String coverImageUrl;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    Set<Borrowing> borrowings;
+    private Set<Borrowing> borrowings;
 }
 

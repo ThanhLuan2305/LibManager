@@ -12,16 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class LoggingAspect {
-    private final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
     @Before("execution(* com.project.LibManager.service.*.*(..))") 
     public void logBeforeMethod(JoinPoint joinPoint) {
-        log.info("Starting method execution: " + joinPoint.getSignature().toShortString());
+        log.info("Starting method execution: {}", joinPoint.getSignature().toShortString());
     }
 
     @After("execution(* com.project.LibManager.service.*.*(..))") 
     public void logAfterMethod(JoinPoint joinPoint) {
-        log.info("Method execution completed: " + joinPoint.getSignature().toShortString());
+        log.info("Method execution completed: {}", joinPoint.getSignature().toShortString());
     }
 
     @AfterReturning(value = "execution(* com.project.LibManager.service.*.*(..))", returning = "result")

@@ -1,5 +1,6 @@
 package com.project.LibManager.service;
 
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.SearchUserRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
@@ -8,16 +9,13 @@ import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.mapper.UserMapper;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.specification.UserSpecification;
 
 import jakarta.transaction.Transactional;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -37,13 +35,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class UserService {
-    UserRepository userRepository;
-    RoleRepository roleRepository;
-    UserMapper userMapper;
-    PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponse createUser(UserCreateRequest request) {

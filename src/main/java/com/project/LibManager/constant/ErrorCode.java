@@ -1,4 +1,4 @@
-package com.project.LibManager.exception;
+package com.project.LibManager.constant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;

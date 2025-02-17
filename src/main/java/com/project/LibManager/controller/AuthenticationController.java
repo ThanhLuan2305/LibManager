@@ -24,34 +24,31 @@ import com.project.LibManager.service.AuthenticationService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequestMapping("/auth")
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class AuthenticationController {
-    AuthenticationService aService;
+    private final AuthenticationService aService;
 
     @PostMapping("/login")
-    ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest aRequest) {
+    public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest aRequest) {
         var rs = aService.authenticate(aRequest);
         return ApiResponse.<AuthenticationResponse>builder()
                           .result(rs)
                           .build();
     }
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspectToken(@RequestBody TokenRequest introspectRequest) throws JOSEException, ParseException {
+    public ApiResponse<IntrospectResponse> introspectToken(@RequestBody TokenRequest introspectRequest) throws JOSEException, ParseException {
         return ApiResponse.<IntrospectResponse>builder()
                           .result(aService.introspectToken(introspectRequest))
                           .build();
     }
     @PostMapping("/logout")
-    ApiResponse<Void> logout(@RequestBody TokenRequest lRequest) throws ParseException, Exception {
+    public ApiResponse<Void> logout(@RequestBody TokenRequest lRequest) throws ParseException, Exception {
         aService.logout(lRequest);
         return ApiResponse.<Void>builder()
                           .message("Logout successfully")
@@ -59,14 +56,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    ApiResponse<AuthenticationResponse> refreshToken(@RequestBody TokenRequest rfRequest) throws JOSEException, ParseException {
+    public ApiResponse<AuthenticationResponse> refreshToken(@RequestBody TokenRequest rfRequest) throws JOSEException, ParseException {
         return ApiResponse.<AuthenticationResponse>builder()
                           .result(aService.refreshToken(rfRequest))
                           .build();
     }
 
     @GetMapping("/verify-email")
-    ApiResponse<Boolean> verifyEmail(@RequestParam("token") String token) throws JOSEException, ParseException {
+    public ApiResponse<Boolean> verifyEmail(@RequestParam("token") String token) throws JOSEException, ParseException {
         return ApiResponse.<Boolean>builder()
                           .result(aService.verifyEmail(token))
                           .message("Verify email successfully")
@@ -74,7 +71,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    ApiResponse<UserResponse> register(@RequestBody @Valid UserCreateRequest ucrRequest) throws JOSEException, ParseException {
+    public ApiResponse<UserResponse> register(@RequestBody @Valid UserCreateRequest ucrRequest) throws JOSEException, ParseException {
         return ApiResponse.<UserResponse>builder()
                           .result(aService.registerUser(ucrRequest))
                           .message("Register successfully, please verify your email to login!")
@@ -82,7 +79,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/change-password")
-    ApiResponse<Boolean> changePassword(@RequestBody ChangePasswordRequest cpRequest) throws JOSEException, ParseException {
+    public ApiResponse<Boolean> changePassword(@RequestBody ChangePasswordRequest cpRequest) throws JOSEException, ParseException {
         boolean rs = aService.changePassword(cpRequest);
         return ApiResponse.<Boolean>builder()
                           .message("Change password successfully")
@@ -91,7 +88,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forget-password")
-    ApiResponse<String> forgetPassword(@RequestParam("email") String email) throws JOSEException, ParseException {
+    public ApiResponse<String> forgetPassword(@RequestParam("email") String email) throws JOSEException, ParseException {
         aService.forgetPassword(email);
         return ApiResponse.<String>builder()
                           .message("Please check your email to reset password")
@@ -100,7 +97,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify-otp")
-    ApiResponse<AuthenticationResponse> verifyOtp(@RequestParam("otp") Integer otp, @RequestParam("email") String email ) throws JOSEException, ParseException {
+    public ApiResponse<AuthenticationResponse> verifyOtp(@RequestParam("otp") Integer otp, @RequestParam("email") String email ) throws JOSEException, ParseException {
         return ApiResponse.<AuthenticationResponse>builder()
                           .message("Verify OTP successfully")
                           .result(aService.verifyOTP(otp, email))
@@ -108,7 +105,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/reset-password")
-    ApiResponse<String> resetPasssword(@RequestBody TokenRequest tokenRequest ) throws Exception {
+    public ApiResponse<String> resetPasssword(@RequestBody TokenRequest tokenRequest ) throws Exception {
         return ApiResponse.<String>builder()
                           .message("Reset password successfully, you can login with new password")
                           .result(aService.resetPassword(tokenRequest.getToken()))
@@ -116,7 +113,7 @@ public class AuthenticationController {
     }
 
    @PostMapping("/change-mail")
-    ApiResponse<String> changeMail(@RequestBody ChangeMailRequest eMailRequest ) throws Exception {
+   public ApiResponse<String> changeMail(@RequestBody ChangeMailRequest eMailRequest ) throws Exception {
         aService.changeEmail(eMailRequest);
         return ApiResponse.<String>builder()
                           .message("Please verify your new email to change new email")
@@ -124,7 +121,7 @@ public class AuthenticationController {
                           .build();
     }
     @PostMapping("/verify-change-mail")
-    ApiResponse<String> verifyChangeMail(@RequestBody VerifyChangeMailRequest eMailRequest ) throws Exception {
+    public ApiResponse<String> verifyChangeMail(@RequestBody VerifyChangeMailRequest eMailRequest ) throws Exception {
         aService.verifyChangeEmail(eMailRequest);
         return ApiResponse.<String>builder()
                           .message("Change email successfully, you can login with new email")

@@ -12,22 +12,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.MaintenanceResponse;
 import com.project.LibManager.service.MaintenanceService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequestMapping("/config")
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class MaintenanceController {
-    MaintenanceService maintenanceService;
+    private final MaintenanceService maintenanceService;
     @PostMapping("/maintenance/{status}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> setMaintenanceMode(@PathVariable boolean status) {

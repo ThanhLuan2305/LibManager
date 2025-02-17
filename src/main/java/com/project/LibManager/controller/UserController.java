@@ -31,22 +31,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @Slf4j
 @SecurityRequirement(name = "JWT Authentication")
 public class UserController {
-    UserService userService;
-    MailService mailService;
+    private final UserService userService;
+    private final MailService mailService;
 
     @PostMapping
-    ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(userCreateRequest))
                 .build();
     }
     @GetMapping
-    ApiResponse<Page<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int offset,
+    public ApiResponse<Page<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int offset,
                                             @RequestParam(defaultValue = "10") int limit) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -58,14 +57,14 @@ public class UserController {
                 .build();
     }
     @GetMapping("/{userId}")
-    ApiResponse<UserResponse> getUser(@PathVariable Long userId) {
+    public ApiResponse<UserResponse> getUser(@PathVariable Long userId) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getUser(userId))
                 .build();
     }
 
     @GetMapping("/email")
-    ApiResponse<String> sendEmail(@RequestParam("fullName") String fullName, @RequestParam("token") String token, @RequestParam("email") String email) {
+    public ApiResponse<String> sendEmail(@RequestParam("fullName") String fullName, @RequestParam("token") String token, @RequestParam("email") String email) {
         mailService.sendEmailVerify(fullName, token, email);
         return ApiResponse.<String>builder()
                 .result("Email sent successfully")
@@ -73,14 +72,14 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    ApiResponse<UserResponse> getMyInfo() {
+    public ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getMyInfo())
                 .build();
     }
 
     @PutMapping("{id}")
-    ApiResponse<UserResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
+    public ApiResponse<UserResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .message("Update user successfully")
                 .result(userService.updateUser(id, userUpdateRequest))
@@ -88,7 +87,7 @@ public class UserController {
     }
     
     @DeleteMapping("{id}")
-    ApiResponse<String> deleteUser(@PathVariable Long id) {
+    public ApiResponse<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ApiResponse.<String>builder()
                 .message("Delete user successfully")
@@ -96,7 +95,7 @@ public class UserController {
     }
 
     @PostMapping("/search") 
-    ApiResponse<Page<UserResponse>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
+    public ApiResponse<Page<UserResponse>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
                                                @RequestParam(defaultValue = "0") int offset,
                                                @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);

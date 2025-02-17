@@ -30,20 +30,17 @@ import com.project.LibManager.service.BookService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 @RestController
 @RequestMapping("/books")
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class BookController {
-    BookService bookService;
+    private final BookService bookService;
 
     @GetMapping
-    ApiResponse<Page<BookResponse>> getBooks(@RequestParam(defaultValue = "0") int offset,
+    public ApiResponse<Page<BookResponse>> getBooks(@RequestParam(defaultValue = "0") int offset,
                                             @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
         return ApiResponse.<Page<BookResponse>>builder()
@@ -52,14 +49,14 @@ public class BookController {
     }
 
     @GetMapping("/{bokId}")
-    ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
+    public ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
         return ApiResponse.<BookResponse>builder()
                 .result(bookService.getBook(bookId))
                 .build();
     }
 
     @PostMapping
-    ApiResponse<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
+    public ApiResponse<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
         return ApiResponse.<BookResponse>builder()
                 .message("Create Book successfully")
                 .result(bookService.createBook(bookCreateRequest))
@@ -67,7 +64,7 @@ public class BookController {
     }
 
     @PutMapping("{id}")
-    ApiResponse<BookResponse> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, @PathVariable Long id) {
+    public ApiResponse<BookResponse> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, @PathVariable Long id) {
         return ApiResponse.<BookResponse>builder()
                 .message("Update Book successfully")
                 .result(bookService.updateBook(bookUpdateRequest, id))
@@ -75,7 +72,7 @@ public class BookController {
     }
     
     @DeleteMapping("{id}")
-    ApiResponse<String> deleteBook(@PathVariable Long id) {
+    public ApiResponse<String> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ApiResponse.<String>builder()
                 .message("Delete Book successfully")
@@ -83,7 +80,7 @@ public class BookController {
     }
 
     @PostMapping("/search") 
-    ApiResponse<Page<BookResponse>> searchBooks(@RequestBody @Valid SearchBookRequest searchBookRequest,
+    public ApiResponse<Page<BookResponse>> searchBooks(@RequestBody @Valid SearchBookRequest searchBookRequest,
                                                @RequestParam(defaultValue = "0") int offset,
                                                @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
@@ -93,7 +90,7 @@ public class BookController {
     }
 
     @PostMapping("/borrow") 
-    ApiResponse<BorrowingResponse> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
+    public ApiResponse<BorrowingResponse> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
         return ApiResponse.<BorrowingResponse>builder()
                 .message("Borrow book is successfully!")
                 .result(bookService.borrowBook(borrowingRequest))
@@ -101,7 +98,7 @@ public class BookController {
     }
 
     @PostMapping("/return") 
-    ApiResponse<BorrowingResponse> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
+    public ApiResponse<BorrowingResponse> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
         return ApiResponse.<BorrowingResponse>builder()
                 .message("Return book is successfully!")
                 .result(bookService.returnBook(borrowingRequest))
@@ -109,7 +106,7 @@ public class BookController {
     }
 
     @GetMapping("/borrow-by-user")
-    ApiResponse<Page<BookResponse>> getBookBorrowByUser(@RequestParam Long userId, 
+    public ApiResponse<Page<BookResponse>> getBookBorrowByUser(@RequestParam Long userId, 
                                                         @RequestParam(defaultValue = "0") int offset,
                                                         @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);

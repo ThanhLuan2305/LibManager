@@ -2,6 +2,7 @@ package com.project.LibManager.config;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,31 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SercurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {
-        "/auth/login",
-        "/auth/introspect",
-        "/auth/logout",
-        "/auth/refresh",
-        "/auth/register",
-        "/auth/verify-email",
-        "/auth/forget-password",
-        "/auth/reset-password",
-        "/auth/verify-otp",
-        "/swagger-ui/**",
-        "/v3/api-docs/**",
-        "/v3/api-docs",
-        "/swagger-resources/**",
-        "/webjars/**"
-    };
-    private final String[] PUBLIC_ENDPOINTS_GET = {
-        "/swagger-ui/**",
-        "/v3/api-docs/**",
-        "/swagger-ui.html",
-        "/webjars/**",
-        "/v3/api-docs.yaml",
-        "/assets/**",
-        "/favicon.ico",
-    };
+    @Value("#{'${security.public-endpoints-post}'.split(',')}")
+    private String[] PUBLIC_ENDPOINTS;
+
+    @Value("#{'${security.public-endpoints-get}'.split(',')}")
+    private String[] PUBLIC_ENDPOINTS_GET;
     
 
     @Autowired

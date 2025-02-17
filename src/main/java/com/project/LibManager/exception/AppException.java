@@ -1,5 +1,7 @@
 package com.project.LibManager.exception;
 
+import com.project.LibManager.constant.ErrorCode;
+
 public class AppException extends RuntimeException  {
 	public AppException(ErrorCode errorCode) {
         super(errorCode.getMessage());

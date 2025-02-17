@@ -5,18 +5,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
 import com.project.LibManager.dto.request.BorrowingRequest;
@@ -36,7 +33,6 @@ import com.project.LibManager.entity.BookType;
 import com.project.LibManager.entity.Borrowing;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.mapper.BookMapper;
 import com.project.LibManager.mapper.BookTypeMapper;
 import com.project.LibManager.mapper.BorrowwingMapper;
@@ -47,23 +43,20 @@ import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.specification.BookSpecification;
 
 import jakarta.transaction.Transactional;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class BookService {
-    BookRepository bookRepository;
-    BookTypeRepository bookTypeRepository;
-    UserRepository userRepository;
-    BookMapper bookMapper;
-    BookTypeMapper bookTypeMapper;
-    BorrowingRepository borrowingRepository;
-    BorrowwingMapper borrowwingMapper;
+    private final BookRepository bookRepository;
+    private final BookTypeRepository bookTypeRepository;
+    private final UserRepository userRepository;
+    private final BookMapper bookMapper;
+    private final BookTypeMapper bookTypeMapper;
+    private final BorrowingRepository borrowingRepository;
+    private final BorrowwingMapper borrowwingMapper;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")

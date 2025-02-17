@@ -7,8 +7,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.exception.ErrorCode;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
