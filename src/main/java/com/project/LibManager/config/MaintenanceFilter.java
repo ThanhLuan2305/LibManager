@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.service.MaintenanceService;
+import com.project.LibManager.service.IMaintenanceService;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -22,8 +22,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class MaintenanceFilter  implements Filter {
-    private final MaintenanceService maintenanceService;
-    public MaintenanceFilter(MaintenanceService maintenanceService) {
+    private final IMaintenanceService maintenanceService;
+    public MaintenanceFilter(IMaintenanceService maintenanceService) {
         this.maintenanceService = maintenanceService;
     }
 

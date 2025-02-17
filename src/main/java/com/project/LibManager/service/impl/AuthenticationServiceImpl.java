@@ -1,4 +1,4 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
@@ -45,6 +45,10 @@ import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.OtpVerificationRepository;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
+import com.project.LibManager.service.IAuthenticationService;
+import com.project.LibManager.service.MailService;
+import com.project.LibManager.service.IMaintenanceService;
+import com.project.LibManager.service.IUserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,14 +56,14 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements IAuthenticationService {
     private final UserRepository userRepository;
-    private final UserService userService;
+    private final IUserService userService;
     private final InvalidateTokenRepository invalidateTokenRepository;
     private final MailService mailService;
     private final OtpVerificationRepository otpRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MaintenanceService maintenanceService;
+    private final IMaintenanceService maintenanceService;
     private final RoleRepository roleRepository;
 
     @Value("${jwt.signing.key}")
@@ -74,13 +78,13 @@ public class AuthenticationService {
     @Value("${jwt.mail-duration}")
     private Long MAIL_DURATION; 
 
-    
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
     private static final SecureRandom random = new SecureRandom();
 
+    // check user login
+    @Override
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
         User user = userRepository.findByEmail(aRequest.getEmail());
-
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
 
@@ -101,9 +105,10 @@ public class AuthenticationService {
         String token = generateToken(user, false);
 
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
-    } 
+    }
 
-    private String generateToken(User user, boolean verifyEmail) {
+    @Override
+    public String generateToken(User user, boolean verifyEmail) {
         try {
             //Header
             JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
@@ -141,23 +146,26 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
-    
-    // Verify token
-    public IntrospectResponse introspectToken(TokenRequest iRequest) throws JOSEException, ParseException {
+
+    @Override
+    public IntrospectResponse introspectToken(TokenRequest iRequest) {
         String token = iRequest.getToken();
         boolean invalid = true;
 
         try {
             verifyToken(token, false);
+            return IntrospectResponse.builder().valid(invalid).build();
         } catch (Exception e) {
             invalid = false;
+            log.error(token, e);
+            throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
         }
 
-        return IntrospectResponse.builder().valid(invalid).build(); 
     }
-
-    // Logout user
-    public void logout(TokenRequest aRequest) throws Exception, ParseException {
+    
+    // Log out
+    @Override
+    public void logout(TokenRequest aRequest) throws ParseException, JOSEException {
         try {
             var signToken = verifyToken(aRequest.getToken(), false); 
 
@@ -175,7 +183,9 @@ public class AuthenticationService {
         }   
     }
 
-    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
+    // Check token
+    @Override
+    public SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGN_KEY.getBytes());
 
         SignedJWT signedJWT = SignedJWT.parse(token);
@@ -198,6 +208,7 @@ public class AuthenticationService {
         return signedJWT;
     }
 
+    @Override
     public AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException {
         var signedJWT = verifyToken(refreshRequest.getToken(), true);
 
@@ -219,9 +230,13 @@ public class AuthenticationService {
         return AuthenticationResponse.builder().authenticate(true).token(token).build();
     }
 
+    @Override
     public UserResponse registerUser(UserCreateRequest userCreateRequest) {
         var createdUser = userService.createUser(userCreateRequest);
         User user = userRepository.findByEmail(createdUser.getEmail());
+        if(user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
         String token = generateToken(user, true);
 
         // send email verify
@@ -229,6 +244,7 @@ public class AuthenticationService {
         return createdUser;
     }
 
+    @Override
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
         boolean rs = introspectToken(new TokenRequest().builder().token(token).build()).isValid();
         if(rs) {
@@ -244,9 +260,14 @@ public class AuthenticationService {
         return true;
     }
 
-    private String buildScope(User user) {
+    @Override
+    public String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         
+        if(user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
         log.info("Email of user: {}",user.getEmail());
         log.info("Role of user: {}",user.getRoles());
         if(!user.getRoles().isEmpty()) {
@@ -254,7 +275,7 @@ public class AuthenticationService {
         }
         return stringJoiner.toString();
     }
-
+    @Override
     public boolean changePassword(ChangePasswordRequest cpRequest) {
         var jwtContex = SecurityContextHolder.getContext();
         String email = jwtContex.getAuthentication().getName();
@@ -274,6 +295,8 @@ public class AuthenticationService {
         userRepository.save(user);
         return true;
     }
+
+    @Override
     public void forgetPassword(String email) {
         User user = userRepository.findByEmail(email);
         if(user == null) 
@@ -285,7 +308,9 @@ public class AuthenticationService {
         Integer otp = generateOTP(email);
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
     }
-    private Integer generateOTP(String email) {
+
+    @Override
+    public Integer generateOTP(String email) {
         Random random = new Random();
         Integer otp = random.nextInt(100000,999999);
         LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(5);
@@ -297,6 +322,8 @@ public class AuthenticationService {
                 .build());
         return otp;
     }
+
+    @Override
     public AuthenticationResponse verifyOTP(Integer token, String email) {
         OtpVerification otp = otpRepository.findByOtp(token);
         User user = userRepository.findByEmail(email);
@@ -308,7 +335,18 @@ public class AuthenticationService {
         tokenJWT = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(true).token(tokenJWT).build();
     }
-    public String resetPassword(String token) throws Exception {
+
+    @Override
+    public String generatePassword(int length) {
+        StringBuilder password = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return password.toString();
+    }
+
+    @Override
+    public String resetPassword(String token) throws JOSEException, ParseException {
         var signedJWT = verifyToken(token, false);
         String email = signedJWT.getJWTClaimsSet().getSubject();
         User user = userRepository.findByEmail(email);
@@ -321,14 +359,7 @@ public class AuthenticationService {
         return password;
     }
 
-    public static String generatePassword(int length) {
-        StringBuilder password = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-        }
-        return password.toString();
-    }
-
+    @Override
     public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
         OtpVerification otp = otpRepository.findByOtp(changeMailRequest.getOtp());
         if (otp == null) {
@@ -347,9 +378,10 @@ public class AuthenticationService {
         user.setEmail(changeMailRequest.getNewEmail());
         userRepository.save(user);
     }
-    
+
+    @Override
     public void changeEmail(ChangeMailRequest cMailRequest) {
-       var jwtContex = SecurityContextHolder.getContext();
+        var jwtContex = SecurityContextHolder.getContext();
         String email = jwtContex.getAuthentication().getName();
 
         if(!email.equals(cMailRequest.getOldEmail())) 

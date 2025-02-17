@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.MaintenanceResponse;
-import com.project.LibManager.service.MaintenanceService;
+import com.project.LibManager.service.IMaintenanceService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class MaintenanceController {
-    private final MaintenanceService maintenanceService;
+    private final IMaintenanceService maintenanceService;
     @PostMapping("/maintenance/{status}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> setMaintenanceMode(@PathVariable boolean status) {

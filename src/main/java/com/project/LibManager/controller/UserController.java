@@ -5,8 +5,8 @@ import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.UserResponse;
-import com.project.LibManager.service.MailService;
-import com.project.LibManager.service.UserService;
+import com.project.LibManager.service.IMailService;
+import com.project.LibManager.service.IUserService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @SecurityRequirement(name = "JWT Authentication")
 public class UserController {
-    private final UserService userService;
-    private final MailService mailService;
+    private final IUserService userService;
+    private final IMailService mailService;
 
     @PostMapping
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {

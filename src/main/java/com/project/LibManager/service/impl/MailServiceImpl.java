@@ -1,4 +1,4 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -10,6 +10,7 @@ import org.thymeleaf.context.Context;
 
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.exception.AppException;
+import com.project.LibManager.service.IMailService;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +19,17 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class MailService {
+public class MailServiceImpl implements IMailService {
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
 
     @Value("${app.verify-email-url}")
     private String VERIFY_EMAIL_URL;
 
+    @Value("${app.support-email}")
+    private String SUPPORT_EMAIL;
 
+    @Override
     public void sendEmailVerify(String fullName, String token, String email) {
         try {
            MimeMessage message = javaMailSender.createMimeMessage();
@@ -41,7 +45,7 @@ public class MailService {
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
-           helper.setFrom("libmanage.support@gmail.com");
+           helper.setFrom(SUPPORT_EMAIL);
 
            //send the email
            javaMailSender.send(message);
@@ -51,6 +55,8 @@ public class MailService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
+    @Override
     public void sendEmailOTP( Integer otp, String email, boolean isChangePassword, String name) {
         try {
            MimeMessage message = javaMailSender.createMimeMessage();
@@ -69,7 +75,7 @@ public class MailService {
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
-           helper.setFrom("linmanage.support@gmail.com");
+           helper.setFrom(SUPPORT_EMAIL);
 
            //send the email
            javaMailSender.send(message);
@@ -80,12 +86,13 @@ public class MailService {
         }
     }
 
+    @Override
     public void sendSimpleEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom("libmanage.support@gmail.com");
+        message.setFrom(SUPPORT_EMAIL);
         
         javaMailSender.send(message);
     }

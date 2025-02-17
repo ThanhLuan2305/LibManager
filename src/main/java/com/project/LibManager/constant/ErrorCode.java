@@ -30,6 +30,7 @@ public enum ErrorCode {
     MAINTENACE_MODE(503,"The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
     BOOK_IS_CURRENTLY_BORROWED(1024,"This book is currently borrowed and cannot be deleted.", HttpStatus.BAD_REQUEST),
     BOOK_EXISTED(1025, "Book existed", HttpStatus.BAD_REQUEST),
+    JWT_TOKEN_INVALID(1025, "JWT Token invalid", HttpStatus.BAD_REQUEST),
     ;
 	private int code;
     private String message;

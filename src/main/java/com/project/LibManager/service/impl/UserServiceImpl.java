@@ -1,4 +1,4 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
@@ -12,6 +12,7 @@ import com.project.LibManager.exception.AppException;
 import com.project.LibManager.mapper.UserMapper;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
+import com.project.LibManager.service.IUserService;
 import com.project.LibManager.specification.UserSpecification;
 
 import jakarta.transaction.Transactional;
@@ -36,13 +37,14 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
+    @Override
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
 
@@ -65,19 +67,20 @@ public class UserService {
         } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
-
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
         return mapUserPageUserResponsePage(userRepository.findAll(pageable));
     }
+    @Override
     public Page<UserResponse> mapUserPageUserResponsePage(Page<User> userPage) {
         List<UserResponse> userResponses = userPage.getContent().stream()
-            .map(user -> mapToUserResponseByMapper(user.getId()))
-            .collect(Collectors.toList());
-
-        return new PageImpl<>(userResponses, userPage.getPageable(), userPage.getTotalElements());
-	}
+                                            .map(user -> mapToUserResponseByMapper(user.getId()))
+                                            .collect(Collectors.toList());
+    
+            return new PageImpl<>(userResponses, userPage.getPageable(), userPage.getTotalElements());
+    }
+    @Override
     public UserResponse mapToUserResponseByMapper(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         if (user == null) {
@@ -85,13 +88,12 @@ public class UserService {
         }
         return userMapper.toUserResponse(user);
     }
-    
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public UserResponse getUser(Long id) {
         return userMapper.toUserResponse(
-                    userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+                            userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
-
+    @Override
     public UserResponse getMyInfo() {
         try {
             var jwtContext = SecurityContextHolder.getContext();
@@ -119,7 +121,7 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         if (!request.getEmail().equals(u.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
@@ -153,7 +155,7 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
@@ -172,8 +174,7 @@ public class UserService {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @Transactional
+    @Override
     public Page<UserResponse> searchUsers(SearchUserRequest SearchUserRequest, Pageable pageable) {
         try {
             return mapUserPageUserResponsePage(userRepository.findAll(UserSpecification.filterUsers(SearchUserRequest.getFullName(), SearchUserRequest.getEmail(), SearchUserRequest.getRole(), SearchUserRequest.getFromDate(), SearchUserRequest.getToDate() ), pageable));

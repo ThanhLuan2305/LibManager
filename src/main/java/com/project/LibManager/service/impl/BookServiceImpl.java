@@ -1,4 +1,4 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -40,6 +40,7 @@ import com.project.LibManager.repository.BookRepository;
 import com.project.LibManager.repository.BookTypeRepository;
 import com.project.LibManager.repository.BorrowingRepository;
 import com.project.LibManager.repository.UserRepository;
+import com.project.LibManager.service.IBookService;
 import com.project.LibManager.specification.BookSpecification;
 
 import jakarta.transaction.Transactional;
@@ -49,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BookService {
+public class BookServiceImpl implements IBookService {
     private final BookRepository bookRepository;
     private final BookTypeRepository bookTypeRepository;
     private final UserRepository userRepository;
@@ -59,7 +60,7 @@ public class BookService {
     private final BorrowwingMapper borrowwingMapper;
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public BookResponse createBook(BookCreateRequest bookCreateRequest) {
         if (bookCreateRequest == null) {
             log.error("BookCreateRequest is null");
@@ -89,9 +90,8 @@ public class BookService {
         }
     }
 
-
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public BookResponse updateBook(BookUpdateRequest bookUpdateRequest, Long bookId) {
         if (bookUpdateRequest == null) {
             log.error("BookCreateRequest is null");
@@ -120,9 +120,8 @@ public class BookService {
         }
     }
 
-
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
         
@@ -139,6 +138,7 @@ public class BookService {
         }
     }
 
+    @Override
     public Page<BookResponse> getBooks(Pageable pageable) {
         try {
             return mapBookPageBookResponsePage(bookRepository.findAll(pageable));
@@ -148,6 +148,7 @@ public class BookService {
         }
     }
 
+    @Override
     public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage) {
         List<BookResponse> bookResponses = bookPage.getContent().stream()
             .map(book -> mapToBookResponseByMapper(book.getId()))
@@ -155,6 +156,8 @@ public class BookService {
 
         return new PageImpl<>(bookResponses, bookPage.getPageable(), bookPage.getTotalElements());
 	}
+
+    @Override
     public BookResponse mapToBookResponseByMapper(Long id) {
 
         Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -163,7 +166,8 @@ public class BookService {
         bookResponse.setBookType(bookTypeMapper.toBookTypeResponse(book.getType()));
         return bookResponse;
     }
-    
+
+    @Override
     public BookResponse getBook(Long id) {
         try {
             return mapToBookResponseByMapper(id);
@@ -173,6 +177,7 @@ public class BookService {
         }
     }
 
+    @Override
     public Page<BookResponse> searchBooks(SearchBookRequest searchBookRequest, Pageable pageable) {
         try {
             return mapBookPageBookResponsePage(bookRepository.findAll(BookSpecification
@@ -191,6 +196,7 @@ public class BookService {
         }
     }
 
+    @Override
     public BorrowingResponse borrowBook(BorrowingRequest bRequest) {
         Book book = bookRepository.findById(bRequest.getBookId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
@@ -198,6 +204,7 @@ public class BookService {
         if (book.getStock() <= 0) {
             new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
         }
+        
         boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId());
         if (alreadyBorrowed) {
             throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
@@ -225,6 +232,8 @@ public class BookService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
+    @Override
     public BorrowingResponse returnBook(BorrowingRequest bRequest) {
         Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
@@ -247,6 +256,7 @@ public class BookService {
         }
     }
 
+    @Override
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
         List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
         if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -267,6 +277,7 @@ public class BookService {
         }
     }
 
+    @Override
     @Transactional
     public void importBooks(MultipartFile file) {
         if (file.isEmpty()) {

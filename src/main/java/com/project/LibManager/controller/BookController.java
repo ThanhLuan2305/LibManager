@@ -26,7 +26,7 @@ import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
-import com.project.LibManager.service.BookService;
+import com.project.LibManager.service.IBookService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class BookController {
-    private final BookService bookService;
+    private final IBookService bookService;
 
     @GetMapping
     public ApiResponse<Page<BookResponse>> getBooks(@RequestParam(defaultValue = "0") int offset,
@@ -48,7 +48,7 @@ public class BookController {
                 .build();
     }
 
-    @GetMapping("/{bokId}")
+    @GetMapping("/{bookId}")
     public ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
         return ApiResponse.<BookResponse>builder()
                 .result(bookService.getBook(bookId))

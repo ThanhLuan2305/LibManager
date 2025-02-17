@@ -1,4 +1,4 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,6 +14,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.exception.AppException;
+import com.project.LibManager.service.IImageCloundService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ImageCloundService {
+public class ImageCloundServiceImpl implements IImageCloundService{
     private final Cloudinary cloudinary;
 
     @Value("${cloudinary.folder}")
@@ -33,6 +34,7 @@ public class ImageCloundService {
     @Value("${cloudinary.allowed_extensions}")
     private String allowedExtensions;
 
+    @Override
     public String uploadImage(MultipartFile imgUrl) {
         try {
             validateFile(imgUrl);
@@ -60,8 +62,8 @@ public class ImageCloundService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
-    
 
+    @Override
     public boolean deleteImage(String fileName) {
         try {
             String publicId = folder + "/" + fileName;
@@ -88,7 +90,8 @@ public class ImageCloundService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
-    
+
+    @Override
     public String updateImage(String oldFileName, MultipartFile newFile) throws IOException {
         try {
             if (!deleteImage(oldFileName)) {
@@ -102,8 +105,8 @@ public class ImageCloundService {
             
         }
     }
-    
 
+    @Override
     public String getPreviewUrl(String fileName) {
         try {
             Map result = cloudinary.api().resource(folder + "/" + fileName, ObjectUtils.emptyMap());
@@ -114,7 +117,8 @@ public class ImageCloundService {
         }
     }
 
-    private void validateFile(MultipartFile file) {
+    @Override
+    public void validateFile(MultipartFile file) {
         if (file.getSize() > maxFileSize) {
             throw new IllegalArgumentException("File exceeds the allowed size limit (5MB).");
         }
@@ -129,6 +133,5 @@ public class ImageCloundService {
         if (!Arrays.asList(allowedExtensionsArray).contains(fileExtension.toLowerCase())) {
             throw new IllegalArgumentException("Invalid file format. Only JPG, JPEG, PNG, and GIF are allowed.");
         }
-    }
-    
+    }   
 }

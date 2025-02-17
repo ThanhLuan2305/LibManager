@@ -20,7 +20,7 @@ import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
-import com.project.LibManager.service.AuthenticationService;
+import com.project.LibManager.service.IAuthenticationService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class AuthenticationController {
-    private final AuthenticationService aService;
+    private final IAuthenticationService aService;
 
     @PostMapping("/login")
     public ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest aRequest) {
