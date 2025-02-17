@@ -1,4 +1,4 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
@@ -25,6 +25,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
@@ -40,29 +41,29 @@ import com.project.LibManager.entity.OtpVerification;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.exception.ErrorCode;
 import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.OtpVerificationRepository;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
+import com.project.LibManager.service.IAuthenticationService;
+import com.project.LibManager.service.IMailService;
+import com.project.LibManager.service.IMaintenanceService;
+import com.project.LibManager.service.IUserService;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements IAuthenticationService {
     private final UserRepository userRepository;
-    private final UserService userService;
+    private final IUserService userService;
     private final InvalidateTokenRepository invalidateTokenRepository;
-    private final MailService mailService;
+    private final IMailService mailService;
     private final OtpVerificationRepository otpRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MaintenanceService maintenanceService;
+    private final IMaintenanceService maintenanceService;
     private final RoleRepository roleRepository;
 
     @Value("${jwt.signing.key}")
@@ -77,13 +78,20 @@ public class AuthenticationService {
     @Value("${jwt.mail-duration}")
     private Long MAIL_DURATION; 
 
-    
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
     private static final SecureRandom random = new SecureRandom();
 
+    /**
+     * Authenticates a user based on email and password.
+     *
+     * @param aRequest the authentication request containing email and password.
+     * @return an {@link AuthenticationResponse} containing authentication status and token.
+     * @throws AppException if the user does not exist, email is not verified, or password is incorrect.
+     * @implNote This method verifies user credentials and generates a JWT token upon successful authentication.
+     */
+    @Override
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
         User user = userRepository.findByEmail(aRequest.getEmail());
-
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
 
@@ -104,9 +112,19 @@ public class AuthenticationService {
         String token = generateToken(user, false);
 
         return AuthenticationResponse.builder().authenticate(rs).token(token).build();
-    } 
+    }
 
-    private String generateToken(User user, boolean verifyEmail) {
+    /**
+     * Generates a JWT token for the given user.
+     *
+     * @param user the user for whom the token is generated.
+     * @param verifyEmail flag to determine if the token is for email verification.
+     * @return the generated JWT token as a string.
+     * @throws AppException if an error occurs during token creation.
+     * @implNote Uses a JWT builder to generate and sign tokens with specific claims.
+     */
+    @Override
+    public String generateToken(User user, boolean verifyEmail) {
         try {
             //Header
             JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
@@ -144,23 +162,41 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
-    
-    // Verify token
-    public IntrospectResponse introspectToken(TokenRequest iRequest) throws JOSEException, ParseException {
+
+    /**
+     * Logs out a user by invalidating the given token.
+     *
+     * @param aRequest the token request containing the token to be invalidated.
+     * @throws AppException if the token is already expired or invalid.
+     * @implNote Marks the token as invalid in the token store or database.
+     */
+    @Override
+    public IntrospectResponse introspectToken(TokenRequest iRequest) {
         String token = iRequest.getToken();
         boolean invalid = true;
 
         try {
             verifyToken(token, false);
+            return IntrospectResponse.builder().valid(invalid).build();
         } catch (Exception e) {
             invalid = false;
+            log.error(token, e);
+            throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
         }
 
-        return IntrospectResponse.builder().valid(invalid).build(); 
     }
-
-    // Logout user
-    public void logout(TokenRequest aRequest) throws Exception, ParseException {
+    
+    /**
+     * Verifies a given JWT token.
+     *
+     * @param token the token to be verified.
+     * @param isRefresh flag indicating whether it is a refresh token.
+     * @return a signed JWT if verification is successful.
+     * @throws AppException if the token is invalid, expired, or already invalidated.
+     * @implNote Uses cryptographic validation to verify JWT integrity.
+     */
+    @Override
+    public void logout(TokenRequest aRequest) throws ParseException, JOSEException {
         try {
             var signToken = verifyToken(aRequest.getToken(), false); 
 
@@ -178,7 +214,16 @@ public class AuthenticationService {
         }   
     }
 
-    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
+    /**
+     * Refreshes an expired authentication token.
+     *
+     * @param refreshRequest the request containing the expired token.
+     * @return a new authentication response with a fresh token.
+     * @throws AppException if the token is invalid or the user does not exist.
+     * @implNote Generates a new token by validating the refresh token and issuing a fresh one.
+     */
+    @Override
+    public SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGN_KEY.getBytes());
 
         SignedJWT signedJWT = SignedJWT.parse(token);
@@ -201,6 +246,7 @@ public class AuthenticationService {
         return signedJWT;
     }
 
+    @Override
     public AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException {
         var signedJWT = verifyToken(refreshRequest.getToken(), true);
 
@@ -222,9 +268,21 @@ public class AuthenticationService {
         return AuthenticationResponse.builder().authenticate(true).token(token).build();
     }
 
+    /**
+     * Registers a new user and sends a verification email.
+     *
+     * @param userCreateRequest the user creation request containing user details.
+     * @return the created user response.
+     * @throws AppException if user creation fails.
+     * @implNote Saves user details in the database and triggers an email verification process.
+     */
+    @Override
     public UserResponse registerUser(UserCreateRequest userCreateRequest) {
         var createdUser = userService.createUser(userCreateRequest);
         User user = userRepository.findByEmail(createdUser.getEmail());
+        if(user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
         String token = generateToken(user, true);
 
         // send email verify
@@ -232,6 +290,17 @@ public class AuthenticationService {
         return createdUser;
     }
 
+    /**
+     * Verifies the user's email through a token.
+     *
+     * @param token The token used to verify the email.
+     * @return true if the email was successfully verified, false otherwise.
+     * @throws JOSEException If an error occurs while verifying the token.
+     * @throws ParseException If an error occurs while parsing the token.
+     * @throws AppException If the user does not exist or cannot be authenticated.
+     * @implNote This method checks the validity of the token and uses it to verify the user's email.
+     */
+    @Override
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
         boolean rs = introspectToken(new TokenRequest().builder().token(token).build()).isValid();
         if(rs) {
@@ -247,9 +316,22 @@ public class AuthenticationService {
         return true;
     }
 
-    private String buildScope(User user) {
+    /**
+     * Builds the scope (permissions) for the user based on their roles.
+     *
+     * @param user The user whose scope is to be built.
+     * @return A string containing the user's roles in the format "ROLE_<role>".
+     * @throws AppException If the user does not exist.
+     * @implNote This method constructs the user's scope based on the roles associated with the user.
+     */
+    @Override
+    public String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         
+        if(user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
         log.info("Email of user: {}",user.getEmail());
         log.info("Role of user: {}",user.getRoles());
         if(!user.getRoles().isEmpty()) {
@@ -258,6 +340,15 @@ public class AuthenticationService {
         return stringJoiner.toString();
     }
 
+    /**
+     * Changes the user's password.
+     *
+     * @param cpRequest The request containing the old password, new password, and confirm password.
+     * @return true if the password was successfully changed.
+     * @throws AppException If there are errors related to the password (e.g., passwords do not match, old password is incorrect, new password is the same as the old one).
+     * @implNote This method allows the user to change their password, ensuring that the old password is correct and the new password is different from the old one.
+     */
+    @Override
     public boolean changePassword(ChangePasswordRequest cpRequest) {
         var jwtContex = SecurityContextHolder.getContext();
         String email = jwtContex.getAuthentication().getName();
@@ -277,6 +368,15 @@ public class AuthenticationService {
         userRepository.save(user);
         return true;
     }
+
+    /**
+     * Initiates the password reset process by sending an OTP to the user's email.
+     *
+     * @param email The email of the user requesting the password reset.
+     * @throws AppException If the user does not exist or if the email is not verified.
+     * @implNote This method sends an OTP (One-Time Password) to the user's email for password reset.
+     */
+    @Override
     public void forgetPassword(String email) {
         User user = userRepository.findByEmail(email);
         if(user == null) 
@@ -288,7 +388,16 @@ public class AuthenticationService {
         Integer otp = generateOTP(email);
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
     }
-    private Integer generateOTP(String email) {
+
+    /**
+     * Generates a One-Time Password (OTP) for email verification or password reset.
+     *
+     * @param email The email address to associate the OTP with.
+     * @return The generated OTP.
+     * @implNote This method generates a 6-digit OTP and saves it in the database with a 5-minute expiration time.
+     */
+    @Override
+    public Integer generateOTP(String email) {
         Random random = new Random();
         Integer otp = random.nextInt(100000,999999);
         LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(5);
@@ -300,6 +409,17 @@ public class AuthenticationService {
                 .build());
         return otp;
     }
+
+    /**
+     * Verifies the OTP provided by the user for password reset.
+     *
+     * @param token The OTP provided by the user.
+     * @param email The email address associated with the OTP.
+     * @return An authentication response containing the generated JWT token if OTP is valid.
+     * @throws AppException If the OTP does not exist, has expired, or any other error occurs.
+     * @implNote This method checks the validity of the OTP and generates a new JWT token for authentication.
+     */
+    @Override
     public AuthenticationResponse verifyOTP(Integer token, String email) {
         OtpVerification otp = otpRepository.findByOtp(token);
         User user = userRepository.findByEmail(email);
@@ -311,7 +431,35 @@ public class AuthenticationService {
         tokenJWT = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(true).token(tokenJWT).build();
     }
-    public String resetPassword(String token) throws Exception {
+
+    /**
+     * Generates a random password of a specified length.
+     *
+     * @param length The length of the password to be generated.
+     * @return The generated password.
+     * @implNote This method generates a random password consisting of letters and digits based on the specified length.
+     */
+    @Override
+    public String generatePassword(int length) {
+        StringBuilder password = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return password.toString();
+    }
+
+    /**
+     * Resets a user's password using a token.
+     *
+     * @param token the reset token received by the user.
+     * @return the newly generated password.
+     * @throws JOSEException if there is an error processing the token.
+     * @throws ParseException if the token cannot be parsed.
+     * @throws AppException if the user does not exist.
+     * @implNote Decodes the token, verifies its validity, and generates a new password for the user.
+     */
+    @Override
+    public String resetPassword(String token) throws JOSEException, ParseException {
         var signedJWT = verifyToken(token, false);
         String email = signedJWT.getJWTClaimsSet().getSubject();
         User user = userRepository.findByEmail(email);
@@ -324,14 +472,14 @@ public class AuthenticationService {
         return password;
     }
 
-    public static String generatePassword(int length) {
-        StringBuilder password = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-        }
-        return password.toString();
-    }
-
+    /**
+     * Verifies an email change request using an OTP.
+     *
+     * @param changeMailRequest the request containing the OTP and email details.
+     * @throws AppException if the OTP does not exist, is expired, or the user does not exist.
+     * @implNote Checks the validity of the OTP and updates the user's email if valid.
+     */
+    @Override
     public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
         OtpVerification otp = otpRepository.findByOtp(changeMailRequest.getOtp());
         if (otp == null) {
@@ -350,9 +498,17 @@ public class AuthenticationService {
         user.setEmail(changeMailRequest.getNewEmail());
         userRepository.save(user);
     }
-    
+
+    /**
+     * Initiates an email change process by sending an OTP to the new email.
+     *
+     * @param cMailRequest the request containing old and new email addresses.
+     * @throws AppException if the user is not authenticated or does not exist.
+     * @implNote Validates the old email, generates an OTP, and sends it to the new email address.
+     */
+    @Override
     public void changeEmail(ChangeMailRequest cMailRequest) {
-       var jwtContex = SecurityContextHolder.getContext();
+        var jwtContex = SecurityContextHolder.getContext();
         String email = jwtContex.getAuthentication().getName();
 
         if(!email.equals(cMailRequest.getOldEmail())) 

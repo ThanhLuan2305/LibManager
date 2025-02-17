@@ -1,5 +1,6 @@
-package com.project.LibManager.service;
+package com.project.LibManager.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -7,23 +8,38 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.exception.ErrorCode;
+import com.project.LibManager.service.IMailService;
 
 import jakarta.mail.internet.MimeMessage;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
-public class MailService {
-     JavaMailSender javaMailSender;
-     TemplateEngine templateEngine;
+public class MailServiceImpl implements IMailService {
+    private final JavaMailSender javaMailSender;
+    private final TemplateEngine templateEngine;
 
+    @Value("${app.verify-email-url}")
+    private String VERIFY_EMAIL_URL;
+
+    @Value("${app.support-email}")
+    private String SUPPORT_EMAIL;
+
+    /**
+     * Sends a verification email to the user with a provided token for email verification.
+     * 
+     * @param fullName The full name of the user.
+     * @param token The token for email verification.
+     * @param email The recipient's email address.
+     * @throws AppException If the email cannot be sent or any other error occurs.
+     * @implNote This method uses a Thymeleaf template to generate the HTML content for the email.
+     *           The email includes a link with the verification token to allow the user to verify their email.
+     */
+    @Override
     public void sendEmailVerify(String fullName, String token, String email) {
         try {
            MimeMessage message = javaMailSender.createMimeMessage();
@@ -32,14 +48,14 @@ public class MailService {
            // Process the template with the given context
            Context context = new Context();
             context.setVariable("name", fullName);
-            context.setVariable("verifyUrl", "http://localhost:8080/auth/verify-email?token=" + token);
+            context.setVariable("verifyUrl", VERIFY_EMAIL_URL + token);
            String html = templateEngine.process("emailTemplate", context);
 
            // Set email properties
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
-           helper.setFrom("libmanage.support@gmail.com");
+           helper.setFrom(SUPPORT_EMAIL);
 
            //send the email
            javaMailSender.send(message);
@@ -49,6 +65,19 @@ public class MailService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
+    /**
+     * Sends an OTP (One-Time Password) email for verifying email changes or password changes.
+     * 
+     * @param otp The OTP code to be sent.
+     * @param email The recipient's email address.
+     * @param isChangePassword Whether the OTP is for changing the password or the email.
+     * @param name The name of the user.
+     * @throws AppException If the email cannot be sent or any other error occurs.
+     * @implNote This method uses a Thymeleaf template to generate the HTML content for the OTP email.
+     *           It also customizes the subject and content based on whether it's a password or email change.
+     */
+    @Override
     public void sendEmailOTP( Integer otp, String email, boolean isChangePassword, String name) {
         try {
            MimeMessage message = javaMailSender.createMimeMessage();
@@ -67,7 +96,7 @@ public class MailService {
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
-           helper.setFrom("linmanage.support@gmail.com");
+           helper.setFrom(SUPPORT_EMAIL);
 
            //send the email
            javaMailSender.send(message);
@@ -78,12 +107,21 @@ public class MailService {
         }
     }
 
+    /**
+     * Sends a simple plain-text email to the recipient.
+     * 
+     * @param to The recipient's email address.
+     * @param subject The subject of the email.
+     * @param body The body content of the email.
+     * @implNote This method sends a simple email without any HTML formatting, using the JavaMailSender API.
+     */
+    @Override
     public void sendSimpleEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom("libmanage.support@gmail.com");
+        message.setFrom(SUPPORT_EMAIL);
         
         javaMailSender.send(message);
     }

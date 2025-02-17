@@ -3,30 +3,25 @@ package com.project.LibManager.dto.response;
 import java.time.LocalDate;
 
 
-import jakarta.persistence.Column;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BorrowingResponse {
-    Long id;
+    private Long id;
 
-    UserResponse user;
+    private UserResponse user;
 
-    BookResponse book;
+    private BookResponse book;
 
-    LocalDate borrowDate;
+    private LocalDate borrowDate;
 
-    LocalDate dueDate;
+    private LocalDate dueDate;
 
-    @Column
-    LocalDate returnDate;
+    private LocalDate returnDate;
 }

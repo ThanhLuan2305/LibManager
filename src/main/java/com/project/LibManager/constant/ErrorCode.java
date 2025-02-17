@@ -1,4 +1,4 @@
-package com.project.LibManager.exception;
+package com.project.LibManager.constant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -17,7 +17,7 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(1010, "Your email is not verified", HttpStatus.BAD_REQUEST),
     OTP_NOT_EXISTED(1011, "Otp not existed", HttpStatus.BAD_REQUEST),
     OTP_EXPIRED(1012, "OTP has expired", HttpStatus.BAD_REQUEST),
-    PASSWORD_NOT_MATCH(1013, "New password must equal confirm password", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1013, "Password not match", HttpStatus.BAD_REQUEST),
     PASSWORD_DUPLICATED(1014, "New password must be different from old password", HttpStatus.BAD_REQUEST),
     BOOK_NOT_EXISTED(1015, "Book not existed", HttpStatus.BAD_REQUEST),
     BOOKTYPE_NOT_EXISTED(1016, "Book type not existed", HttpStatus.BAD_REQUEST),
@@ -30,6 +30,7 @@ public enum ErrorCode {
     MAINTENACE_MODE(503,"The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
     BOOK_IS_CURRENTLY_BORROWED(1024,"This book is currently borrowed and cannot be deleted.", HttpStatus.BAD_REQUEST),
     BOOK_EXISTED(1025, "Book existed", HttpStatus.BAD_REQUEST),
+    JWT_TOKEN_INVALID(1025, "JWT Token invalid", HttpStatus.BAD_REQUEST),
     ;
 	private int code;
     private String message;

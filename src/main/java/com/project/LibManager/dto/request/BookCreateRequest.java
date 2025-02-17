@@ -11,55 +11,52 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class BookCreateRequest {
 
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
-    String title;
+    private String title;
 
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
-    String author;
+    private String author;
     
     @NotBlank(message = "NOT_BLANK")
-    @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
-    String isbn;
+    @Size(min = 13, message = "CHARACTER_LIMIT_EXCEEDED")
+    private String isbn;
 
     @NotNull(message = "NOT_BLANK")
-    Long typeId;
+    private Long typeId;
 
     @Min(value = 1, message = "VALUE_OUT_OF_RANGE")
-    int stock;  
+    private int stock;  
 
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
-    String publisher;
+    private String publisher;
     
     @NotNull(message = "NOT_BLANK")
     @PastOrPresent(message = "BIRTH_DATE_MUST_BE_IN_PAST")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
     @DateTimeFormat(pattern = "yyyy/MM/d")
-    LocalDate publishedDate;
+    private LocalDate publishedDate;
 
     @Min(value = 1, message = "VALUE_OUT_OF_RANGE")
-    int maxBorrowDays;
+    private int maxBorrowDays;
 
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
-    String location;
+    private String location;
 
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
-    String coverImageUrl;
+    private String coverImageUrl;
 
 }

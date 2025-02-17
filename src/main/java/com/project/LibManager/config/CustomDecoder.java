@@ -1,6 +1,5 @@
 package com.project.LibManager.config;
 
-import java.text.ParseException;
 import java.util.Objects;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -13,9 +12,8 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
-import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.TokenRequest;
-import com.project.LibManager.service.AuthenticationService;
+import com.project.LibManager.service.IAuthenticationService;
 
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
@@ -25,7 +23,7 @@ public class CustomDecoder implements JwtDecoder {
     String SIGN_KEY;
 
     @Autowired
-    private AuthenticationService authenticationService;
+    private IAuthenticationService authenticationService;
 
     private NimbusJwtDecoder nimbusJwtDecoder = null;
 
@@ -38,7 +36,7 @@ public class CustomDecoder implements JwtDecoder {
                     TokenRequest.builder().token(token).build());
 
             if (!response.isValid()) throw new JwtException("Token invalid");
-        } catch (JOSEException | ParseException e) {
+        } catch (Exception e) {
             throw new JwtException(e.getMessage());
         }
 

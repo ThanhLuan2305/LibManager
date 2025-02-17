@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.project.LibManager.service.ImageCloundService;
+import com.project.LibManager.service.IImageCloundService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -19,9 +19,9 @@ import java.util.Map;
 @SecurityRequirement(name = "JWT Authentication")
 public class ImageController {
 
-    private final ImageCloundService imageCloudService;
+    private final IImageCloundService imageCloudService;
 
-    @PostMapping("/upload")
+    @PostMapping("/user/upload")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             String imageUrl = imageCloudService.uploadImage(file);
@@ -31,17 +31,17 @@ public class ImageController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    @DeleteMapping("/{fileName}")
+    @DeleteMapping("/user/{fileName}")
     public ResponseEntity<Map<String, String>> deleteImage(@PathVariable String fileName) {
         boolean isDeleted = imageCloudService.deleteImage(fileName);
         if (isDeleted) {
-            return ResponseEntity.ok(Map.of("message", "Xóa ảnh thành công"));
+            return ResponseEntity.ok(Map.of("message", "Delete successfully!"));
         } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Không thể xóa ảnh"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Can't delete image"));
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping("/user/update")
     public ResponseEntity<Map<String, String>> updateImage(
             @RequestParam("oldFileName") String oldFileName,
             @RequestParam("file") MultipartFile newFile) {
@@ -49,12 +49,12 @@ public class ImageController {
             String newImageUrl = imageCloudService.updateImage(oldFileName, newFile);
             return ResponseEntity.ok(Map.of("newImageUrl", newImageUrl));
         } catch (Exception e) {
-            log.error("Lỗi cập nhật ảnh: {}", e.getMessage());
+            log.error("Error update image: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    @GetMapping("/preview/{fileName}")
+    @GetMapping("/user/preview/{fileName}")
     public ResponseEntity<Map<String, String>> getPreviewUrl(@PathVariable String fileName) {
         String imageUrl = imageCloudService.getPreviewUrl(fileName);
         return ResponseEntity.ok(Map.of("previewUrl", imageUrl));

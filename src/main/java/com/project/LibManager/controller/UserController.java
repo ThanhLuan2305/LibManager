@@ -5,19 +5,18 @@ import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.UserResponse;
-import com.project.LibManager.service.MailService;
-import com.project.LibManager.service.UserService;
+import com.project.LibManager.service.IMailService;
+import com.project.LibManager.service.IUserService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,77 +30,88 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @Slf4j
 @SecurityRequirement(name = "JWT Authentication")
 public class UserController {
-    UserService userService;
-    MailService mailService;
+    private final IUserService userService;
+    private final IMailService mailService;
 
-    @PostMapping
-    ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
-        return ApiResponse.<UserResponse>builder()
+   @PostMapping("/admin")
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(userCreateRequest))
                 .build();
+        return ResponseEntity.ok(response);
     }
-    @GetMapping
-    ApiResponse<Page<UserResponse>> getUsers(@RequestParam(defaultValue = "0") int offset,
+
+    @GetMapping("/admin")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(@RequestParam(defaultValue = "0") int offset,
                                             @RequestParam(defaultValue = "10") int limit) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-
         log.info("User: {}", authentication.getName());
         authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
+        
         Pageable pageable = PageRequest.of(offset, limit);
-        return ApiResponse.<Page<UserResponse>>builder()
+        ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
                 .result(userService.getUsers(pageable))
                 .build();
+        return ResponseEntity.ok(response);
     }
-    @GetMapping("/{userId}")
-    ApiResponse<UserResponse> getUser(@PathVariable Long userId) {
-        return ApiResponse.<UserResponse>builder()
+
+    @GetMapping("/admin/{userId}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long userId) {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .result(userService.getUser(userId))
                 .build();
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/email")
-    ApiResponse<String> sendEmail(@RequestParam("fullName") String fullName, @RequestParam("token") String token, @RequestParam("email") String email) {
+    @GetMapping("/admin/email")
+    public ResponseEntity<ApiResponse<String>> sendEmail(@RequestParam("fullName") String fullName, 
+                                                          @RequestParam("token") String token, 
+                                                          @RequestParam("email") String email) {
         mailService.sendEmailVerify(fullName, token, email);
-        return ApiResponse.<String>builder()
+        ApiResponse<String> response = ApiResponse.<String>builder()
                 .result("Email sent successfully")
                 .build();
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/info")
-    ApiResponse<UserResponse> getMyInfo() {
-        return ApiResponse.<UserResponse>builder()
+    @GetMapping("/user/info")
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo() {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .result(userService.getMyInfo())
                 .build();
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("{id}")
-    ApiResponse<UserResponse> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
-        return ApiResponse.<UserResponse>builder()
+    @PutMapping("/admin/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .message("Update user successfully")
                 .result(userService.updateUser(id, userUpdateRequest))
                 .build();
-    }
-    
-    @DeleteMapping("{id}")
-    ApiResponse<String> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ApiResponse.<String>builder()
-                .message("Delete user successfully")
-                .build();
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/search") 
-    ApiResponse<Page<UserResponse>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .message("Delete user successfully")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/admin/search")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
                                                @RequestParam(defaultValue = "0") int offset,
                                                @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        return ApiResponse.<Page<UserResponse>>builder()
+        ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
                 .result(userService.searchUsers(searchUserRequest, pageable))
                 .build();
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,5 +1,6 @@
 package com.project.LibManager.exception;
 
+import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;

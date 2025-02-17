@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
@@ -18,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserCreateRequest {
     @NotBlank(message = "NOT_BLANK")
     @Email(message = "EMAIL_INVALID")
