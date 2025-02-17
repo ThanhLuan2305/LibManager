@@ -34,6 +34,15 @@ public class ImageCloundServiceImpl implements IImageCloundService{
     @Value("${cloudinary.allowed_extensions}")
     private String allowedExtensions;
 
+    /**
+     * Uploads an image to Cloudinary.
+     * 
+     * @param imgUrl The image file to be uploaded.
+     * @return The secure URL of the uploaded image.
+     * @throws AppException If the image cannot be uploaded or an error occurs.
+     * @implNote This method validates the file before uploading and uses Cloudinary API to upload the image.
+     *           It stores the image in a specified folder and generates a secure URL.
+     */
     @Override
     public String uploadImage(MultipartFile imgUrl) {
         try {
@@ -63,6 +72,15 @@ public class ImageCloundServiceImpl implements IImageCloundService{
         }
     }
 
+    /**
+     * Deletes an image from Cloudinary.
+     * 
+     * @param fileName The name of the image to be deleted.
+     * @return true if the image was successfully deleted, false if the image was not found.
+     * @throws AppException If the deletion process encounters an error.
+     * @implNote This method attempts to delete an image by its public ID on Cloudinary. It logs warnings if the image 
+     *           is not found or if there are issues with deletion.
+     */
     @Override
     public boolean deleteImage(String fileName) {
         try {
@@ -91,6 +109,15 @@ public class ImageCloundServiceImpl implements IImageCloundService{
         }
     }
 
+    /**
+     * Updates an existing image by deleting the old image and uploading the new one.
+     * 
+     * @param oldFileName The name of the old image file.
+     * @param newFile The new image file to be uploaded.
+     * @return The secure URL of the new image.
+     * @throws IOException If the update process encounters an error.
+     * @implNote This method first deletes the old image (if it exists) and then uploads the new image to Cloudinary.
+     */
     @Override
     public String updateImage(String oldFileName, MultipartFile newFile) throws IOException {
         try {
@@ -106,6 +133,14 @@ public class ImageCloundServiceImpl implements IImageCloundService{
         }
     }
 
+    /**
+     * Retrieves the preview URL of an image from Cloudinary.
+     * 
+     * @param fileName The name of the image to retrieve.
+     * @return The URL for previewing the image.
+     * @throws IllegalArgumentException If the file does not exist on Cloudinary.
+     * @implNote This method constructs a URL for the image preview by using Cloudinary's CDN.
+     */
     @Override
     public String getPreviewUrl(String fileName) {
         try {
@@ -117,6 +152,13 @@ public class ImageCloundServiceImpl implements IImageCloundService{
         }
     }
 
+    /**
+     * Validates an image file before uploading.
+     * 
+     * @param file The image file to be validated.
+     * @throws IllegalArgumentException If the file exceeds the size limit or has an invalid extension.
+     * @implNote This method checks if the file size is within the allowed limit and if the file extension is allowed.
+     */
     @Override
     public void validateFile(MultipartFile file) {
         if (file.getSize() > maxFileSize) {

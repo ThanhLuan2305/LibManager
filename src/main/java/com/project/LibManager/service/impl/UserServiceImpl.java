@@ -43,6 +43,14 @@ public class UserServiceImpl implements IUserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Creates a new user and assigns a default role.
+     *
+     * @param request The request containing information about the user to be created.
+     * @return The response containing the details of the created user.
+     * @throws AppException If the user already exists or there is an error during creation.
+     * @implNote This method encrypts the user's password and assigns the default user role. The user is marked as not verified.
+     */
     @Transactional
     @Override
     public UserResponse createUser(UserCreateRequest request) {
@@ -68,10 +76,27 @@ public class UserServiceImpl implements IUserService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
+    /**
+     * Fetches a paginated list of all users.
+     *
+     * @param pageable Pagination details.
+     * @return A page of users.
+     * @throws AppException If there is an error during retrieval.
+     * @implNote This method fetches all users from the repository and returns them in a paginated format.
+     */
     @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
         return mapUserPageUserResponsePage(userRepository.findAll(pageable));
     }
+
+    /**
+     * Converts a page of users to a page of user responses.
+     *
+     * @param userPage The page of users.
+     * @return A page of user responses.
+     * @implNote This method maps the content of the user page to a list of user responses and returns the paginated response.
+     */
     @Override
     public Page<UserResponse> mapUserPageUserResponsePage(Page<User> userPage) {
         List<UserResponse> userResponses = userPage.getContent().stream()
@@ -80,6 +105,15 @@ public class UserServiceImpl implements IUserService {
     
             return new PageImpl<>(userResponses, userPage.getPageable(), userPage.getTotalElements());
     }
+
+    /**
+     * Fetches the response of a user by their ID.
+     *
+     * @param id The ID of the user.
+     * @return The response containing the details of the user.
+     * @throws AppException If the user does not exist.
+     * @implNote This method retrieves a specific user by ID and returns the user response.
+     */
     @Override
     public UserResponse mapToUserResponseByMapper(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -88,11 +122,28 @@ public class UserServiceImpl implements IUserService {
         }
         return userMapper.toUserResponse(user);
     }
+
+    /**
+     * Fetches the details of a specific user.
+     *
+     * @param id The ID of the user.
+     * @return The response containing the details of the user.
+     * @throws AppException If the user does not exist.
+     * @implNote This method retrieves a specific user and returns their response.
+     */
     @Override
     public UserResponse getUser(Long id) {
         return userMapper.toUserResponse(
                             userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
+
+    /**
+     * Fetches the details of the currently authenticated user.
+     *
+     * @return The response containing the details of the authenticated user.
+     * @throws AppException If the user is not authenticated or does not exist.
+     * @implNote This method retrieves the currently logged-in user using the security context.
+     */
     @Override
     public UserResponse getMyInfo() {
         try {
@@ -120,6 +171,15 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    /**
+     * Updates the information of an existing user.
+     *
+     * @param id The ID of the user to be updated.
+     * @param request The request containing updated information about the user.
+     * @return The response containing the updated user details.
+     * @throws AppException If the user does not exist, the email already exists, or an error occurs during the update.
+     * @implNote This method updates the user's information, password, and roles. It ensures the "ADMIN" role is handled properly.
+     */
     @Transactional
     @Override
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
@@ -154,6 +214,13 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    /**
+     * Deletes a user from the system.
+     *
+     * @param userId The ID of the user to be deleted.
+     * @throws AppException If the user does not exist or there is an error during deletion.
+     * @implNote This method checks if the user has borrowings before deleting. If so, the user is marked as deleted instead of being fully deleted.
+     */
     @Transactional
     @Override
     public void deleteUser(Long userId) {
@@ -174,6 +241,15 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    /**
+     * Searches for users based on the provided search criteria.
+     *
+     * @param searchUserRequest The search criteria for users.
+     * @param pageable Pagination details.
+     * @return A page of users matching the search criteria.
+     * @throws AppException If an error occurs during the search.
+     * @implNote This method performs a search based on the provided criteria and returns a paginated list of users.
+     */
     @Override
     public Page<UserResponse> searchUsers(SearchUserRequest SearchUserRequest, Pageable pageable) {
         try {

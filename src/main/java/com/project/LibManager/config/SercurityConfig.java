@@ -27,6 +27,10 @@ public class SercurityConfig {
     @Autowired
     CustomDecoder customDecoder;
 
+    // .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
+	//                         .requestMatchers("/candidate/**").hasAnyAuthority("CANDIDATE")
+	//                         .requestMatchers("/company/**").hasAnyAuthority("EMPLOYER","COMPANY")
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request -> request

@@ -29,6 +29,16 @@ public class MailServiceImpl implements IMailService {
     @Value("${app.support-email}")
     private String SUPPORT_EMAIL;
 
+    /**
+     * Sends a verification email to the user with a provided token for email verification.
+     * 
+     * @param fullName The full name of the user.
+     * @param token The token for email verification.
+     * @param email The recipient's email address.
+     * @throws AppException If the email cannot be sent or any other error occurs.
+     * @implNote This method uses a Thymeleaf template to generate the HTML content for the email.
+     *           The email includes a link with the verification token to allow the user to verify their email.
+     */
     @Override
     public void sendEmailVerify(String fullName, String token, String email) {
         try {
@@ -56,6 +66,17 @@ public class MailServiceImpl implements IMailService {
         }
     }
 
+    /**
+     * Sends an OTP (One-Time Password) email for verifying email changes or password changes.
+     * 
+     * @param otp The OTP code to be sent.
+     * @param email The recipient's email address.
+     * @param isChangePassword Whether the OTP is for changing the password or the email.
+     * @param name The name of the user.
+     * @throws AppException If the email cannot be sent or any other error occurs.
+     * @implNote This method uses a Thymeleaf template to generate the HTML content for the OTP email.
+     *           It also customizes the subject and content based on whether it's a password or email change.
+     */
     @Override
     public void sendEmailOTP( Integer otp, String email, boolean isChangePassword, String name) {
         try {
@@ -86,6 +107,14 @@ public class MailServiceImpl implements IMailService {
         }
     }
 
+    /**
+     * Sends a simple plain-text email to the recipient.
+     * 
+     * @param to The recipient's email address.
+     * @param subject The subject of the email.
+     * @param body The body content of the email.
+     * @implNote This method sends a simple email without any HTML formatting, using the JavaMailSender API.
+     */
     @Override
     public void sendSimpleEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();

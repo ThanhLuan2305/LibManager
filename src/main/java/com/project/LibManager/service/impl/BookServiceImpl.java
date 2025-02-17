@@ -17,7 +17,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -59,6 +58,14 @@ public class BookServiceImpl implements IBookService {
     private final BorrowingRepository borrowingRepository;
     private final BorrowwingMapper borrowwingMapper;
 
+    /**
+     * Creates a new book or updates an existing book if the ISBN already exists.
+     *
+     * @param bookCreateRequest The request containing information about the book to be created.
+     * @return The response containing the details of the created or updated book.
+     * @throws AppException If the book type does not exist or there is a database error.
+     * @implNote If the book with the same ISBN exists, the stock will be updated. Otherwise, a new book will be created.
+     */
     @Transactional
     @Override
     public BookResponse createBook(BookCreateRequest bookCreateRequest) {
@@ -90,6 +97,15 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Updates the information of an existing book.
+     *
+     * @param bookUpdateRequest The request containing updated information about the book.
+     * @param bookId The ID of the book to be updated.
+     * @return The response containing the updated book details.
+     * @throws AppException If the book does not exist, the book type is invalid, or any other error occurs.
+     * @implNote This method updates the book if the ISBN is unique; otherwise, it throws an error if a book with the same ISBN exists.
+     */
     @Transactional
     @Override
     public BookResponse updateBook(BookUpdateRequest bookUpdateRequest, Long bookId) {
@@ -120,6 +136,13 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Deletes a book from the system.
+     *
+     * @param id The ID of the book to be deleted.
+     * @throws AppException If the book does not exist or is currently borrowed.
+     * @implNote This method checks if the book is borrowed before attempting to delete it.
+     */
     @Transactional
     @Override
     public void deleteBook(Long id) {
@@ -138,6 +161,14 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Fetches a paginated list of books.
+     *
+     * @param pageable Pagination details.
+     * @return A page of books.
+     * @throws AppException If there is an error while fetching the books.
+     * @implNote This method retrieves books from the database and returns them in a paginated format.
+     */
     @Override
     public Page<BookResponse> getBooks(Pageable pageable) {
         try {
@@ -148,6 +179,13 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Converts a page of books to a page of book responses.
+     *
+     * @param bookPage The page of books.
+     * @return A page of book responses.
+     * @implNote This method maps the content of the book page to a list of book responses and returns a paginated response.
+     */
     @Override
     public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage) {
         List<BookResponse> bookResponses = bookPage.getContent().stream()
@@ -157,6 +195,14 @@ public class BookServiceImpl implements IBookService {
         return new PageImpl<>(bookResponses, bookPage.getPageable(), bookPage.getTotalElements());
 	}
 
+    /**
+     * Fetches the response of a book by its ID.
+     *
+     * @param id The ID of the book.
+     * @return The response of the book.
+     * @throws AppException If the book does not exist.
+     * @implNote This method retrieves a single book from the repository and returns its response.
+     */
     @Override
     public BookResponse mapToBookResponseByMapper(Long id) {
 
@@ -167,6 +213,14 @@ public class BookServiceImpl implements IBookService {
         return bookResponse;
     }
 
+    /**
+     * Fetches the details of a specific book.
+     *
+     * @param id The ID of the book.
+     * @return The response containing the details of the book.
+     * @throws AppException If the book does not exist.
+     * @implNote This method fetches a specific book and returns its response.
+     */
     @Override
     public BookResponse getBook(Long id) {
         try {
@@ -177,6 +231,15 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Searches for books based on the provided search criteria.
+     *
+     * @param searchBookRequest The search criteria.
+     * @param pageable Pagination details.
+     * @return A paginated list of books matching the search criteria.
+     * @throws AppException If there is an error during the search process.
+     * @implNote This method performs a search based on the given criteria and returns a paginated list of books.
+     */
     @Override
     public Page<BookResponse> searchBooks(SearchBookRequest searchBookRequest, Pageable pageable) {
         try {
@@ -196,6 +259,14 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Allows a user to borrow a book.
+     *
+     * @param bRequest The borrowing request containing the user and book details.
+     * @return The response containing the details of the borrowing.
+     * @throws AppException If the book is out of stock, already borrowed, or the user does not exist.
+     * @implNote This method updates the stock of the book and records the borrowing details.
+     */
     @Override
     public BorrowingResponse borrowBook(BorrowingRequest bRequest) {
         Book book = bookRepository.findById(bRequest.getBookId())
@@ -233,6 +304,14 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Allows a user to return a borrowed book.
+     *
+     * @param bRequest The return request containing user and book details.
+     * @return The response containing the updated borrowing details.
+     * @throws AppException If the book was not borrowed or is returned late.
+     * @implNote This method updates the return date of the borrowing and increases the stock of the book.
+     */
     @Override
     public BorrowingResponse returnBook(BorrowingRequest bRequest) {
         Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId())
@@ -256,6 +335,15 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Fetches a paginated list of books borrowed by a user.
+     *
+     * @param userId The ID of the user.
+     * @param pageable Pagination details.
+     * @return A paginated list of borrowed books.
+     * @throws AppException If the user has no borrowed books or there is an error.
+     * @implNote This method retrieves books borrowed by the user and returns them in a paginated format.
+     */
     @Override
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
         List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
@@ -277,6 +365,13 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Imports books from a CSV file into the system.
+     *
+     * @param file The CSV file containing book data.
+     * @throws RuntimeException If the file is empty, too large, or if an error occurs during the import.
+     * @implNote This method reads a CSV file, parses it, and either updates the stock of existing books or creates new books.
+     */
     @Override
     @Transactional
     public void importBooks(MultipartFile file) {
