@@ -29,7 +29,7 @@ public class BookCreateRequest {
     private String author;
     
     @NotBlank(message = "NOT_BLANK")
-    @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
+    @Size(min = 13, message = "CHARACTER_LIMIT_EXCEEDED")
     private String isbn;
 
     @NotNull(message = "NOT_BLANK")

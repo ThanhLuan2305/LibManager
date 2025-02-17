@@ -1,6 +1,5 @@
 package com.project.LibManager.config;
 
-import java.text.ParseException;
 import java.util.Objects;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -13,7 +12,6 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
-import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.service.IAuthenticationService;
 

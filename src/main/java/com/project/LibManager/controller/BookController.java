@@ -40,79 +40,88 @@ public class BookController {
     private final IBookService bookService;
 
     @GetMapping("/all")
-    public ApiResponse<Page<BookResponse>> getBooks(@RequestParam(defaultValue = "0") int offset,
-                                            @RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBooks(@RequestParam(defaultValue = "0") int offset,
+                                                   @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        return ApiResponse.<Page<BookResponse>>builder()
-                .result(bookService.getBooks(pageable))
-                .build();
+        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                                                              .result(bookService.getBooks(pageable))
+                                                              .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/detail/{bookId}")
-    public ApiResponse<BookResponse> getBook(@PathVariable Long bookId) {
-        return ApiResponse.<BookResponse>builder()
-                .result(bookService.getBook(bookId))
-                .build();
+    public ResponseEntity<ApiResponse<BookResponse>> getBook(@PathVariable Long bookId) {
+        ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+                                                        .result(bookService.getBook(bookId))
+                                                        .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/admin")
-    public ApiResponse<BookResponse> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
-        return ApiResponse.<BookResponse>builder()
-                .message("Create Book successfully")
-                .result(bookService.createBook(bookCreateRequest))
-                .build();
+    public ResponseEntity<ApiResponse<BookResponse>> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
+        ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+                                                        .message("Create Book successfully")
+                                                        .result(bookService.createBook(bookCreateRequest))
+                                                        .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/admin/{id}")
-    public ApiResponse<BookResponse> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, @PathVariable Long id) {
-        return ApiResponse.<BookResponse>builder()
-                .message("Update Book successfully")
-                .result(bookService.updateBook(bookUpdateRequest, id))
-                .build();
+    public ResponseEntity<ApiResponse<BookResponse>> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, @PathVariable Long id) {
+        ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+                                                        .message("Update Book successfully")
+                                                        .result(bookService.updateBook(bookUpdateRequest, id))
+                                                        .build();
+        return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/admin/{id}")
-    public ApiResponse<String> deleteBook(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
-        return ApiResponse.<String>builder()
-                .message("Delete Book successfully")
-                .build();
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                                                 .message("Delete Book successfully")
+                                                 .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/search") 
-    public ApiResponse<Page<BookResponse>> searchBooks(@RequestBody @Valid SearchBookRequest searchBookRequest,
-                                               @RequestParam(defaultValue = "0") int offset,
-                                               @RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@RequestBody @Valid SearchBookRequest searchBookRequest,
+                                                       @RequestParam(defaultValue = "0") int offset,
+                                                       @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        return ApiResponse.<Page<BookResponse>>builder()
-                .result(bookService.searchBooks(searchBookRequest, pageable))
-                .build();
+        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                                                              .result(bookService.searchBooks(searchBookRequest, pageable))
+                                                              .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/user/borrow") 
-    public ApiResponse<BorrowingResponse> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
-        return ApiResponse.<BorrowingResponse>builder()
-                .message("Borrow book is successfully!")
-                .result(bookService.borrowBook(borrowingRequest))
-                .build();
+    public ResponseEntity<ApiResponse<BorrowingResponse>> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
+        ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
+                                                             .message("Borrow book is successfully!")
+                                                             .result(bookService.borrowBook(borrowingRequest))
+                                                             .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/user/return") 
-    public ApiResponse<BorrowingResponse> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
-        return ApiResponse.<BorrowingResponse>builder()
-                .message("Return book is successfully!")
-                .result(bookService.returnBook(borrowingRequest))
-                .build();
+    public ResponseEntity<ApiResponse<BorrowingResponse>> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
+        ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
+                                                             .message("Return book is successfully!")
+                                                             .result(bookService.returnBook(borrowingRequest))
+                                                             .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/admin/borrow-by-user")
-    public ApiResponse<Page<BookResponse>> getBookBorrowByUser(@RequestParam Long userId, 
-                                                        @RequestParam(defaultValue = "0") int offset,
-                                                        @RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrowByUser(@RequestParam Long userId, 
+                                                          @RequestParam(defaultValue = "0") int offset,
+                                                          @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        return ApiResponse.<Page<BookResponse>>builder()
-                .result(bookService.getBookBorrowByUser(userId, pageable))
-                .build();
+        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                                                              .result(bookService.getBookBorrowByUser(userId, pageable))
+                                                              .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/admin/import")

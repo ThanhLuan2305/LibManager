@@ -2,9 +2,7 @@ package com.project.LibManager.controller;
 
 import java.time.LocalDate;
 
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,28 +23,29 @@ import lombok.RequiredArgsConstructor;
 public class MaintenanceController {
     private final IMaintenanceService maintenanceService;
     @PostMapping("/admin/maintenance/{status}")
-    public ApiResponse<Void> setMaintenanceMode(@PathVariable boolean status) {
+    public ResponseEntity<ApiResponse<Void>> setMaintenanceMode(@PathVariable boolean status) {
         maintenanceService.setMaintenanceMode(status);
-        return ApiResponse.<Void>builder()
-                .message("Server in Maintenance: " +status )
-                .build();
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                                                .message("Server in Maintenance: " + status)
+                                                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/admin/maintenance/status")
-    public ApiResponse<MaintenanceResponse> getMaintenanceMode() {
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> getMaintenanceMode() {
         boolean isMaintenance = maintenanceService.isMaintenanceMode();
         
         String message = isMaintenance 
                             ? "The system is currently under maintenance." 
                             : "The system is running normally.";
 
-        return ApiResponse.<MaintenanceResponse>builder()
-                .message(message)
-                .result(MaintenanceResponse.builder()
-                                        .maintenanceMode(isMaintenance)
-                                        .from(LocalDate.now())
-                                        .build())
-                .build();
+        ApiResponse<MaintenanceResponse> response = ApiResponse.<MaintenanceResponse>builder()
+                                                               .message(message)
+                                                               .result(MaintenanceResponse.builder()
+                                                                                          .maintenanceMode(isMaintenance)
+                                                                                          .from(LocalDate.now())
+                                                                                          .build())
+                                                               .build();
+        return ResponseEntity.ok(response);
     }
-
 }
