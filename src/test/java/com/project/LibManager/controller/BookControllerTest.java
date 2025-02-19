@@ -2,8 +2,6 @@ package com.project.LibManager.controller;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 import com.project.LibManager.dto.response.BorrowingResponse;
 import com.project.LibManager.dto.response.UserResponse;
@@ -26,7 +24,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -196,7 +193,7 @@ public class BookControllerTest {
                         .post("/books/admin")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(content))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers
                         .jsonPath("code")
                         .value(1016))
@@ -259,7 +256,7 @@ public class BookControllerTest {
                         .put("/books/admin/" + nonExistentBookId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(ErrorCode.BOOK_NOT_EXISTED.getCode()))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value(ErrorCode.BOOK_NOT_EXISTED.getMessage()));
     }
@@ -373,7 +370,7 @@ public class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/books/detail/" + nonExistentBookId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(ErrorCode.BOOK_NOT_EXISTED.getCode()))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value(ErrorCode.BOOK_NOT_EXISTED.getMessage()));
 
@@ -510,7 +507,7 @@ public class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/books/user/return/" + notBorrowedBookId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(ErrorCode.BOOK_NOT_BORROWED.getCode()))
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value(ErrorCode.BOOK_NOT_BORROWED.getMessage()));
 

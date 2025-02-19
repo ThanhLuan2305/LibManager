@@ -98,6 +98,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if(!user.getIsVerified()) 
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
         
+        if(user.getIsDeleted()) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
         // Check role user
         Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
             new AppException(ErrorCode.ROLE_NOT_EXISTED));
@@ -234,10 +237,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                                                 .plus(REFRESH_DURATION, ChronoUnit.SECONDS)
                                                 .toEpochMilli())
                                    : signedJWT.getJWTClaimsSet().getExpirationTime();
+        if(!expTime.after(new Date())) {
+            throw new AppException(ErrorCode.JWT_TOKEN_EXPIRED);
+        }
 
         boolean rs = signedJWT.verify(verifier);
-
-        if(!(rs && expTime.after(new Date()))) 
+        if(!rs) 
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         if(invalidateTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
@@ -279,15 +284,18 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     public UserResponse registerUser(UserCreateRequest userCreateRequest) {
         var createdUser = userService.createUser(userCreateRequest);
-        User user = userRepository.findByEmail(createdUser.getEmail());
-        if(user == null) {
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
-        }
-        String token = generateToken(user, true);
 
-        // send email verify
-        mailService.sendEmailVerify(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
-        return createdUser;
+        try {
+            User user = userRepository.findByEmail(createdUser.getEmail());
+            String token = generateToken(user, true);
+
+            // send email verify
+            mailService.sendEmailVerify(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
+            return createdUser;
+        } catch (Exception e) {
+            log.error("Error when update: {}", e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     /**
@@ -356,11 +364,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         User user = userRepository.findByEmail(email);
         if(user == null) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
         if(!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) 
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+
         boolean rs = passwordEncoder.matches(cpRequest.getOldPassword(), user.getPassword());
         if(!rs) 
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+
         if(passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
         }
