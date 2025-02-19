@@ -3,6 +3,7 @@ package com.project.LibManager.config;
 import java.util.HashSet;
 
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApplicationInitConfig {
     private final PasswordEncoder passwordEncoder;
+
     @Bean
+    @ConditionalOnProperty(prefix = "spring", 
+                        value = "datasource.driverClassName",
+                        havingValue = "com.mysql.cj.jdbc.Driver")
     public ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
         log.info("Initializing application.....");
         return args -> {

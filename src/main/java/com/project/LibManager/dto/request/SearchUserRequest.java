@@ -6,13 +6,16 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SearchUserRequest {
     private String fullName;
     
@@ -27,4 +30,12 @@ public class SearchUserRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
     @DateTimeFormat(pattern = "yyyy/MM/d") 
     private LocalDate toDate;
+
+    @AssertTrue(message = "FROMDATE_BEFORE_TODATE")
+    public boolean isValidDateRange() {
+        if (fromDate != null && toDate != null) {
+            return fromDate.isBefore(toDate);
+        }
+        return true;
+    }
 }

@@ -6,7 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
@@ -30,9 +29,9 @@ public interface IBookService {
 
     public Page<BookResponse> searchBooks(SearchBookRequest searchBookRequest, Pageable pageable);
 
-    public BorrowingResponse borrowBook(BorrowingRequest bRequest);
+    public BorrowingResponse borrowBook(Long bookId);
 
-    public BorrowingResponse returnBook(BorrowingRequest bRequest);
+    public BorrowingResponse returnBook(Long bookId);
 
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable);
 

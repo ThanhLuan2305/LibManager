@@ -30,7 +30,11 @@ public enum ErrorCode {
     MAINTENACE_MODE(503,"The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
     BOOK_IS_CURRENTLY_BORROWED(1024,"This book is currently borrowed and cannot be deleted.", HttpStatus.BAD_REQUEST),
     BOOK_EXISTED(1025, "Book existed", HttpStatus.BAD_REQUEST),
-    JWT_TOKEN_INVALID(1025, "JWT Token invalid", HttpStatus.BAD_REQUEST),
+    JWT_TOKEN_INVALID(1026, "JWT Token invalid", HttpStatus.BAD_REQUEST),
+    FROMDATE_BEFORE_TODATE(1027, "Fromdate must be before todate", HttpStatus.BAD_REQUEST),
+    ISBN_MUST_BE_13_CHARACTERS(1028, "ISBN must be 13 characters", HttpStatus.BAD_REQUEST),
+    FILE_EMPTY(1029, "The file is empty.", HttpStatus.BAD_REQUEST),
+    FILE_LIMIT(1030, "The file is too large. Maximum allowed size is 5MB.", HttpStatus.BAD_REQUEST),
     ;
 	private int code;
     private String message;

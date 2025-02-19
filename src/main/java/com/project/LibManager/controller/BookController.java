@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.BookResponse;
@@ -95,20 +94,20 @@ public class BookController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/user/borrow") 
-    public ResponseEntity<ApiResponse<BorrowingResponse>> borrowBooks(@RequestBody BorrowingRequest borrowingRequest) {
+    @PostMapping("/user/borrow/{bookId}") 
+    public ResponseEntity<ApiResponse<BorrowingResponse>> borrowBooks(@PathVariable Long bookId) {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
                                                              .message("Borrow book is successfully!")
-                                                             .result(bookService.borrowBook(borrowingRequest))
+                                                             .result(bookService.borrowBook(bookId))
                                                              .build();
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/user/return") 
-    public ResponseEntity<ApiResponse<BorrowingResponse>> returnBooks(@RequestBody BorrowingRequest borrowingRequest) {
+    @PostMapping("/user/return/{bookId}") 
+    public ResponseEntity<ApiResponse<BorrowingResponse>> returnBooks(@PathVariable Long bookId) {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
                                                              .message("Return book is successfully!")
-                                                             .result(bookService.returnBook(borrowingRequest))
+                                                             .result(bookService.returnBook(bookId))
                                                              .build();
         return ResponseEntity.ok(response);
     }
