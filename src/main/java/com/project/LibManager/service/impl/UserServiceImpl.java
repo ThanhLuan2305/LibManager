@@ -86,7 +86,11 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
-        return mapUserPageUserResponsePage(userRepository.findAll(pageable));
+        Page<User> pageUser = userRepository.findAll(pageable);
+        if(pageUser.isEmpty()) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+        return mapUserPageUserResponsePage(pageUser);
     }
 
     /**
