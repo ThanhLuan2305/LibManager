@@ -119,14 +119,13 @@ public class BookServiceImpl implements IBookService {
 
         BookType type = bookTypeRepository.findById(bookUpdateRequest.getTypeId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED));
+        if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())) {
+            if (bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
+                throw new AppException(ErrorCode.BOOK_EXISTED);
+            }
+        }
 
         try {
-            if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())) {
-                if (bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
-                    throw new AppException(ErrorCode.BOOK_EXISTED);
-                }
-            }
-
             bookMapper.updateBook(book, bookUpdateRequest);
             book.setType(type);
             return bookMapper.toBookResponse(bookRepository.save(book));
@@ -146,7 +145,7 @@ public class BookServiceImpl implements IBookService {
     @Transactional
     @Override
     public void deleteBook(Long id) {
-        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
+        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.BOOK_NOT_EXISTED));
         
         boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
         if (isBorrowed) {
@@ -171,12 +170,12 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public Page<BookResponse> getBooks(Pageable pageable) {
-        try {
-            return mapBookPageBookResponsePage(bookRepository.findAll(pageable));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        Page<Book> pageBook = bookRepository.findAll(pageable);
+        if(pageBook.isEmpty()) {
+            log.error("Book not found in the database");
+            throw new AppException(ErrorCode.BOOK_NOT_EXISTED);
         }
+        return mapBookPageBookResponsePage(pageBook);
     }
 
     /**
@@ -206,7 +205,7 @@ public class BookServiceImpl implements IBookService {
     @Override
     public BookResponse mapToBookResponseByMapper(Long id) {
 
-        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
+        Book book = bookRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
         BookResponse bookResponse = bookMapper.toBookResponse(book);
         bookResponse.setBookType(bookTypeMapper.toBookTypeResponse(book.getType()));
@@ -223,12 +222,7 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public BookResponse getBook(Long id) {
-        try {
-            return mapToBookResponseByMapper(id);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
+        return mapToBookResponseByMapper(id);
     }
 
     /**
@@ -381,6 +375,8 @@ public class BookServiceImpl implements IBookService {
             List<BookResponse> pageContent = lstBook.subList(start, end);
 
             return new PageImpl<>(pageContent, pageable, lstBook.size());
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -442,6 +438,9 @@ public class BookServiceImpl implements IBookService {
 
             bookRepository.saveAll(booksToUpdate.values());
             bookRepository.saveAll(newBooks);
+        } catch (AppException e) {
+            log.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
