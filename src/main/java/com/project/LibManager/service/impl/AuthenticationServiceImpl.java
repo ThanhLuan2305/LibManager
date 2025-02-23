@@ -11,6 +11,7 @@ import java.util.StringJoiner;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -99,7 +100,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
         
         if(user.getIsDeleted()) {
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+            throw new AppException(ErrorCode.USER_IS_DELETED);
         }
         // Check role user
         Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
@@ -520,10 +521,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     public void changeEmail(ChangeMailRequest cMailRequest) {
         var jwtContex = SecurityContextHolder.getContext();
+        Authentication authentication = jwtContex.getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
         String email = jwtContex.getAuthentication().getName();
 
         if(!email.equals(cMailRequest.getOldEmail())) 
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
             
         User user = userRepository.findByEmail(email);  
         if(user == null) 
@@ -534,4 +541,5 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         mailService.sendSimpleEmail(cMailRequest.getOldEmail(),"Thông báo tài khoản yêu cầu đổi email",
                 "Tài khoản của bạn đã yêu cầu đổi email, nếu không phải bạn vui lòng liên hệ với chúng tôi");
     }
+    
 }

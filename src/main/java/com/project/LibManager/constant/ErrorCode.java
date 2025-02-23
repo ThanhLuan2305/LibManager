@@ -37,6 +37,7 @@ public enum ErrorCode {
     FILE_EMPTY(1029, "The file is empty.", HttpStatus.BAD_REQUEST),
     FILE_LIMIT(1030, "The file is too large. Maximum allowed size is 5MB.", HttpStatus.BAD_REQUEST),
     JWT_TOKEN_EXPIRED(1031, "JWT token has expired.", HttpStatus.UNAUTHORIZED),
+    USER_IS_DELETED(1032, "User has been deleted", HttpStatus.NOT_FOUND),
     ;
 	private int code;
     private String message;
