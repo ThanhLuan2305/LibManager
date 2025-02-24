@@ -14,6 +14,7 @@ import com.nimbusds.jose.JOSEException;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
+import com.project.LibManager.dto.request.LogoutRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
@@ -55,7 +56,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody TokenRequest lRequest) throws ParseException, Exception {
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest lRequest) throws ParseException, Exception {
         aService.logout(lRequest);
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                                                .message("Logout successfully")
@@ -113,9 +114,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<AuthenticationResponse>> verifyOtp(@RequestParam("otp") Integer otp, @RequestParam("email") String email) throws JOSEException, ParseException {
-        AuthenticationResponse result = aService.verifyOTP(otp, email);
-        ApiResponse<AuthenticationResponse> response = ApiResponse.<AuthenticationResponse>builder()
+    public ResponseEntity<ApiResponse<String>> verifyOtp(@RequestParam("otp") Integer otp, @RequestParam("email") String email) throws JOSEException, ParseException {
+        String result = aService.verifyOTP(otp, email);
+        ApiResponse<String> response = ApiResponse.<String>builder()
                                                                   .message("Verify OTP successfully")
                                                                   .result(result)
                                                                   .build();

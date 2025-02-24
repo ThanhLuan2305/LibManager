@@ -28,9 +28,11 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
+import com.project.LibManager.constant.TokenType;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
+import com.project.LibManager.dto.request.LogoutRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
@@ -101,7 +103,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if(user.getIsDeleted()) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
         }
-        // Check role user
         Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
             new AppException(ErrorCode.ROLE_NOT_EXISTED));
         if(maintenanceService.isMaintenanceMode() && user.getRoles().contains(role)) {
@@ -112,9 +113,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if(!rs)
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
 
-        String token = generateToken(user, false);
+        String accessToken = generateToken(user, TokenType.ACCESS);
+        String refreshToken = generateToken(user, TokenType.REFRESH);
 
-        return AuthenticationResponse.builder().authenticate(rs).token(token).build();
+        return AuthenticationResponse.builder().authenticate(rs).accessToken(accessToken).refreshToken(refreshToken).build();
     }
 
     /**
@@ -127,36 +129,33 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @implNote Uses a JWT builder to generate and sign tokens with specific claims.
      */
     @Override
-    public String generateToken(User user, boolean verifyEmail) {
+    public String generateToken(User user, TokenType tokenType) {
         try {
-            //Header
+            // Header
             JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
 
-            JWTClaimsSet jwtClaimsSet =(verifyEmail) ? new JWTClaimsSet.Builder()
-                                                                .subject(user.getEmail()).issuer("NTL")
-                                                                .issueTime(new Date())
-                                                                .expirationTime(new Date(
-                                                                    Instant.now().plus(MAIL_DURATION,ChronoUnit.SECONDS).toEpochMilli()
-                                                                ))
-                                                                .jwtID(UUID.randomUUID().toString())
-                                                                .claim("scope", buildScope(user))
-                                                                .build()
-                                                    : new JWTClaimsSet.Builder()
-                                                                .subject(user.getEmail()).issuer("NTL")
-                                                                .issueTime(new Date())
-                                                                .expirationTime(new Date(
-                                                                    Instant.now().plus(VALID_DURATION,ChronoUnit.SECONDS).toEpochMilli()
-                                                                ))
-                                                                .jwtID(UUID.randomUUID().toString())
-                                                                .claim("scope", buildScope(user))
-                                                                .build();
-            //Payload
-            Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+            long duration;
+            switch (tokenType) {
+                case REFRESH -> duration = REFRESH_DURATION;
+                case VERIFY_MAIL -> duration = MAIL_DURATION;
+                default -> duration = VALID_DURATION;
+            }
 
-            //Build Token
-            JWSObject jwsObject = new JWSObject(jwsHeader, payload);
-                
-            //Signature
+            // JWT claims
+            JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                    .subject(user.getEmail())
+                    .issuer("NTL")
+                    .issueTime(new Date())
+                    .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
+                    .jwtID(UUID.randomUUID().toString())
+                    .claim("scope", buildScope(user))
+                    .claim("type", tokenType.name())
+                    .build();
+
+            // Build Token
+            JWSObject jwsObject = new JWSObject(jwsHeader, new Payload(jwtClaimsSet.toJSONObject()));
+
+            // Signature
             jwsObject.sign(new MACSigner(SIGN_KEY.getBytes()));
 
             return jwsObject.serialize();
@@ -188,7 +187,18 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
 
     }
-    
+    private void invalidToken(String token) throws ParseException, JOSEException {
+        var sigToken = verifyToken(token, false); 
+
+        String jwtID = sigToken.getJWTClaimsSet().getJWTID();
+        Date expTime = sigToken.getJWTClaimsSet().getExpirationTime();
+        InvalidateToken invalidateToken = InvalidateToken.builder()
+                .id(jwtID)
+                .expiryTime(expTime)
+                .build();
+                    
+        invalidateTokenRepository.save(invalidateToken); 
+    }
     /**
      * Verifies a given JWT token.
      *
@@ -199,19 +209,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @implNote Uses cryptographic validation to verify JWT integrity.
      */
     @Override
-    public void logout(TokenRequest aRequest) throws ParseException, JOSEException {
+    public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {
         try {
-            var signToken = verifyToken(aRequest.getToken(), false); 
-
-            String jwtID = signToken.getJWTClaimsSet().getJWTID();
-            Date expTime = signToken.getJWTClaimsSet().getExpirationTime();
-
-            InvalidateToken invalidateToken = InvalidateToken.builder()
-                    .id(jwtID)
-                    .expiryTime(expTime)
-                    .build();
-
-            invalidateTokenRepository.save(invalidateToken); 
+            invalidToken(logoutRequest.getAccessToken());
+            invalidToken(logoutRequest.getRefreshToken());
         } catch (AppException e) {
             log.info("Token already expired");
         }   
@@ -262,15 +263,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 .id(jwtID)
                 .expiryTime(expTime)
                 .build();
-        invalidateTokenRepository.save(invalidateToken);   
+        invalidateTokenRepository.save(invalidateToken);
 
         String email = signedJWT.getJWTClaimsSet().getSubject();
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> 
         new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        String token = generateToken(user, false);
-        return AuthenticationResponse.builder().authenticate(true).token(token).build();
+        String accesstoken = generateToken(user, TokenType.ACCESS);
+        String refreshtoken = generateToken(user, TokenType.REFRESH);
+        return AuthenticationResponse.builder().authenticate(true).accessToken(accesstoken).refreshToken(refreshtoken).build();
     }
 
     /**
@@ -289,7 +291,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         new AppException(ErrorCode.USER_NOT_EXISTED));
 
         try {
-            String token = generateToken(user, true);
+            String token = generateToken(user, TokenType.VERIFY_MAIL);
 
             // send email verify
             mailService.sendEmailVerify(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
@@ -433,20 +435,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @implNote This method checks the validity of the OTP and generates a new JWT token for authentication.
      */
     @Override
-    public AuthenticationResponse verifyOTP(Integer token, String email) {
+    public String verifyOTP(Integer token, String email) {
         OtpVerification otp = otpRepository.findByOtp(token).orElseThrow(() -> 
         new AppException(ErrorCode.OTP_NOT_EXISTED));
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> 
         new AppException(ErrorCode.USER_NOT_EXISTED));
-
-        String tokenJWT = "";
         
         if(otp.getExpiredAt().isBefore(LocalDateTime.now())) 
             throw new AppException(ErrorCode.OTP_EXPIRED);
-            
-        tokenJWT = generateToken(user, false);
-        return AuthenticationResponse.builder().authenticate(true).token(tokenJWT).build();
+ 
+        return generateToken(user, TokenType.ACCESS);
     }
 
     /**
@@ -477,18 +476,24 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public String resetPassword(String token) throws JOSEException, ParseException {
-        var signedJWT = verifyToken(token, false);
-        String email = signedJWT.getJWTClaimsSet().getSubject();
+        try {
+            var signedJWT = verifyToken(token, false);
+            String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
+            User user = userRepository.findByEmail(email).orElseThrow(() -> 
+            new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        String password = generatePassword(9);
-        user.setPassword(passwordEncoder.encode(password));
-        userRepository.save(user);
-        
-        logout(TokenRequest.builder().token(token).build());
-        return password;
+            String password = generatePassword(9);
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
+            
+            invalidToken(token);
+            return password;
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     /**

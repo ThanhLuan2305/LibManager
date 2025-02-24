@@ -4,9 +4,11 @@ import java.text.ParseException;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
+import com.project.LibManager.constant.TokenType;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
+import com.project.LibManager.dto.request.LogoutRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
@@ -20,13 +22,13 @@ public interface IAuthenticationService {
 
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) ;
 
-    String generateToken(User user, boolean verifyEmail);
+    String generateToken(User user, TokenType tokenType);
     
     // Verify token
     IntrospectResponse introspectToken(TokenRequest iRequest);
 
     // Logout user
-    void logout(TokenRequest aRequest) throws ParseException, JOSEException;
+    void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException;
 
     SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException;
 
@@ -39,9 +41,12 @@ public interface IAuthenticationService {
     String buildScope(User user);
 
     boolean changePassword(ChangePasswordRequest cpRequest);
+
     void forgetPassword(String email);
+
     Integer generateOTP(String email);
-    AuthenticationResponse verifyOTP(Integer token, String email);
+
+    String verifyOTP(Integer token, String email);
 
     String generatePassword(int length);
 
