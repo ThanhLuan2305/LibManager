@@ -186,9 +186,6 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        if (!request.getEmail().equals(u.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-            throw new AppException(ErrorCode.USER_EXISTED);
-        }
         try {
 
             if (request.getPassword() != null && !request.getPassword().isBlank()) {

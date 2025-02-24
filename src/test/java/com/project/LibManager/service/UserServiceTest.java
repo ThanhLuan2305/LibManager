@@ -119,7 +119,6 @@ public class UserServiceTest {
                 .build();
 
         userUpdateRequest = UserUpdateRequest.builder()
-                .email("testuser@example.com")
                 .password("securePassword123")
                 .isVerified(true)
                 .fullName("Test User")
@@ -372,7 +371,6 @@ public class UserServiceTest {
         Long userId = 1L;
         String existingEmail = "existing@example.com";
         UserUpdateRequest request = UserUpdateRequest.builder()
-                .email(existingEmail)
                 .fullName("Updated Name")
                 .build();
 
@@ -395,7 +393,6 @@ public class UserServiceTest {
         // GIVEN
         Long nonExistentUserId = 999L;
         UserUpdateRequest updateRequest = UserUpdateRequest.builder()
-                .email("newmail@example.com")
                 .fullName("Updated Name")
                 .build();
         when(userRepository.findById(nonExistentUserId)).thenReturn(java.util.Optional.empty());
@@ -410,7 +407,6 @@ public class UserServiceTest {
         // GIVEN
         Long userId = 16L;
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmail(userUpdateRequest.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userMapper.toUserResponse(any(User.class))).thenReturn(userResponse);
@@ -430,7 +426,6 @@ public class UserServiceTest {
         // GIVEN
         Long userId = 1L;
         UserUpdateRequest request = UserUpdateRequest.builder()
-                .email("test@example.com")
                 .password("newPassword")
                 .build();
         User existingUser = User.builder()
@@ -438,7 +433,6 @@ public class UserServiceTest {
                 .email("test@example.com")
                 .build();
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         doThrow(new RuntimeException("Unexpected error")).when(userMapper).updateUser(any(), any());
 

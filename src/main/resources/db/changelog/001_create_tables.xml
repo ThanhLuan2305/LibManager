@@ -6,7 +6,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.8.xsd">
 
     <changeSet id="001-create-tables" author="admin">
-        <!-- Bảng Users -->
+
         <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -32,7 +32,6 @@
             </column>
         </createTable>
 
-        <!-- Bảng Roles -->
         <createTable tableName="roles">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -40,9 +39,11 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints unique="true" nullable="false"/>
             </column>
+            <column name="description" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
-        <!-- Bảng User_Roles (Liên kết User - Role) -->
         <createTable tableName="user_roles">
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
@@ -52,7 +53,6 @@
             </column>
         </createTable>
 
-        <!-- Đặt khóa chính cho bảng user_roles BÊN NGOÀI createTable -->
         <addPrimaryKey columnNames="user_id,role_id" tableName="user_roles" constraintName="pk_user_roles"/>
 
         <addForeignKeyConstraint baseTableName="user_roles" baseColumnNames="user_id"
@@ -62,7 +62,6 @@
                                  referencedTableName="roles" referencedColumnNames="id"
                                  constraintName="fk_user_roles_role"/>
 
-        <!-- Bảng Book_Types -->
         <createTable tableName="book_types">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -72,7 +71,6 @@
             </column>
         </createTable>
 
-        <!-- Bảng Books -->
         <createTable tableName="books">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -81,6 +79,9 @@
                 <constraints unique="true" nullable="false"/>
             </column>
             <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cover_image_url" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="author" type="VARCHAR(255)">
@@ -110,7 +111,6 @@
                                  referencedTableName="book_types" referencedColumnNames="id"
                                  constraintName="fk_books_book_types"/>
 
-        <!-- Bảng Borrowings -->
         <createTable tableName="borrowings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -137,7 +137,6 @@
                                  referencedTableName="books" referencedColumnNames="id"
                                  constraintName="fk_borrowings_books"/>
 
-        <!-- Bảng OTP Verification -->
         <createTable tableName="otp_verification">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -149,6 +148,15 @@
                 <constraints nullable="false"/>
             </column>
             <column name="expired_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="invalidate_token">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="expiry_time" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
         </createTable>

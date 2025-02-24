@@ -41,7 +41,6 @@ public enum ErrorCode {
     USER_HAS_OVERDUE_BOOKS(1033, "User has overdue books and must return them before borrowing new ones.", HttpStatus.BAD_REQUEST),
     USER_HAS_TOO_MANY_LATE_RETURNS(1034, "User has exceeded the maximum allowed late returns.", HttpStatus.BAD_REQUEST),
 
-
     ;
 	private int code;
     private String message;

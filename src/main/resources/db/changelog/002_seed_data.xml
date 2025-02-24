@@ -4,17 +4,20 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    
+    <changeSet id="002-seed-role" author="admin">
+        <insert tableName="roles">
+            <column name="name" value="ADMIN"/>
+            <column name="description" value="ADMIN role"/>
+        </insert>
+        <insert tableName="roles">
+            <column name="name" value="USER"/>
+            <column name="description" value="User role"/>
+        </insert>
+    </changeSet>
 
-    <changeSet id="002-seed-admin" author="admin">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <sqlCheck expectedResult="0">
-                    SELECT COUNT(*) FROM users WHERE email = 'admin@gmail.com'
-                </sqlCheck>
-            </not>
-        </preConditions>
+    <changeSet id="002-seed-user" author="admin">
         <insert tableName="users">
-            <column name="id" value="1"/>
             <column name="email" value="admin@gmail.com"/>
             <column name="password" value="$2b$12$2WWchKSKpvhn5oVu74MNI.8KZXPJDuTjLmcqbYuk72Ja.KXx4m11C"/>
             <column name="is_verified" valueNumeric="1"/>
@@ -22,11 +25,7 @@
             <column name="is_deleted" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
         </insert>
-    </changeSet>
-
-    <changeSet id="002-seed-users" author="admin">
         <insert tableName="users">
-            <column name="id" value="2"/>
             <column name="email" value="john.doe@gmail.com"/>
             <column name="password" value="$2b$12$N6q9jvH6G5wB9B93z9tpXeNJ7oG3GZbzF7/SF8yBoPTjRT5HP9X5W"/>
             <column name="is_verified" valueNumeric="1"/>
@@ -35,7 +34,6 @@
             <column name="late_return_count" value="1"/>
         </insert>
         <insert tableName="users">
-            <column name="id" value="3"/>
             <column name="email" value="jane.smith@gmail.com"/>
             <column name="password" value="$2b$12$Y0w/RpWb9xF7hWtrqJpXeM9F8LgSe4/MJ7xAfpUbKwEUPnH5pHp7m"/>
             <column name="is_verified" valueNumeric="1"/>
@@ -45,22 +43,36 @@
         </insert>
     </changeSet>
 
+    <changeSet id="002-seed-user-roles" author="admin">
+        <insert tableName="user_roles">
+            <column name="user_id" value="1"/>
+            <column name="role_id" value="1"/>
+        </insert>
+        <insert tableName="user_roles">
+            <column name="user_id" value="2"/>
+            <column name="role_id" value="2"/>
+        </insert>
+        
+        <insert tableName="user_roles">
+            <column name="user_id" value="3"/>
+            <column name="role_id" value="2"/>
+        </insert>
+    </changeSet>
+
     <changeSet id="002-seed-book-types" author="admin">
         <insert tableName="book_types">
-            <column name="id" value="1"/>
             <column name="name" value="Programming"/>
         </insert>
         <insert tableName="book_types">
-            <column name="id" value="2"/>
             <column name="name" value="Database"/>
         </insert>
     </changeSet>
 
     <changeSet id="002-seed-books" author="admin">
         <insert tableName="books">
-            <column name="id" value="1"/>
             <column name="isbn" value="9780134685991"/>
             <column name="title" value="Effective Java"/>
+            <column name="cover_image_url" value="img1.com"/>
             <column name="author" value="Joshua Bloch"/>
             <column name="type_id" value="1"/>
             <column name="stock" value="5"/>
@@ -70,9 +82,9 @@
             <column name="location" value="Shelf A1"/>
         </insert>
         <insert tableName="books">
-            <column name="id" value="2"/>
             <column name="isbn" value="9781492078005"/>
             <column name="title" value="Designing Data-Intensive Applications"/>
+            <column name="cover_image_url" value="img2.com"/>
             <column name="author" value="Martin Kleppmann"/>
             <column name="type_id" value="2"/>
             <column name="stock" value="8"/>
@@ -85,7 +97,6 @@
 
     <changeSet id="002-seed-borrowings" author="admin">
         <insert tableName="borrowings">
-            <column name="id" value="1"/>
             <column name="user_id" value="2"/>
             <column name="book_id" value="1"/>
             <column name="borrow_date" value="2024-02-01"/>
@@ -93,7 +104,6 @@
             <column name="return_date" value="2024-02-14"/>
         </insert>
         <insert tableName="borrowings">
-            <column name="id" value="2"/>
             <column name="user_id" value="3"/>
             <column name="book_id" value="2"/>
             <column name="borrow_date" value="2024-02-05"/>

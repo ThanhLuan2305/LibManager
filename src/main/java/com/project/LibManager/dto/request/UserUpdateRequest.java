@@ -19,9 +19,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 public class UserUpdateRequest {
-    @Email(message = "EMAIL_INVALID")
-    private String email;
-
     @Size(min = 6, message = "INVALID_PASSWORD")
     private String password;
 

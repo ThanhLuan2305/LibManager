@@ -56,7 +56,7 @@ public class BookServiceImpl implements IBookService {
     private final BookMapper bookMapper;
     private final BookTypeMapper bookTypeMapper;
     private final BorrowingRepository borrowingRepository;
-    private final BorrowingMapper borrowwingMapper;
+    private final BorrowingMapper borrowingMapper;
 
     /**
      * Creates a new book or updates an existing book if the ISBN already exists.
@@ -253,6 +253,18 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    private User getAuthenticatedUser() {
+        var jwtContext = SecurityContextHolder.getContext();
+        if (jwtContext == null || jwtContext.getAuthentication() == null || 
+            !jwtContext.getAuthentication().isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    
+        String email = jwtContext.getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+    }
+
     /**
      * Allows a user to borrow a book.
      *
@@ -263,29 +275,22 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public BorrowingResponse borrowBook(Long bookId) {
-        var jwtContext = SecurityContextHolder.getContext();
-    
-        if (jwtContext == null || jwtContext.getAuthentication() == null || 
-            !jwtContext.getAuthentication().isAuthenticated()) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-    
-        String email = jwtContext.getAuthentication().getName();
+        User user = getAuthenticatedUser();
+        
+        if (user.getIsDeleted()) 
+            throw new AppException(ErrorCode.USER_IS_DELETED);
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (borrowingRepository.existsOverdueBorrowingsByUser(user.getId())) 
+            throw new AppException(ErrorCode.USER_HAS_OVERDUE_BOOKS);
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
-        if (book.getStock() <= 0) {
+        if (book.getStock() <= 0) 
             throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
-        }
-        
-        boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId);
-        if (alreadyBorrowed) {
+
+        if (borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)) 
             throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
-        }
 
         try {
             LocalDate borrowDate = LocalDate.now();
@@ -298,12 +303,14 @@ public class BookServiceImpl implements IBookService {
                     .dueDate(dueDate)
                     .build();
 
+            borrowingRepository.save(borrowing); // Lưu trước khi giảm stock để tránh lỗi rollback
+
             book.setStock(book.getStock() - 1);
             bookRepository.save(book);
 
-            return  borrowwingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
+            return borrowingMapper.toBorrowingResponse(borrowing);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error borrowing book: {}", e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
@@ -316,37 +323,30 @@ public class BookServiceImpl implements IBookService {
      * @throws AppException If the book was not borrowed or is returned late.
      * @implNote This method updates the return date of the borrowing and increases the stock of the book.
      */
-    @Override
     public BorrowingResponse returnBook(Long bookId) {
-        var jwtContext = SecurityContextHolder.getContext();
+        User user = getAuthenticatedUser();
     
-        if (jwtContext == null || jwtContext.getAuthentication() == null || 
-            !jwtContext.getAuthentication().isAuthenticated()) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-    
-        String email = jwtContext.getAuthentication().getName();
-
-        User user = userRepository.findByEmail(email).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
-
         Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
     
         LocalDate returnDate = LocalDate.now();
         borrowing.setReturnDate(returnDate);
+    
         if (returnDate.isAfter(borrowing.getDueDate())) {
-            throw new AppException(ErrorCode.BOOK_RETURN_LATE);
+            user.setLateReturnCount(user.getLateReturnCount() + 1);
         }
     
         try {
+            
+            userRepository.save(user);
+            
             Book book = borrowing.getBook();
             book.setStock(book.getStock() + 1);
             bookRepository.save(book);
-        
-            return  borrowwingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
+    
+            return borrowingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error returning book: {}", e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
