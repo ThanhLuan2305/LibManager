@@ -92,9 +92,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
-        User user = userRepository.findByEmail(aRequest.getEmail());
-        if(user == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        User user = userRepository.findByEmail(aRequest.getEmail()).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if(!user.getIsVerified()) 
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
@@ -267,9 +266,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByEmail(email);
-        if(user == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
         String token = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(true).token(token).build();
     }
@@ -285,9 +284,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     public UserResponse registerUser(UserCreateRequest userCreateRequest) {
         var createdUser = userService.createUser(userCreateRequest);
+        
+        User user = userRepository.findByEmail(createdUser.getEmail()).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
 
         try {
-            User user = userRepository.findByEmail(createdUser.getEmail());
             String token = generateToken(user, true);
 
             // send email verify
@@ -315,9 +316,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if(rs) {
             var signedJWT = verifyToken(token, false);
             String email = signedJWT.getJWTClaimsSet().getSubject();
-            User user = userRepository.findByEmail(email);
-            if(user == null) 
-                throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+            User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
             user.setIsVerified(true);
             userRepository.save(user);
         }
@@ -362,9 +364,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         var jwtContex = SecurityContextHolder.getContext();
         String email = jwtContex.getAuthentication().getName();
         
-        User user = userRepository.findByEmail(email);
-        if(user == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if(!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) 
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
@@ -390,9 +391,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public void forgetPassword(String email) {
-        User user = userRepository.findByEmail(email);
-        if(user == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
         if (!user.getIsVerified()) {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
             
@@ -433,13 +434,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public AuthenticationResponse verifyOTP(Integer token, String email) {
-        OtpVerification otp = otpRepository.findByOtp(token);
-        User user = userRepository.findByEmail(email);
+        OtpVerification otp = otpRepository.findByOtp(token).orElseThrow(() -> 
+        new AppException(ErrorCode.OTP_NOT_EXISTED));
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
         String tokenJWT = "";
-        if(otp == null) 
-            throw new AppException(ErrorCode.OTP_NOT_EXISTED);
+        
         if(otp.getExpiredAt().isBefore(LocalDateTime.now())) 
             throw new AppException(ErrorCode.OTP_EXPIRED);
+            
         tokenJWT = generateToken(user, false);
         return AuthenticationResponse.builder().authenticate(true).token(tokenJWT).build();
     }
@@ -474,12 +479,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public String resetPassword(String token) throws JOSEException, ParseException {
         var signedJWT = verifyToken(token, false);
         String email = signedJWT.getJWTClaimsSet().getSubject();
-        User user = userRepository.findByEmail(email);
-        if(user == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
         String password = generatePassword(9);
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
+        
         logout(TokenRequest.builder().token(token).build());
         return password;
     }
@@ -493,15 +500,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
-        OtpVerification otp = otpRepository.findByOtp(changeMailRequest.getOtp());
-        if (otp == null) {
-            throw new AppException(ErrorCode.OTP_NOT_EXISTED);
-        }
+        OtpVerification otp = otpRepository.findByOtp(changeMailRequest.getOtp()).orElseThrow(() -> 
+        new AppException(ErrorCode.OTP_NOT_EXISTED));
 
-        User user = userRepository.findByEmail(changeMailRequest.getOldEmail());
-        if (user == null) {
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
-        }
+        User user = userRepository.findByEmail(changeMailRequest.getOldEmail()).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (otp.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new AppException(ErrorCode.OTP_EXPIRED);
@@ -532,9 +535,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if(!email.equals(cMailRequest.getOldEmail())) 
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
             
-        User user = userRepository.findByEmail(email);  
-        if(user == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
 
         int otp = generateOTP(cMailRequest.getNewEmail());
         mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
