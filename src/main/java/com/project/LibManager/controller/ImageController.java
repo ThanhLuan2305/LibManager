@@ -21,7 +21,7 @@ public class ImageController {
 
     private final IImageCloundService imageCloudService;
 
-    @PostMapping("/user/upload")
+    @PostMapping("/admin/upload")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             String imageUrl = imageCloudService.uploadImage(file);
@@ -31,7 +31,7 @@ public class ImageController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    @DeleteMapping("/user/{fileName}")
+    @DeleteMapping("/admin/{fileName}")
     public ResponseEntity<Map<String, String>> deleteImage(@PathVariable String fileName) {
         boolean isDeleted = imageCloudService.deleteImage(fileName);
         if (isDeleted) {
@@ -41,7 +41,7 @@ public class ImageController {
         }
     }
 
-    @PutMapping("/user/update")
+    @PutMapping("/admin/update")
     public ResponseEntity<Map<String, String>> updateImage(
             @RequestParam("oldFileName") String oldFileName,
             @RequestParam("file") MultipartFile newFile) {
@@ -54,7 +54,7 @@ public class ImageController {
         }
     }
 
-    @GetMapping("/user/preview/{fileName}")
+    @GetMapping("/admin/preview/{fileName}")
     public ResponseEntity<Map<String, String>> getPreviewUrl(@PathVariable String fileName) {
         String imageUrl = imageCloudService.getPreviewUrl(fileName);
         return ResponseEntity.ok(Map.of("previewUrl", imageUrl));

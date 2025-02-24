@@ -1,7 +1,6 @@
 package com.project.LibManager.dto.request;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -11,11 +10,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@Builder
 @AllArgsConstructor
 public class UserUpdateRequest {
     @Email(message = "EMAIL_INVALID")
@@ -33,6 +34,4 @@ public class UserUpdateRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
     @DateTimeFormat(pattern = "yyyy/MM/d") 
     private LocalDate birthDate;
-
-    private List<String> roles;
 }

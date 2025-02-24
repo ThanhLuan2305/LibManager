@@ -85,10 +85,13 @@ public class ImageCloundServiceImpl implements IImageCloundService{
     public boolean deleteImage(String fileName) {
         try {
             String publicId = folder + "/" + fileName;
-    
-            try {
-                cloudinary.api().resource(publicId, ObjectUtils.emptyMap());
-            } catch (Exception e) {
+
+            cloudinary.api().resource(publicId, ObjectUtils.emptyMap());
+
+            Map resultSource = cloudinary.api().resource(publicId, ObjectUtils.emptyMap());
+
+            // Kiểm tra xem response có chứa thông tin cần thiết không
+            if (resultSource == null || resultSource.isEmpty()) {
                 log.warn("Image '{}' does not exist on Cloudinary.", publicId);
                 return false;
             }

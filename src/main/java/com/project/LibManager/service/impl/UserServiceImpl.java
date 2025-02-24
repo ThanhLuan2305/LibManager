@@ -23,7 +23,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -87,7 +86,11 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
-        return mapUserPageUserResponsePage(userRepository.findAll(pageable));
+        Page<User> pageUser = userRepository.findAll(pageable);
+        if(pageUser.isEmpty()) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+        return mapUserPageUserResponsePage(pageUser);
     }
 
     /**
@@ -117,9 +120,6 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponse mapToUserResponseByMapper(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        if (user == null) {
-            return null;
-        }
         return userMapper.toUserResponse(user);
     }
 
@@ -178,7 +178,7 @@ public class UserServiceImpl implements IUserService {
      * @param request The request containing updated information about the user.
      * @return The response containing the updated user details.
      * @throws AppException If the user does not exist, the email already exists, or an error occurs during the update.
-     * @implNote This method updates the user's information, password, and roles. It ensures the "ADMIN" role is handled properly.
+     * @implNote This method updates the user's information, password.
      */
     @Transactional
     @Override
@@ -194,17 +194,6 @@ public class UserServiceImpl implements IUserService {
             }
 
             userMapper.updateUser(u, request);
-
-            var requestedRoles = new HashSet<>(roleRepository.findByNameIn(request.getRoles()));
-
-            requestedRoles.removeIf(role -> role.getName().equalsIgnoreCase("ADMIN"));
-
-            if (requestedRoles.stream().anyMatch(role -> role.getName().equalsIgnoreCase("ADMIN"))) {
-                requestedRoles.stream()
-                    .filter(role -> role.getName().equalsIgnoreCase("ADMIN"))
-                    .forEach(requestedRoles::add);
-            }
-            u.setRoles(requestedRoles);
 
             userRepository.save(u);
             return userMapper.toUserResponse(u);

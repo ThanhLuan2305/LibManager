@@ -1,12 +1,16 @@
 package com.project.LibManager.dto.response;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class BookResponse {
     private Long id;
 
@@ -22,7 +26,7 @@ public class BookResponse {
 
     private String publisher;
 
-    private String publishedDate;
+    private LocalDate publishedDate;
 
     private int maxBorrowDays;
 

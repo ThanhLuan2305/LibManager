@@ -17,13 +17,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.request.BorrowingRequest;
 import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
@@ -34,7 +34,7 @@ import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
 import com.project.LibManager.mapper.BookMapper;
 import com.project.LibManager.mapper.BookTypeMapper;
-import com.project.LibManager.mapper.BorrowwingMapper;
+import com.project.LibManager.mapper.BorrowingMapper;
 import com.project.LibManager.repository.BookRepository;
 import com.project.LibManager.repository.BookTypeRepository;
 import com.project.LibManager.repository.BorrowingRepository;
@@ -56,7 +56,7 @@ public class BookServiceImpl implements IBookService {
     private final BookMapper bookMapper;
     private final BookTypeMapper bookTypeMapper;
     private final BorrowingRepository borrowingRepository;
-    private final BorrowwingMapper borrowwingMapper;
+    private final BorrowingMapper borrowwingMapper;
 
     /**
      * Creates a new book or updates an existing book if the ISBN already exists.
@@ -119,14 +119,13 @@ public class BookServiceImpl implements IBookService {
 
         BookType type = bookTypeRepository.findById(bookUpdateRequest.getTypeId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED));
+        if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())) {
+            if (bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
+                throw new AppException(ErrorCode.BOOK_EXISTED);
+            }
+        }
 
         try {
-            if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())) {
-                if (bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
-                    throw new AppException(ErrorCode.BOOK_EXISTED);
-                }
-            }
-
             bookMapper.updateBook(book, bookUpdateRequest);
             book.setType(type);
             return bookMapper.toBookResponse(bookRepository.save(book));
@@ -146,7 +145,7 @@ public class BookServiceImpl implements IBookService {
     @Transactional
     @Override
     public void deleteBook(Long id) {
-        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
+        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.BOOK_NOT_EXISTED));
         
         boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
         if (isBorrowed) {
@@ -171,12 +170,12 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public Page<BookResponse> getBooks(Pageable pageable) {
-        try {
-            return mapBookPageBookResponsePage(bookRepository.findAll(pageable));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        Page<Book> pageBook = bookRepository.findAll(pageable);
+        if(pageBook.isEmpty()) {
+            log.error("Book not found in the database");
+            throw new AppException(ErrorCode.BOOK_NOT_EXISTED);
         }
+        return mapBookPageBookResponsePage(pageBook);
     }
 
     /**
@@ -206,7 +205,7 @@ public class BookServiceImpl implements IBookService {
     @Override
     public BookResponse mapToBookResponseByMapper(Long id) {
 
-        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.USER_NOT_EXISTED));
+        Book book = bookRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
         BookResponse bookResponse = bookMapper.toBookResponse(book);
         bookResponse.setBookType(bookTypeMapper.toBookTypeResponse(book.getType()));
@@ -223,12 +222,7 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public BookResponse getBook(Long id) {
-        try {
-            return mapToBookResponseByMapper(id);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
+        return mapToBookResponseByMapper(id);
     }
 
     /**
@@ -268,27 +262,37 @@ public class BookServiceImpl implements IBookService {
      * @implNote This method updates the stock of the book and records the borrowing details.
      */
     @Override
-    public BorrowingResponse borrowBook(BorrowingRequest bRequest) {
-        Book book = bookRepository.findById(bRequest.getBookId())
+    public BorrowingResponse borrowBook(Long bookId) {
+        var jwtContext = SecurityContextHolder.getContext();
+    
+        if (jwtContext == null || jwtContext.getAuthentication() == null || 
+            !jwtContext.getAuthentication().isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    
+        String email = jwtContext.getAuthentication().getName();
+        User u = userRepository.findByEmail(email);
+        if(u == null) 
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
         if (book.getStock() <= 0) {
-            new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+            throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
         }
         
-        boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId());
+        boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(u.getId(), bookId);
         if (alreadyBorrowed) {
             throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
         }
-
-        User user = userRepository.findById(bRequest.getUserId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         try {
             LocalDate borrowDate = LocalDate.now();
             LocalDate dueDate = borrowDate.plusDays(book.getMaxBorrowDays());
 
             Borrowing borrowing = Borrowing.builder()
-                    .user(user)
+                    .user(u)
                     .book(book)
                     .borrowDate(borrowDate)
                     .dueDate(dueDate)
@@ -313,8 +317,20 @@ public class BookServiceImpl implements IBookService {
      * @implNote This method updates the return date of the borrowing and increases the stock of the book.
      */
     @Override
-    public BorrowingResponse returnBook(BorrowingRequest bRequest) {
-        Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(bRequest.getUserId(), bRequest.getBookId())
+    public BorrowingResponse returnBook(Long bookId) {
+        var jwtContext = SecurityContextHolder.getContext();
+    
+        if (jwtContext == null || jwtContext.getAuthentication() == null || 
+            !jwtContext.getAuthentication().isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    
+        String email = jwtContext.getAuthentication().getName();
+        User u = userRepository.findByEmail(email);
+        if(u == null) 
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(u.getId(), bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
     
         LocalDate returnDate = LocalDate.now();
@@ -359,6 +375,8 @@ public class BookServiceImpl implements IBookService {
             List<BookResponse> pageContent = lstBook.subList(start, end);
 
             return new PageImpl<>(pageContent, pageable, lstBook.size());
+        } catch (AppException e) {
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -376,10 +394,10 @@ public class BookServiceImpl implements IBookService {
     @Transactional
     public void importBooks(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new RuntimeException("The file is empty. Please select a valid CSV file.");
+            throw new AppException(ErrorCode.FILE_EMPTY);
         }
-        if (file.getSize() > 5 * 1024 * 1024) {
-            throw new RuntimeException("The file is too large. Maximum allowed size is 5MB.");
+        if (file.getSize() > 5 * 1024) {
+            throw new AppException(ErrorCode.FILE_LIMIT);
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
@@ -420,6 +438,9 @@ public class BookServiceImpl implements IBookService {
 
             bookRepository.saveAll(booksToUpdate.values());
             bookRepository.saveAll(newBooks);
+        } catch (AppException e) {
+            log.error(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);

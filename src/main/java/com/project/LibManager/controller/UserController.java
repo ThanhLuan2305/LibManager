@@ -67,17 +67,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/admin/email")
-    public ResponseEntity<ApiResponse<String>> sendEmail(@RequestParam("fullName") String fullName, 
-                                                          @RequestParam("token") String token, 
-                                                          @RequestParam("email") String email) {
-        mailService.sendEmailVerify(fullName, token, email);
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                .result("Email sent successfully")
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/user/info")
     public ResponseEntity<ApiResponse<UserResponse>> getMyInfo() {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
