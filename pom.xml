@@ -144,6 +144,10 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -202,6 +206,13 @@
                         <exclude>com/project/LibManager/mapper/**</exclude>
                         <exclude>com/project/LibManager/config/**</exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <configuration>
+                    <propertyFile>src/main/resources/application.properties</propertyFile>
                 </configuration>
             </plugin>
         </plugins>

@@ -256,7 +256,8 @@ public class AuthenticationServiceTest {
         // Arrange
         user.setIsVerified(false);
 
-        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(Optional.of(user));
+
 
         // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> authenticationService.authenticate(authenticationRequest));
@@ -269,7 +270,7 @@ public class AuthenticationServiceTest {
         user.setIsVerified(true);
         user.setIsDeleted(true);
 
-        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(Optional.of(user));
 
         // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> authenticationService.authenticate(authenticationRequest));
@@ -281,7 +282,7 @@ public class AuthenticationServiceTest {
         // Arrange
         user.setIsDeleted(false);
 
-        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(Optional.of(user));
         when(roleRepository.findByName(PredefinedRole.USER_ROLE)).thenReturn(Optional.empty());
 
         // Act & Assert
@@ -293,7 +294,7 @@ public class AuthenticationServiceTest {
     void shouldThrowMaintenanceModeExceptionWhenSystemInMaintenanceAndUserHasUserRole() {
         // Arrange
 
-        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(Optional.of(user));
         when(roleRepository.findByName(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(role));
         when(maintenanceService.isMaintenanceMode()).thenReturn(true);
 
@@ -306,7 +307,7 @@ public class AuthenticationServiceTest {
     void authenticate_shouldThrowAppException_whenPasswordDoesNotMatch() {
         // Arrange
 
-        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongPassword", user.getPassword())).thenReturn(false);
         when(roleRepository.findByName(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(role));
 
@@ -318,7 +319,7 @@ public class AuthenticationServiceTest {
     @Test
     void shouldAuthenticateSuccessfully() {
         // Arrange
-        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(user);
+        when(userRepository.findByEmail(authenticationRequest.getEmail())).thenReturn(Optional.of(user));
         when(roleRepository.findByName(PredefinedRole.USER_ROLE)).thenReturn(Optional.of(new Role()));
         when(maintenanceService.isMaintenanceMode()).thenReturn(false);
         when(passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword())).thenReturn(true);
@@ -533,7 +534,7 @@ public class AuthenticationServiceTest {
 
         AuthenticationServiceImpl spyAuthenticationService = spy(authenticationService);
         doReturn(mockSignedJWT).when(spyAuthenticationService).verifyToken(refreshToken, true);
-        when(userRepository.findByEmail("user@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         doReturn("new-access-token").when(spyAuthenticationService).generateToken(mockUser, false);
 
         // Act
@@ -651,7 +652,7 @@ public class AuthenticationServiceTest {
         String mockToken = "mock-verification-token";
 
         when(userService.createUser(request)).thenReturn(createdUserResponse);
-        when(userRepository.findByEmail("test@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
 
         AuthenticationServiceImpl spyAuthenticationService = spy(authenticationService);
         doReturn(mockToken).when(spyAuthenticationService).generateToken(mockUser, true);
@@ -724,7 +725,7 @@ public class AuthenticationServiceTest {
         String mockToken = "mock-verification-token";
 
         when(userService.createUser(request)).thenReturn(createdUserResponse);
-        when(userRepository.findByEmail("test@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
 
         AuthenticationServiceImpl spyAuthenticationService = spy(authenticationService);
         doReturn(mockToken).when(spyAuthenticationService).generateToken(mockUser, true);
@@ -762,7 +763,7 @@ public class AuthenticationServiceTest {
         doReturn(signedJWT).when(spyAuthenticationService).verifyToken(mockToken, false);
         doReturn(claimsSet).when(signedJWT).getJWTClaimsSet();
 
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
 
         // Act
@@ -841,7 +842,7 @@ public class AuthenticationServiceTest {
         mockUser.setPassword("hashedOldPass");
 
         when(authentication.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(cpRequest.getOldPassword(), mockUser.getPassword())).thenReturn(true);
         when(passwordEncoder.matches(cpRequest.getNewPassword(), mockUser.getPassword())).thenReturn(false);
         when(passwordEncoder.encode(cpRequest.getNewPassword())).thenReturn("hashedNewPass");
@@ -886,7 +887,7 @@ public class AuthenticationServiceTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
         // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> authenticationService.changePassword(cpRequest));
@@ -908,7 +909,7 @@ public class AuthenticationServiceTest {
         mockUser.setPassword("hashedOldPass");
 
         when(authentication.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(cpRequest.getOldPassword(), mockUser.getPassword())).thenReturn(false);
 
         // Act & Assert
@@ -929,7 +930,7 @@ public class AuthenticationServiceTest {
         mockUser.setPassword("hashedOldPass");
 
         when(authentication.getName()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(cpRequest.getOldPassword(), mockUser.getPassword())).thenReturn(true);
         when(passwordEncoder.matches(cpRequest.getNewPassword(), mockUser.getPassword())).thenReturn(true);
 
@@ -966,7 +967,7 @@ public class AuthenticationServiceTest {
         mockUser.setEmail(email);
         mockUser.setIsVerified(false);
 
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
         // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> authenticationService.forgetPassword(email));
@@ -987,7 +988,7 @@ public class AuthenticationServiceTest {
         mockUser.setIsVerified(true);
         mockUser.setFullName("Test User");
 
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         
         AuthenticationServiceImpl spyAuthenticationService = spy(authenticationService);
         when(spyAuthenticationService.generateOTP(email)).thenReturn(mockOtp);
@@ -1025,7 +1026,7 @@ public class AuthenticationServiceTest {
         expiredOtp.setOtp(otpToken);
         expiredOtp.setExpiredAt(LocalDateTime.now().minusMinutes(1));
 
-        when(otpRepository.findByOtp(otpToken)).thenReturn(expiredOtp);
+        when(otpRepository.findByOtp(otpToken)).thenReturn(Optional.of(expiredOtp));
 
         // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> authenticationService.verifyOTP(otpToken, email));
@@ -1052,8 +1053,8 @@ public class AuthenticationServiceTest {
         ReflectionTestUtils.setField(authenticationService, "MAIL_DURATION", 1800L);
 
         
-        when(otpRepository.findByOtp(otpToken)).thenReturn(validOtp);
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(otpRepository.findByOtp(otpToken)).thenReturn(Optional.of(validOtp));
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         
         AuthenticationServiceImpl spyAuthenticationService = spy(authenticationService);
         doReturn(mockJwtToken).when(spyAuthenticationService).generateToken(any(User.class), anyBoolean());
@@ -1108,7 +1109,7 @@ public class AuthenticationServiceTest {
         AuthenticationServiceImpl spyAuthenticationService = spy(authenticationService);
         doReturn(signedJWT).when(spyAuthenticationService).verifyToken(token, false);
         doReturn(claimsSet).when(signedJWT).getJWTClaimsSet();
-        when(userRepository.findByEmail(email)).thenReturn(mockUser);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
         // Act
@@ -1155,8 +1156,8 @@ public class AuthenticationServiceTest {
         User mockUser = new User();
         mockUser.setEmail("old@example.com");
 
-        when(otpRepository.findByOtp(anyInt())).thenReturn(mockOtp);
-        when(userRepository.findByEmail("old@example.com")).thenReturn(mockUser);
+        when(otpRepository.findByOtp(anyInt())).thenReturn(Optional.of(mockOtp)); 
+        when(userRepository.findByEmail("old@example.com")).thenReturn(Optional.of(mockUser));
 
         // Act
         authenticationService.verifyChangeEmail(request);
@@ -1197,7 +1198,7 @@ public class AuthenticationServiceTest {
         mockOtp.setExpiredAt(LocalDateTime.now().plusMinutes(5));
 
        
-        when(otpRepository.findByOtp(anyInt())).thenReturn(mockOtp);
+        when(otpRepository.findByOtp(anyInt())).thenReturn(Optional.of(mockOtp)); 
         when(userRepository.findByEmail("old@example.com")).thenReturn(null); 
 
         // Act & Assert
@@ -1222,8 +1223,8 @@ public class AuthenticationServiceTest {
         mockUser.setEmail("old@example.com");
 
 
-        when(otpRepository.findByOtp(123123)).thenReturn(mockOtp);
-        when(userRepository.findByEmail("old@example.com")).thenReturn(mockUser);
+        when(otpRepository.findByOtp(123123)).thenReturn(Optional.of(mockOtp));
+        when(userRepository.findByEmail("old@example.com")).thenReturn(Optional.of(mockUser));
 
         // Act & Assert
         AppException exception = assertThrows(AppException.class, () -> authenticationService.verifyChangeEmail(request));
@@ -1318,7 +1319,7 @@ public class AuthenticationServiceTest {
         mockUser.setEmail(request.getOldEmail());
         mockUser.setFullName("Test User");
 
-        when(userRepository.findByEmail(request.getOldEmail())).thenReturn(mockUser);
+        when(userRepository.findByEmail(request.getOldEmail())).thenReturn(Optional.of(mockUser));
 
         doNothing().when(mailService).sendEmailOTP(anyInt(), eq(request.getNewEmail()), eq(false), eq("Test User"));
         doNothing().when(mailService).sendSimpleEmail(eq(request.getOldEmail()), anyString(), anyString());

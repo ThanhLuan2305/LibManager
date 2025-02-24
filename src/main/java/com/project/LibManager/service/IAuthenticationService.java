@@ -1,32 +1,9 @@
 package com.project.LibManager.service;
 
-import java.security.SecureRandom;
 import java.text.ParseException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Random;
-import java.util.StringJoiner;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;

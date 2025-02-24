@@ -271,9 +271,9 @@ public class BookServiceImpl implements IBookService {
         }
     
         String email = jwtContext.getAuthentication().getName();
-        User u = userRepository.findByEmail(email);
-        if(u == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
@@ -282,7 +282,7 @@ public class BookServiceImpl implements IBookService {
             throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
         }
         
-        boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(u.getId(), bookId);
+        boolean alreadyBorrowed = borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId);
         if (alreadyBorrowed) {
             throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
         }
@@ -292,7 +292,7 @@ public class BookServiceImpl implements IBookService {
             LocalDate dueDate = borrowDate.plusDays(book.getMaxBorrowDays());
 
             Borrowing borrowing = Borrowing.builder()
-                    .user(u)
+                    .user(user)
                     .book(book)
                     .borrowDate(borrowDate)
                     .dueDate(dueDate)
@@ -326,11 +326,11 @@ public class BookServiceImpl implements IBookService {
         }
     
         String email = jwtContext.getAuthentication().getName();
-        User u = userRepository.findByEmail(email);
-        if(u == null) 
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
 
-        Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(u.getId(), bookId)
+        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
     
         LocalDate returnDate = LocalDate.now();

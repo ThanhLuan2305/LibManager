@@ -155,13 +155,15 @@ public class UserServiceImpl implements IUserService {
             }
     
             String email = jwtContext.getAuthentication().getName();
-            User u = userRepository.findByEmail(email);
+
+            User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
     
-            if (u == null) {
+            if (user == null) {
                 throw new AppException(ErrorCode.USER_NOT_EXISTED);
             }
     
-            return userMapper.toUserResponse(u);
+            return userMapper.toUserResponse(user);
         } catch (AppException e) {
             log.error("Error getting user info: {}", e.getMessage());
             throw e;

@@ -718,7 +718,7 @@ public class BookServiceTest {
 
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByEmail("test@example.com")).thenReturn(user);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 
         // Act & Assert
@@ -747,7 +747,7 @@ public class BookServiceTest {
 
         SecurityContextHolder.setContext(securityContext);
 
-        when(userRepository.findByEmail("test@example.com")).thenReturn(user);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(book));
 
         when(borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)).thenReturn(true);
@@ -774,7 +774,7 @@ public class BookServiceTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(authentication.getName()).thenReturn("user@example.com");
-        when(userRepository.findByEmail("user@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(mockUser));
         when(authentication.isAuthenticated()).thenReturn(true);
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(mockBook));
         when(borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(mockUser.getId(), bookId)).thenReturn(false);
@@ -813,7 +813,7 @@ public class BookServiceTest {
 
         when(authentication.getName()).thenReturn("test@example.com");
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(userRepository.findByEmail("test@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
         when(borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(mockUser.getId(), bookId))
                 .thenReturn(Optional.of(mockBorrowing));
         when(borrowingRepository.save(any(Borrowing.class))).thenReturn(mockBorrowing);
@@ -877,7 +877,7 @@ public class BookServiceTest {
 
         when(authentication.getName()).thenReturn("test@example.com");
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(userRepository.findByEmail("test@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
         when(borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(mockUser.getId(), bookId))
                 .thenReturn(Optional.empty());
 
@@ -912,7 +912,7 @@ public class BookServiceTest {
 
         when(authentication.getName()).thenReturn("test@example.com");
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(userRepository.findByEmail("test@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
         when(borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(mockUser.getId(), bookId))
                 .thenReturn(Optional.of(mockBorrowing));
 
@@ -947,7 +947,7 @@ public class BookServiceTest {
 
         when(authentication.getName()).thenReturn("test@example.com");
         when(authentication.isAuthenticated()).thenReturn(true);
-        when(userRepository.findByEmail("test@example.com")).thenReturn(mockUser);
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
         when(borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(mockUser.getId(), bookId))
                 .thenReturn(Optional.of(mockBorrowing));
 

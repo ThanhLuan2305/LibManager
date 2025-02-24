@@ -48,5 +48,14 @@ public class User {
 
     @Column(nullable = false)
     private Boolean isDeleted = false;
+
+    @Column(nullable = false)
+    private int lateReturnCount = 0;
+
+    public static final int MAX_LATE_RETURNS = 3;
+
+    public boolean isBannedFromBorrowing() {
+        return lateReturnCount >= MAX_LATE_RETURNS;
+    }
 }
 
