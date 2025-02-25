@@ -1,6 +1,5 @@
 package com.project.LibManager.service;
 
-import com.project.LibManager.dto.request.SearchUserRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.UserResponse;
@@ -27,6 +26,4 @@ public interface IUserService {
     public UserResponse updateUser(Long id, UserUpdateRequest request);
 
     public void deleteUser(Long userId);
-
-    public Page<UserResponse> searchUsers(SearchUserRequest SearchUserRequest, Pageable pageable);
 }

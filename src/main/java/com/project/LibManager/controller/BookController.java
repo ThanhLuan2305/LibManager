@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
@@ -80,17 +79,6 @@ public class BookController {
         ApiResponse<String> response = ApiResponse.<String>builder()
                                                  .message("Delete Book successfully")
                                                  .build();
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/search") 
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@RequestBody @Valid SearchBookRequest searchBookRequest,
-                                                       @RequestParam(defaultValue = "0") int offset,
-                                                       @RequestParam(defaultValue = "10") int limit) {
-        Pageable pageable = PageRequest.of(offset, limit);
-        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
-                                                              .result(bookService.searchBooks(searchBookRequest, pageable))
-                                                              .build();
         return ResponseEntity.ok(response);
     }
 
