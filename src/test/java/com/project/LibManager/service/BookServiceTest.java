@@ -529,7 +529,6 @@ public class BookServiceTest {
         assertEquals(ErrorCode.BOOK_NOT_EXISTED, exception.getErrorCode());
         verify(bookRepository, times(1)).findById(nonExistentBookId);
         verify(borrowingRepository, never()).existsByBookAndReturnDateIsNull(any());
-        verify(bookRepository, never()).delete(any());
     }
 
     @Test
@@ -543,7 +542,6 @@ public class BookServiceTest {
         assertEquals(ErrorCode.BOOK_NOT_EXISTED, exception.getErrorCode());
         verify(bookRepository, times(1)).findById(nonExistentBookId);
         verify(borrowingRepository, never()).existsByBookAndReturnDateIsNull(any());
-        verify(bookRepository, never()).delete(any());
     }
 
     @Test

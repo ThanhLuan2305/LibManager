@@ -3,7 +3,6 @@ package com.project.LibManager.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.dto.request.SearchUserRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.RoleResponse;
@@ -377,66 +376,4 @@ public class UserControllerTest {
         Mockito.verify(userService, Mockito.never()).deleteUser(Mockito.any());
     }
 
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void searchUsers_success() throws Exception {
-        // Given
-        SearchUserRequest searchRequest = new SearchUserRequest();
-        searchRequest.setFullName("test");
-
-        int offset = 0;
-        int limit = 10;
-        Pageable pageable = PageRequest.of(offset, limit);
-
-        Page<UserResponse> mockPage = new PageImpl<>(Collections.singletonList(userResponse));
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String content = objectMapper.writeValueAsString(searchRequest);
-
-        Mockito.when(userService.searchUsers(ArgumentMatchers.any(SearchUserRequest.class), ArgumentMatchers.any(Pageable.class)))
-                .thenReturn(mockPage);
-
-        // When, Then
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/users/admin/search")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content)
-                        .param("offset", String.valueOf(offset))
-                        .param("limit", String.valueOf(limit)))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(200))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result.content").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result.content[0].id").value(userResponse.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result.content[0].email").value(userResponse.getEmail()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.result.content[0].fullName").value(userResponse.getFullName()));
-
-        Mockito.verify(userService).searchUsers(ArgumentMatchers.any(SearchUserRequest.class), ArgumentMatchers.eq(pageable));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void searchUsers_invalidRequest_returnsBadRequest() throws Exception {
-        // Given
-        LocalDate fromDate = LocalDate.of(2025, 2, 5);
-        LocalDate toDate = LocalDate.of(2025, 1, 19);
-        SearchUserRequest invalidRequest = new SearchUserRequest();
-        invalidRequest.setFromDate(fromDate);
-        invalidRequest.setToDate(toDate);
-
-        ObjectMapper object = new ObjectMapper();
-        object.registerModule(new JavaTimeModule());
-        String content = object.writeValueAsString(invalidRequest);
-
-        // When, Then
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/users/admin/search")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(1027))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Fromdate must be before todate"));
-
-        Mockito.verify(userService, Mockito.never()).searchUsers(Mockito.any(), Mockito.any());
-    }
 }

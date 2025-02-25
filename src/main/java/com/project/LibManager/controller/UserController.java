@@ -1,12 +1,14 @@
 package com.project.LibManager.controller;
 
-import com.project.LibManager.dto.request.SearchUserRequest;
+import com.project.LibManager.criteria.UserCriteria;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.entity.User;
 import com.project.LibManager.service.IMailService;
 import com.project.LibManager.service.IUserService;
+import com.project.LibManager.specification.UserQueryService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -36,6 +38,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final IUserService userService;
     private final IMailService mailService;
+    private final UserQueryService userQueryService;
+
 
    @PostMapping("/admin")
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
@@ -93,14 +97,14 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/admin/search")
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> searchUsers(@RequestBody @Valid SearchUserRequest searchUserRequest,
-                                               @RequestParam(defaultValue = "0") int offset,
-                                               @RequestParam(defaultValue = "10") int limit) {
-        Pageable pageable = PageRequest.of(offset, limit);
+    @GetMapping("/admin/search")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(UserCriteria criteria, Pageable pageable) {
+        Page<User> users = userQueryService.findByCriteria(criteria, pageable);
+        Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
-                .result(userService.searchUsers(searchUserRequest, pageable))
+                .message("Search user successfully")
+                .result(usersResponse)
                 .build();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().body(response);
     }
 }

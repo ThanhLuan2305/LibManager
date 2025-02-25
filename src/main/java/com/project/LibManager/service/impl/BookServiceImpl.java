@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
 import com.project.LibManager.entity.Book;
@@ -40,7 +39,6 @@ import com.project.LibManager.repository.BookTypeRepository;
 import com.project.LibManager.repository.BorrowingRepository;
 import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.service.IBookService;
-import com.project.LibManager.specification.BookSpecification;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -223,34 +221,6 @@ public class BookServiceImpl implements IBookService {
     @Override
     public BookResponse getBook(Long id) {
         return mapToBookResponseByMapper(id);
-    }
-
-    /**
-     * Searches for books based on the provided search criteria.
-     *
-     * @param searchBookRequest The search criteria.
-     * @param pageable Pagination details.
-     * @return A paginated list of books matching the search criteria.
-     * @throws AppException If there is an error during the search process.
-     * @implNote This method performs a search based on the given criteria and returns a paginated list of books.
-     */
-    @Override
-    public Page<BookResponse> searchBooks(SearchBookRequest searchBookRequest, Pageable pageable) {
-        try {
-            return mapBookPageBookResponsePage(bookRepository.findAll(BookSpecification
-                .filterBooks(searchBookRequest.getTitle(), 
-                            searchBookRequest.getAuthor(), 
-                            searchBookRequest.getTypeName(), 
-                            searchBookRequest.getPublisher(), 
-                            searchBookRequest.getPublishedDateFrom(), 
-                            searchBookRequest.getPublishedDateTo(), 
-                            searchBookRequest.getMaxBorrowDays(), 
-                            searchBookRequest.getLocation(), 
-                            searchBookRequest.getNameUserBrrow()), pageable));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
     }
 
     private User getAuthenticatedUser() {

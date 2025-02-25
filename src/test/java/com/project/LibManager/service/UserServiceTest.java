@@ -3,14 +3,12 @@ package com.project.LibManager.service;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 
 import com.project.LibManager.constant.PredefinedRole;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
@@ -25,7 +23,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.dto.request.SearchUserRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.RoleResponse;
@@ -42,7 +39,6 @@ import com.project.LibManager.service.impl.UserServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -71,7 +67,6 @@ public class UserServiceTest {
     private UserCreateRequest createRequest;
     private UserResponse userResponse;
     private UserUpdateRequest userUpdateRequest;
-    private SearchUserRequest searchUserRequest;
     private Role role;
     private User user;
     private RoleResponse roleResponse;
@@ -123,14 +118,6 @@ public class UserServiceTest {
                 .isVerified(true)
                 .fullName("Test User")
                 .birthDate(birthDate)
-                .build();
-
-        searchUserRequest = SearchUserRequest.builder()
-                .fullName("Test User")
-                .email("testuser@example.com")
-                .role("USER")
-                .fromDate(LocalDate.of(2023, 1, 1))
-                .toDate(LocalDate.of(2024, 1, 1))
                 .build();
     }
 

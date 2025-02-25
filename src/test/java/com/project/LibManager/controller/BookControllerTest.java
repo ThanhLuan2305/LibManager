@@ -31,7 +31,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.request.SearchBookRequest;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BookTypeResponse;
 import com.project.LibManager.exception.AppException;
@@ -47,7 +46,6 @@ public class BookControllerTest {
     @MockitoBean
     private IBookService iBookService;
 
-    private SearchBookRequest searchBookRequest;
     private BookUpdateRequest bookUpdateRequest;
     private BookCreateRequest bookCreateRequest;
     private BorrowingResponse borrowingResponse;
@@ -85,17 +83,6 @@ public class BookControllerTest {
                 .coverImageUrl("https://example.com/advanced-java-cover.jpg")
                 .build();
 
-        searchBookRequest = SearchBookRequest.builder()
-                .title("Java")
-                .author("John Doe")
-                .typeName("Programming")
-                .publisher("Tech Books Publishing")
-                .publishedDateFrom(LocalDate.of(2018, 1, 1))
-                .publishedDateTo(LocalDate.of(2023, 12, 31))
-                .maxBorrowDays(14)
-                .location("A1-Section")
-                .nameUserBrrow("Le Trong An")
-                .build();
 
         bookResponse = BookResponse.builder()
                 .id(1L)
@@ -375,35 +362,6 @@ public class BookControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("message").value(ErrorCode.BOOK_NOT_EXISTED.getMessage()));
 
         Mockito.verify(iBookService).getBook(nonExistentBookId);
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void searchBooks_success() throws Exception {
-        // Given
-        Page<BookResponse> mockPage = new PageImpl<>(Collections.singletonList(bookResponse));
-        Mockito.when(iBookService.searchBooks(ArgumentMatchers.any(SearchBookRequest.class), ArgumentMatchers.any(Pageable.class)))
-                .thenReturn(mockPage);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        String content = objectMapper.writeValueAsString(searchBookRequest);
-
-        // When & Then
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/books/search")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(content)
-                        .param("offset", "0")
-                        .param("limit", "10"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(200))
-                .andExpect(MockMvcResultMatchers.jsonPath("result.content[0].id").value(1L))
-                .andExpect(MockMvcResultMatchers.jsonPath("result.content[0].title").value("Java Programming"))
-                .andExpect(MockMvcResultMatchers.jsonPath("result.content[0].author").value("John Doe"))
-                .andExpect(MockMvcResultMatchers.jsonPath("result.content[0].isbn").value("9781234567890"));
-
-        Mockito.verify(iBookService).searchBooks(ArgumentMatchers.any(SearchBookRequest.class), ArgumentMatchers.any(Pageable.class));
     }
 
     @Test

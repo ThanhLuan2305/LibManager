@@ -2,7 +2,6 @@ package com.project.LibManager.service.impl;
 
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
-import com.project.LibManager.dto.request.SearchUserRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.UserResponse;
@@ -13,7 +12,6 @@ import com.project.LibManager.mapper.UserMapper;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.service.IUserService;
-import com.project.LibManager.specification.UserSpecification;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -225,25 +223,6 @@ public class UserServiceImpl implements IUserService {
             }
         } catch (Exception e) {
             log.error("Error deleting user: {}", e.getMessage(), e);
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
-    }
-
-    /**
-     * Searches for users based on the provided search criteria.
-     *
-     * @param searchUserRequest The search criteria for users.
-     * @param pageable Pagination details.
-     * @return A page of users matching the search criteria.
-     * @throws AppException If an error occurs during the search.
-     * @implNote This method performs a search based on the provided criteria and returns a paginated list of users.
-     */
-    @Override
-    public Page<UserResponse> searchUsers(SearchUserRequest SearchUserRequest, Pageable pageable) {
-        try {
-            return mapUserPageUserResponsePage(userRepository.findAll(UserSpecification.filterUsers(SearchUserRequest.getFullName(), SearchUserRequest.getEmail(), SearchUserRequest.getRole(), SearchUserRequest.getFromDate(), SearchUserRequest.getToDate() ), pageable));
-        } catch (Exception e) {
-            log.error("Error serching user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
