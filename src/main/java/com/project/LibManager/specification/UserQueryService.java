@@ -30,35 +30,37 @@ public class UserQueryService extends QueryService<User> {
 
     private Specification<User> createSpecification(UserCriteria criteria) {
         Specification<User> specification = Specification.where(null);
-
-        if (criteria.getId() != null) {
-            specification = specification.and(buildRangeSpecification(criteria.getId(), User_.id));
-        }
         if (criteria.getEmail() != null) {
             specification = specification.and(buildStringSpecification(criteria.getEmail(), User_.email));
         }
+        
         if (criteria.getFullName() != null) {
             specification = specification.and(buildStringSpecification(criteria.getFullName(), User_.fullName));
         }
+
         if (criteria.getBirthDate() != null) {
             specification = specification.and(buildRangeSpecification(criteria.getBirthDate(), User_.birthDate));
         }
+
         if (criteria.getIsVerified() != null) {
             specification = specification.and(buildSpecification(criteria.getIsVerified(), User_.isVerified));
         }
+
         if (criteria.getIsDeleted() != null) {
             specification = specification.and(buildSpecification(criteria.getIsDeleted(), User_.isDeleted));
         }
+
         if (criteria.getLateReturnCount() != null) {
             specification = specification.and(buildRangeSpecification(criteria.getLateReturnCount(), User_.lateReturnCount));
         }
+
         if (criteria.getBookIsbn() != null) {
             specification = specification.and(buildSpecification(criteria.getBookIsbn(), 
                 root -> root.join(User_.borrowings, JoinType.INNER)
                             .join(Borrowing_.book, JoinType.INNER)
                             .get(Book_.isbn)));
         }
-        
+
         if (criteria.getBookTitle() != null) {
             specification = specification.and(buildSpecification(criteria.getBookTitle(), 
                 root -> root.join(User_.borrowings, JoinType.INNER)

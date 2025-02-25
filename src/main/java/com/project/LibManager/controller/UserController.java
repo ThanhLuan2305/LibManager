@@ -98,11 +98,12 @@ public class UserController {
     }
 
     @GetMapping("/admin/search")
-    public ResponseEntity<ApiResponse<Page<User>>> getAllUsers(UserCriteria criteria, Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(UserCriteria criteria, Pageable pageable) {
         Page<User> users = userQueryService.findByCriteria(criteria, pageable);
-        ApiResponse<Page<User>> response = ApiResponse.<Page<User>>builder()
+        Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
+        ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
                 .message("Search user successfully")
-                .result(users)
+                .result(usersResponse)
                 .build();
         return ResponseEntity.ok().body(response);
     }
