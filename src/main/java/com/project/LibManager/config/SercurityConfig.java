@@ -43,7 +43,7 @@ public class SercurityConfig {
                 .requestMatchers(ADMIN_ENDPOINT).hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(USER_ENDPOINT).hasAnyAuthority("ROLE_USER")
                 .anyRequest()
-                .authenticated());
+                .permitAll());
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
                             .jwt(jwtConfigure -> jwtConfigure
                                                     .decoder(customDecoder)

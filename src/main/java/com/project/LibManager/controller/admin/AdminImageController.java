@@ -1,4 +1,4 @@
-package com.project.LibManager.controller;
+package com.project.LibManager.controller.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,15 +13,15 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/images")
+@RequestMapping("admin/images")
 @RequiredArgsConstructor
 @Slf4j
 @SecurityRequirement(name = "JWT Authentication")
-public class ImageController {
+public class AdminImageController {
 
     private final IImageCloundService imageCloudService;
 
-    @PostMapping("/admin/upload")
+    @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             String imageUrl = imageCloudService.uploadImage(file);
@@ -31,7 +31,7 @@ public class ImageController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    @DeleteMapping("/admin/{fileName}")
+    @DeleteMapping("/{fileName}")
     public ResponseEntity<Map<String, String>> deleteImage(@PathVariable String fileName) {
         boolean isDeleted = imageCloudService.deleteImage(fileName);
         if (isDeleted) {
@@ -41,7 +41,7 @@ public class ImageController {
         }
     }
 
-    @PutMapping("/admin/update")
+    @PutMapping("/update")
     public ResponseEntity<Map<String, String>> updateImage(
             @RequestParam("oldFileName") String oldFileName,
             @RequestParam("file") MultipartFile newFile) {
@@ -54,7 +54,7 @@ public class ImageController {
         }
     }
 
-    @GetMapping("/admin/preview/{fileName}")
+    @GetMapping("/preview/{fileName}")
     public ResponseEntity<Map<String, String>> getPreviewUrl(@PathVariable String fileName) {
         String imageUrl = imageCloudService.getPreviewUrl(fileName);
         return ResponseEntity.ok(Map.of("previewUrl", imageUrl));

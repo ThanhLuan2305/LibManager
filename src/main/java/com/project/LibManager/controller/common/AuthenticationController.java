@@ -1,4 +1,4 @@
-package com.project.LibManager.controller;
+package com.project.LibManager.controller.common;
 
 import java.text.ParseException;
 

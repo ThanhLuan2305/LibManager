@@ -1,4 +1,4 @@
-package com.project.LibManager.controller;
+package com.project.LibManager.controller.admin;
 
 import java.time.LocalDate;
 
@@ -17,12 +17,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/config")
+@RequestMapping("admin/config")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class MaintenanceController {
     private final IMaintenanceService maintenanceService;
-    @PostMapping("/admin/maintenance/{status}")
+    @PostMapping("/maintenance/{status}")
     public ResponseEntity<ApiResponse<Void>> setMaintenanceMode(@PathVariable boolean status) {
         maintenanceService.setMaintenanceMode(status);
         ApiResponse<Void> response = ApiResponse.<Void>builder()
@@ -31,7 +31,7 @@ public class MaintenanceController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/admin/maintenance/status")
+    @GetMapping("/maintenance/status")
     public ResponseEntity<ApiResponse<MaintenanceResponse>> getMaintenanceMode() {
         boolean isMaintenance = maintenanceService.isMaintenanceMode();
         
