@@ -314,19 +314,26 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
-        boolean rs = introspectToken(new TokenRequest().builder().token(token).build()).isValid();
-        if(rs) {
-            var signedJWT = verifyToken(token, false);
+        JWSVerifier verifier = new MACVerifier(SIGN_KEY.getBytes());
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        // check verify or refresh token
+        Date expTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean rs = signedJWT.verify(verifier);
+        if(!expTime.after(new Date()) || !rs) {
             String email = signedJWT.getJWTClaimsSet().getSubject();
-
-            User user = userRepository.findByEmail(email).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
-
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            userRepository.delete(user);
+            return false;
+    
+        }
+        else {
+            String email = signedJWT.getJWTClaimsSet().getSubject();
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             user.setIsVerified(true);
             userRepository.save(user);
+            return true;
         }
-        else throw new AppException(ErrorCode.UNAUTHENTICATED);
-        return true;
     }
 
     /**

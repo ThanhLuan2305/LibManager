@@ -144,14 +144,15 @@ public class BookServiceImpl implements IBookService {
     @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.BOOK_NOT_EXISTED));
-        
-        boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
-        if (isBorrowed) {
-            throw new AppException(ErrorCode.BOOK_IS_CURRENTLY_BORROWED);
-        }
 
         try {
-            bookRepository.delete(book);
+            boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
+            if (isBorrowed) {
+                book.setIsDeleted(true);;
+                bookRepository.save(book);
+            }
+            else 
+                bookRepository.delete(book);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -332,10 +333,32 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
-        List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
-        if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-
         try {
+            List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
+            if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            List<BookResponse> lstBook = borrowings.stream()
+                    .map(b -> bookMapper.toBookResponse(b.getBook()))
+                    .collect(Collectors.toList());
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), lstBook.size());
+            List<BookResponse> pageContent = lstBook.subList(start, end);
+
+            return new PageImpl<>(pageContent, pageable, lstBook.size());
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    @Override
+    public Page<BookResponse> getBookBorrowForUser(Pageable pageable) {
+        try {
+            User user = getAuthenticatedUser();
+            List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(user.getId());
+            if(borrowings.isEmpty()) throw new AppException(ErrorCode.USER_NOT_BORROW);
             List<BookResponse> lstBook = borrowings.stream()
                     .map(b -> bookMapper.toBookResponse(b.getBook()))
                     .collect(Collectors.toList());

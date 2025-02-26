@@ -1,12 +1,17 @@
 package com.project.LibManager.controller.user;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.LibManager.dto.response.ApiResponse;
+import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.dto.response.BorrowingResponse;
 import com.project.LibManager.service.IBookService;
 
@@ -36,6 +41,17 @@ public class UserBookController {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
                                                              .message("Return book is successfully!")
                                                              .result(bookService.returnBook(bookId))
+                                                             .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/user/book-borrow") 
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrow(@RequestParam(defaultValue = "0") int offset,
+                                                                        @RequestParam(defaultValue = "10") int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                                                             .message("List of borrowed books.")
+                                                             .result(bookService.getBookBorrowForUser(pageable))
                                                              .build();
         return ResponseEntity.ok(response);
     }

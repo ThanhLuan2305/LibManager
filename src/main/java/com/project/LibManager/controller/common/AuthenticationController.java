@@ -76,9 +76,10 @@ public class AuthenticationController {
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse<Boolean>> verifyEmail(@RequestParam("token") String token) throws JOSEException, ParseException {
         Boolean result = aService.verifyEmail(token);
+        String message = result ? "Email verification successful." : "Email verification failed.";
         ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
                                                   .result(result)
-                                                  .message("Verify email successfully")
+                                                  .message(message)
                                                   .build();
         return ResponseEntity.ok(response);
     }

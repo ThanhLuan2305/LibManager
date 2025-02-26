@@ -53,6 +53,9 @@ public class Book {
     @Column(nullable = false)
     private String coverImageUrl;
 
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Borrowing> borrowings;
 }

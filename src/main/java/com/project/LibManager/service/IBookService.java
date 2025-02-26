@@ -32,6 +32,8 @@ public interface IBookService {
 
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable);
 
+    public Page<BookResponse> getBookBorrowForUser(Pageable pageable);
+
     public void importBooks(MultipartFile file);
 
 }
