@@ -185,20 +185,20 @@ public class UserServiceImpl implements IUserService {
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         try {
+            userMapper.updateUser(u, request);
 
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 u.setPassword(passwordEncoder.encode(request.getPassword()));
             }
-
-            userMapper.updateUser(u, request);
+            
             Set<Role> roles = new HashSet<>();
             roles.addAll(request.getListRole().stream()
                                             .map(x -> roleRepository.findByName(x)
                                                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
                                             .collect(Collectors.toSet()));
             u.setRoles(roles);
+            u = userRepository.save(u);
 
-            userRepository.save(u);
             return userMapper.toUserResponse(u);
         } catch (AppException e) {
             log.error("Error updating user: {}", e.getMessage(), e);

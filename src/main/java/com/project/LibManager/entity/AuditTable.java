@@ -44,6 +44,7 @@ public abstract class AuditTable {
     @PreUpdate
     public void handleBeforeUpdate() {
         var jwtContext = SecurityContextHolder.getContext();
+        
         this.updatedBy = jwtContext!=null ? jwtContext.getAuthentication().getName() : "";
         this.updatedAt = LocalDate.now();
     }

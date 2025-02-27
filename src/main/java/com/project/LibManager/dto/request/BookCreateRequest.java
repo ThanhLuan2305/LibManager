@@ -61,4 +61,7 @@ public class BookCreateRequest {
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
     private String coverImageUrl;
 
+    @NotNull(message = "NOT_BLANK")
+    private String isDeleted;
+
 }

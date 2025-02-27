@@ -23,10 +23,11 @@ import lombok.RequiredArgsConstructor;
 public class MaintenanceController {
     private final IMaintenanceService maintenanceService;
     @PostMapping("/maintenance/{status}")
-    public ResponseEntity<ApiResponse<Void>> setMaintenanceMode(@PathVariable boolean status) {
+    public ResponseEntity<ApiResponse<String>> setMaintenanceMode(@PathVariable boolean status) {
         maintenanceService.setMaintenanceMode(status);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
+        ApiResponse<String> response = ApiResponse.<String>builder()
                                                 .message("Server in Maintenance: " + status)
+                                                .result("success")
                                                 .build();
         return ResponseEntity.ok(response);
     }

@@ -6,10 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.service.IImageCloundService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -22,42 +24,42 @@ public class AdminImageController {
     private final IImageCloundService imageCloudService;
 
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            String imageUrl = imageCloudService.uploadImage(file);
-            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
-        } catch (Exception e) {
-            log.error("Lỗi upload ảnh: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+        String imageUrl = imageCloudService.uploadImage(file);
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .message("Image uploaded successfully")
+                .result(imageUrl)
+                .build());
     }
+
     @DeleteMapping("/{fileName}")
-    public ResponseEntity<Map<String, String>> deleteImage(@PathVariable String fileName) {
-        boolean isDeleted = imageCloudService.deleteImage(fileName);
-        if (isDeleted) {
-            return ResponseEntity.ok(Map.of("message", "Delete successfully!"));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Can't delete image"));
-        }
+    public ResponseEntity<ApiResponse<String>> deleteImage(@PathVariable String fileName) throws Exception {
+        imageCloudService.deleteImage(fileName);
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .message("Image deleted successfully")
+                .result(fileName)
+                .build());
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Map<String, String>> updateImage(
+    public ResponseEntity<ApiResponse<String>> updateImage(
             @RequestParam("oldFileName") String oldFileName,
-            @RequestParam("file") MultipartFile newFile) {
-        try {
-            String newImageUrl = imageCloudService.updateImage(oldFileName, newFile);
-            return ResponseEntity.ok(Map.of("newImageUrl", newImageUrl));
-        } catch (Exception e) {
-            log.error("Error update image: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+            @RequestParam("file") MultipartFile newFile) throws Exception {
+        String newImageUrl = imageCloudService.updateImage(oldFileName, newFile);
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .message("Image updated successfully")
+                .result(newImageUrl)
+                .build());
     }
 
     @GetMapping("/preview/{fileName}")
-    public ResponseEntity<Map<String, String>> getPreviewUrl(@PathVariable String fileName) {
+    public ResponseEntity<ApiResponse<String>> getPreviewUrl(@PathVariable String fileName) {
         String imageUrl = imageCloudService.getPreviewUrl(fileName);
-        return ResponseEntity.ok(Map.of("previewUrl", imageUrl));
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .message("Image preview URL retrieved successfully")
+                .result(imageUrl)
+                .build());
     }
+
 }
 

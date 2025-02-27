@@ -193,7 +193,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             return IntrospectResponse.builder().valid(invalid).build();
         } catch (Exception e) {
             invalid = false;
-            log.error(token, e);
+            log.error(token, e.getMessage());
             throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
         }
 
@@ -226,6 +226,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             invalidToken(logoutRequest.getRefreshToken());
         } catch (AppException e) {
             log.info("Token already expired");
+            throw new AppException(ErrorCode.LOGOUT_FAIL);
         }   
     }
 
@@ -250,19 +251,39 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                                                 .toEpochMilli())
                                    : signedJWT.getJWTClaimsSet().getExpirationTime();
         if(!expTime.after(new Date())) {
+            log.error("Token expired");
             throw new AppException(ErrorCode.JWT_TOKEN_EXPIRED);
         }
 
         boolean rs = signedJWT.verify(verifier);
         if(!rs) 
+        {
+            log.error("Token expired");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
+        }
         if(invalidateTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+        {
+            log.error("Invalid token");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        }
         
         return signedJWT;
     }
 
+    /**
+     * Refreshes the authentication token by verifying the provided refresh token, invalidating the old token,
+     * and generating a new access token and refresh token.
+     *
+     * @param refreshRequest the request containing the refresh token.
+     * @return an AuthenticationResponse containing the new access token and refresh token.
+     * @throws JOSEException if there is an error during JWT processing.
+     * @throws ParseException if the refresh token cannot be parsed.
+     * @throws AppException if the user associated with the token does not exist.
+     * @implNote This method verifies the refresh token, invalidates the old token by storing it in the database,
+     * retrieves the user associated with the token, and generates new authentication tokens.
+     */
     @Override
     public AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException {
         var signedJWT = verifyToken(refreshRequest.getToken(), true);
@@ -278,7 +299,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
         new AppException(ErrorCode.USER_NOT_EXISTED));
 
         String accesstoken = generateToken(user, TokenType.ACCESS);
@@ -287,12 +308,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     /**
-     * Registers a new user and sends a verification email.
+     * Registers a new user by saving their details, encoding the password, assigning roles,
+     * and sending a verification email.
      *
-     * @param userCreateRequest the user creation request containing user details.
-     * @return the created user response.
-     * @throws AppException if user creation fails.
-     * @implNote Saves user details in the database and triggers an email verification process.
+     * @param registerRequest the request containing user registration details.
+     * @return the response containing user information.
+     * @throws AppException if the user already exists, the role is not found, or an unexpected error occurs.
+     * @implNote This method maps the registration request to a User entity, encodes the password,
+     * checks for duplicate emails, assigns the default role, saves the user, generates a verification token,
+     * and sends a verification email.
      */
     @Override
     public UserResponse registerUser(RegisterRequest registerRequest) {
@@ -516,6 +540,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
             String password = generatePassword(9);
             user.setPassword(passwordEncoder.encode(password));
+            user.setIsReset(true);
             userRepository.save(user);
             
             invalidToken(token);
@@ -527,7 +552,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
     }
 
-    
+    /**
+     * Changes the user's password after a password reset request.
+     *
+     * @param cpRequest the request containing email, new password, and confirmation password.
+     * @return {@code true} if the password is successfully changed.
+     * @throws AppException if the user does not exist, the new password and confirmation do not match,
+     *                      or the new password is the same as the old password.
+     * @implNote This method verifies that the user exists, ensures the new password matches the confirmation password,
+     * checks that the new password is not the same as the old password, and updates the password securely.
+     */
     @Override
     public boolean changePasswordAfterReset(ChangePassAfterResetRequest cpRequest) {
         User user = userRepository.findByEmail(cpRequest.getEmail()).orElseThrow(() -> 

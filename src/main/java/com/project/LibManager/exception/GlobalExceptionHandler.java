@@ -2,8 +2,13 @@ package com.project.LibManager.exception;
 
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.dto.response.ApiResponse;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException runtimeException) {
@@ -51,4 +57,22 @@ public class GlobalExceptionHandler {
         apiRespones.setMessage(errorCode.getMessage());
         return ResponseEntity.badRequest().body(apiRespones);
     }
+
+    @ExceptionHandler(value = AuthenticationServiceException.class)
+    ResponseEntity<ApiResponse> handlingAuthenticationException(AuthenticationServiceException ex) {
+        log.error("Authentication error: {}", ex.getMessage());
+        return ResponseEntity.status(ErrorCode.UNAUTHORIZED.getStatusCode()).body(ApiResponse.builder()
+                .code(ErrorCode.UNAUTHORIZED.getCode())
+                .message("Authentication failed: " + ex.getMessage())
+                .build());
+    }
+
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse> handlingIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.builder()
+                .code(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build());
+    }
+
 }

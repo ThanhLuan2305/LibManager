@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -35,9 +36,9 @@ public class CustomDecoder implements JwtDecoder {
             var response = authenticationService.introspectToken(
                     TokenRequest.builder().token(token).build());
 
-            if (!response.isValid()) throw new JwtException("Token invalid");
+            if (!response.isValid()) throw new BadJwtException("Token invalid");
         } catch (Exception e) {
-            throw new JwtException(e.getMessage());
+            throw new BadJwtException(e.getMessage());
         }
 
         if (Objects.isNull(nimbusJwtDecoder)) {

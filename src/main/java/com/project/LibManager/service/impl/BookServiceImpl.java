@@ -81,12 +81,12 @@ public class BookServiceImpl implements IBookService {
             if (existingBook.isPresent()) {
                 Book book = existingBook.get();
                 book.setStock(book.getStock() + bookCreateRequest.getStock());
-                bookRepository.save(book);
+                book = bookRepository.save(book);
                 return bookMapper.toBookResponse(book);
             } else {
                 Book book = bookMapper.toBook(bookCreateRequest);
                 book.setType(type);
-                bookRepository.save(book);
+                book = bookRepository.save(book);
                 return bookMapper.toBookResponse(book);
             }
         } catch (DataAccessException e) {
@@ -126,7 +126,8 @@ public class BookServiceImpl implements IBookService {
         try {
             bookMapper.updateBook(book, bookUpdateRequest);
             book.setType(type);
-            return bookMapper.toBookResponse(bookRepository.save(book));
+            book = bookRepository.save(book);
+            return bookMapper.toBookResponse(book);
         } catch (DataAccessException e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -353,12 +354,20 @@ public class BookServiceImpl implements IBookService {
         }
     }
 
+    /**
+     * Retrieves a paginated list of books currently borrowed by the authenticated user.
+     *
+     * @param pageable Pagination details.
+     * @return A paginated list of books borrowed by the user.
+     * @throws AppException If an error occurs while fetching borrowed books.
+     * @implNote This method fetches all active borrowings for the authenticated user, 
+     *           maps them to book responses, and returns them in a paginated format.
+     */
     @Override
     public Page<BookResponse> getBookBorrowForUser(Pageable pageable) {
         try {
             User user = getAuthenticatedUser();
             List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(user.getId());
-            if(borrowings.isEmpty()) throw new AppException(ErrorCode.USER_NOT_BORROW);
             List<BookResponse> lstBook = borrowings.stream()
                     .map(b -> bookMapper.toBookResponse(b.getBook()))
                     .collect(Collectors.toList());
@@ -425,6 +434,7 @@ public class BookServiceImpl implements IBookService {
                                 .maxBorrowDays(Integer.parseInt(record.get("maxBorrowDays")))
                                 .location(record.get("location"))
                                 .coverImageUrl(record.get("coverImageUrl"))
+                                .isDeleted(false)
                                 .build());
             }).collect(Collectors.toList());
             

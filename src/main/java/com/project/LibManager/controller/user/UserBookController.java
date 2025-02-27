@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UserBookController {
     private final IBookService bookService;
 
-    @PostMapping("/user/borrow/{bookId}") 
+    @PostMapping("/borrow/{bookId}") 
     public ResponseEntity<ApiResponse<BorrowingResponse>> borrowBooks(@PathVariable Long bookId) {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
                                                              .message("Borrow book is successfully!")
@@ -36,7 +37,7 @@ public class UserBookController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/user/return/{bookId}") 
+    @PostMapping("/return/{bookId}") 
     public ResponseEntity<ApiResponse<BorrowingResponse>> returnBooks(@PathVariable Long bookId) {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
                                                              .message("Return book is successfully!")
@@ -45,7 +46,7 @@ public class UserBookController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/user/book-borrow") 
+    @GetMapping("/books-borrow") 
     public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrow(@RequestParam(defaultValue = "0") int offset,
                                                                         @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);

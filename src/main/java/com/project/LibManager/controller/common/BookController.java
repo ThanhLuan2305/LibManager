@@ -3,6 +3,7 @@ package com.project.LibManager.controller.common;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,7 @@ public class BookController {
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
                                                               .result(bookService.getBooks(pageable))
+                                                              .message("Books retrieved successfully")
                                                               .build();
         return ResponseEntity.ok(response);
     }
@@ -46,13 +48,14 @@ public class BookController {
     public ResponseEntity<ApiResponse<BookResponse>> getBook(@PathVariable Long bookId) {
         ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
                                                         .result(bookService.getBook(bookId))
+                                                        .message("Book retrieved successfully")
                                                         .build();
         return ResponseEntity.ok(response);
     }
 
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> getAllBooks(BookCriteria criteria, Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@ParameterObject BookCriteria criteria, Pageable pageable) {
         Page<Book> books = bookQueryService.findByCriteria(criteria, pageable);
         Page<BookResponse> booksReponse = bookService.mapBookPageBookResponsePage(books);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()

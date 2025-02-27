@@ -1,5 +1,6 @@
 package com.project.LibManager.controller.admin;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +42,7 @@ public class AdminUserController {
     public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(userCreateRequest))
+                .message("User created successfully.")
                 .build();
         return ResponseEntity.ok(response);
     }
@@ -48,7 +50,7 @@ public class AdminUserController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
-                .message("Update user successfully")
+                .message("User updated successfully.")
                 .result(userService.updateUser(id, userUpdateRequest))
                 .build();
         return ResponseEntity.ok(response);
@@ -58,17 +60,18 @@ public class AdminUserController {
     public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         ApiResponse<String> response = ApiResponse.<String>builder()
-                .message("Delete user successfully")
+                .message("User deleted successfully.")
+                .result("success")
                 .build();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(UserCriteria criteria, Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> SerachUsers(@ParameterObject UserCriteria criteria, Pageable pageable) {
         Page<User> users = userQueryService.findByCriteria(criteria, pageable);
         Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
-                .message("Search user successfully")
+                .message("Users retrieved successfully based on search criteria.")
                 .result(usersResponse)
                 .build();
         return ResponseEntity.ok().body(response);
@@ -83,6 +86,7 @@ public class AdminUserController {
         
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
+                .message("Users retrieved successfully.")
                 .result(userService.getUsers(pageable))
                 .build();
         return ResponseEntity.ok(response);
@@ -91,6 +95,7 @@ public class AdminUserController {
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long userId) {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .message("User retrieved successfully.")
                 .result(userService.getUser(userId))
                 .build();
         return ResponseEntity.ok(response);
