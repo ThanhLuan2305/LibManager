@@ -9,12 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuthenticationResponse {
-    private boolean authenticate;
-    
-    private String accessToken;
-
-    private String refreshToken;
-
-    private boolean forceChangePassword;
+public class ChangePassAfterResetRequest {
+    private String email;
+    private String newPassword;
+    private String confirmPassword;
 }

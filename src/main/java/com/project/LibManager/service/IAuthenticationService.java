@@ -9,10 +9,12 @@ import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.LogoutRequest;
+import com.project.LibManager.dto.request.RegisterRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
+import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.User;
@@ -34,7 +36,7 @@ public interface IAuthenticationService {
 
     AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException;
 
-    UserResponse registerUser(UserCreateRequest userCreateRequest);
+    UserResponse registerUser(RegisterRequest registerRequest);
 
     boolean verifyEmail(String token) throws JOSEException, ParseException;
 
@@ -50,7 +52,9 @@ public interface IAuthenticationService {
 
     String generatePassword(int length);
 
-    public String resetPassword(String token) throws JOSEException, ParseException ;
+    String resetPassword(String token) throws JOSEException, ParseException ;
+
+    boolean changePasswordAfterReset(ChangePassAfterResetRequest cpRequest);
 
     void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest);
     

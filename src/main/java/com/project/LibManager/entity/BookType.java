@@ -8,13 +8,14 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "book_types")
-public class BookType {
+public class BookType extends AuditTable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

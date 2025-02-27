@@ -24,4 +24,12 @@ public class BorrowingResponse {
     private LocalDate dueDate;
 
     private LocalDate returnDate;
+
+    private LocalDate createdAt;
+
+    private LocalDate updatedAt;
+
+    private String createdBy;
+
+    private String updatedBy;
 }

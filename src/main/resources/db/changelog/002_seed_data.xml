@@ -9,10 +9,18 @@
         <insert tableName="roles">
             <column name="name" value="ADMIN"/>
             <column name="description" value="ADMIN role"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
         <insert tableName="roles">
             <column name="name" value="USER"/>
             <column name="description" value="User role"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
     </changeSet>
 
@@ -23,7 +31,12 @@
             <column name="is_verified" valueNumeric="1"/>
             <column name="full_name" value="Admin User"/>
             <column name="is_deleted" valueNumeric="0"/>
+            <column name="is_reset" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
         <insert tableName="users">
             <column name="email" value="john.doe@gmail.com"/>
@@ -31,7 +44,12 @@
             <column name="is_verified" valueNumeric="1"/>
             <column name="full_name" value="John Doe"/>
             <column name="is_deleted" valueNumeric="0"/>
+            <column name="is_reset" valueNumeric="0"/>
             <column name="late_return_count" value="1"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
         <insert tableName="users">
             <column name="email" value="jane.smith@gmail.com"/>
@@ -39,7 +57,12 @@
             <column name="is_verified" valueNumeric="1"/>
             <column name="full_name" value="Jane Smith"/>
             <column name="is_deleted" valueNumeric="0"/>
+            <column name="is_reset" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
     </changeSet>
 
@@ -62,9 +85,17 @@
     <changeSet id="002-seed-book-types" author="admin">
         <insert tableName="book_types">
             <column name="name" value="Programming"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
         <insert tableName="book_types">
             <column name="name" value="Database"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
     </changeSet>
 
@@ -80,6 +111,11 @@
             <column name="published_date" value="2017-12-27"/>
             <column name="max_borrow_days" value="14"/>
             <column name="location" value="Shelf A1"/>
+            <column name="is_deleted" valueNumeric="0"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
         <insert tableName="books">
             <column name="isbn" value="9781492078005"/>
@@ -92,6 +128,11 @@
             <column name="published_date" value="2017-03-16"/>
             <column name="max_borrow_days" value="21"/>
             <column name="location" value="Shelf B3"/>
+            <column name="is_deleted" valueNumeric="0"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
     </changeSet>
 
@@ -102,6 +143,10 @@
             <column name="borrow_date" value="2024-02-01"/>
             <column name="due_date" value="2024-02-15"/>
             <column name="return_date" value="2024-02-14"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
         <insert tableName="borrowings">
             <column name="user_id" value="3"/>
@@ -109,6 +154,10 @@
             <column name="borrow_date" value="2024-02-05"/>
             <column name="due_date" value="2024-02-19"/>
             <column name="return_date" value="NULL"/>
+            <column name="created_at" value="2024-02-02"/>
+            <column name="updated_at" value="2024-02-11"/>
+            <column name="created_by" value="system"/>
+            <column name="updated_by" value="admin"/>
         </insert>
     </changeSet>
 

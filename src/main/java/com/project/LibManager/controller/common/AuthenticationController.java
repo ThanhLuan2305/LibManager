@@ -15,11 +15,13 @@ import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.LogoutRequest;
+import com.project.LibManager.dto.request.RegisterRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.AuthenticationResponse;
+import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.IAuthenticationService;
@@ -85,8 +87,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody @Valid UserCreateRequest ucrRequest) throws JOSEException, ParseException {
-        UserResponse result = aService.registerUser(ucrRequest);
+    public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody @Valid RegisterRequest registerRequest) throws JOSEException, ParseException {
+        UserResponse result = aService.registerUser(registerRequest);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                                                         .result(result)
                                                         .message("Register successfully, please verify your email to login!")
@@ -133,6 +135,17 @@ public class AuthenticationController {
                                                  .build();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/change-password-after-reset")
+    public ResponseEntity<ApiResponse<Boolean>> changePasswordAfterReset(@RequestBody ChangePassAfterResetRequest cpRequest) throws JOSEException, ParseException {
+        Boolean result = aService.changePasswordAfterReset(cpRequest);
+        ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
+                                                  .message("Change password successfully")
+                                                  .result(result)
+                                                  .build();
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/change-mail")
     public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody ChangeMailRequest eMailRequest) throws Exception {
