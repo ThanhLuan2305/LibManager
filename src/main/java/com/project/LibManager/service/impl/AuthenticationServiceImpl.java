@@ -6,13 +6,17 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,10 +37,12 @@ import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.LogoutRequest;
+import com.project.LibManager.dto.request.RegisterRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
 import com.project.LibManager.dto.response.AuthenticationResponse;
+import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.InvalidateToken;
@@ -44,6 +50,7 @@ import com.project.LibManager.entity.OtpVerification;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
+import com.project.LibManager.mapper.UserMapper;
 import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.OtpVerificationRepository;
 import com.project.LibManager.repository.RoleRepository;
@@ -61,7 +68,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements IAuthenticationService {
     private final UserRepository userRepository;
-    private final IUserService userService;
+    private final UserMapper userMapper;
     private final InvalidateTokenRepository invalidateTokenRepository;
     private final IMailService mailService;
     private final OtpVerificationRepository otpRepository;
@@ -113,10 +120,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if(!rs)
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
 
+        if(user.getIsReset()) {
+            return AuthenticationResponse.builder().authenticate(rs).forceChangePassword(user.getIsReset()).build();
+        }
+
         String accessToken = generateToken(user, TokenType.ACCESS);
         String refreshToken = generateToken(user, TokenType.REFRESH);
 
-        return AuthenticationResponse.builder().authenticate(rs).accessToken(accessToken).refreshToken(refreshToken).build();
+        return AuthenticationResponse.builder().authenticate(rs).accessToken(accessToken).refreshToken(refreshToken).forceChangePassword(user.getIsReset()).build();
     }
 
     /**
@@ -182,7 +193,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             return IntrospectResponse.builder().valid(invalid).build();
         } catch (Exception e) {
             invalid = false;
-            log.error(token, e);
+            log.error(token, e.getMessage());
             throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
         }
 
@@ -215,6 +226,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             invalidToken(logoutRequest.getRefreshToken());
         } catch (AppException e) {
             log.info("Token already expired");
+            throw new AppException(ErrorCode.LOGOUT_FAIL);
         }   
     }
 
@@ -239,19 +251,39 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                                                 .toEpochMilli())
                                    : signedJWT.getJWTClaimsSet().getExpirationTime();
         if(!expTime.after(new Date())) {
+            log.error("Token expired");
             throw new AppException(ErrorCode.JWT_TOKEN_EXPIRED);
         }
 
         boolean rs = signedJWT.verify(verifier);
         if(!rs) 
+        {
+            log.error("Token expired");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
+        }
         if(invalidateTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+        {
+            log.error("Invalid token");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        }
         
         return signedJWT;
     }
 
+    /**
+     * Refreshes the authentication token by verifying the provided refresh token, invalidating the old token,
+     * and generating a new access token and refresh token.
+     *
+     * @param refreshRequest the request containing the refresh token.
+     * @return an AuthenticationResponse containing the new access token and refresh token.
+     * @throws JOSEException if there is an error during JWT processing.
+     * @throws ParseException if the refresh token cannot be parsed.
+     * @throws AppException if the user associated with the token does not exist.
+     * @implNote This method verifies the refresh token, invalidates the old token by storing it in the database,
+     * retrieves the user associated with the token, and generates new authentication tokens.
+     */
     @Override
     public AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException {
         var signedJWT = verifyToken(refreshRequest.getToken(), true);
@@ -267,7 +299,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> 
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
         new AppException(ErrorCode.USER_NOT_EXISTED));
 
         String accesstoken = generateToken(user, TokenType.ACCESS);
@@ -276,26 +308,42 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     /**
-     * Registers a new user and sends a verification email.
+     * Registers a new user by saving their details, encoding the password, assigning roles,
+     * and sending a verification email.
      *
-     * @param userCreateRequest the user creation request containing user details.
-     * @return the created user response.
-     * @throws AppException if user creation fails.
-     * @implNote Saves user details in the database and triggers an email verification process.
+     * @param registerRequest the request containing user registration details.
+     * @return the response containing user information.
+     * @throws AppException if the user already exists, the role is not found, or an unexpected error occurs.
+     * @implNote This method maps the registration request to a User entity, encodes the password,
+     * checks for duplicate emails, assigns the default role, saves the user, generates a verification token,
+     * and sends a verification email.
      */
     @Override
-    public UserResponse registerUser(UserCreateRequest userCreateRequest) {
-        var createdUser = userService.createUser(userCreateRequest);
-        
-        User user = userRepository.findByEmail(createdUser.getEmail()).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
+    public UserResponse registerUser(RegisterRequest registerRequest) {
+        User user = userMapper.fromRegisterRequest(registerRequest);
 
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+
+        if(userRepository.existsByEmail(registerRequest.getEmail())) 
+        	throw new AppException(ErrorCode.USER_EXISTED);
+
+        Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
+            new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
         try {
+            user.setRoles(roles);
+            user.setIsVerified(false);
+            user.setIsDeleted(false);
+            user.setIsReset(false);
+            userRepository.save(user);
             String token = generateToken(user, TokenType.VERIFY_MAIL);
 
             // send email verify
-            mailService.sendEmailVerify(userCreateRequest.getFullName(), token, userCreateRequest.getEmail());
-            return createdUser;
+            mailService.sendEmailVerify(registerRequest.getFullName(), token, registerRequest.getEmail());
+            
+            return userMapper.toUserResponse(user);
         } catch (Exception e) {
             log.error("Error when update: {}", e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -314,19 +362,26 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      */
     @Override
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
-        boolean rs = introspectToken(new TokenRequest().builder().token(token).build()).isValid();
-        if(rs) {
-            var signedJWT = verifyToken(token, false);
+        JWSVerifier verifier = new MACVerifier(SIGN_KEY.getBytes());
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        // check verify or refresh token
+        Date expTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        boolean rs = signedJWT.verify(verifier);
+        if(!expTime.after(new Date()) || !rs) {
             String email = signedJWT.getJWTClaimsSet().getSubject();
-
-            User user = userRepository.findByEmail(email).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
-
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            userRepository.delete(user);
+            return false;
+    
+        }
+        else {
+            String email = signedJWT.getJWTClaimsSet().getSubject();
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             user.setIsVerified(true);
             userRepository.save(user);
+            return true;
         }
-        else throw new AppException(ErrorCode.UNAUTHENTICATED);
-        return true;
     }
 
     /**
@@ -485,6 +540,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
             String password = generatePassword(9);
             user.setPassword(passwordEncoder.encode(password));
+            user.setIsReset(true);
             userRepository.save(user);
             
             invalidToken(token);
@@ -493,6 +549,37 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw e;
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    /**
+     * Changes the user's password after a password reset request.
+     *
+     * @param cpRequest the request containing email, new password, and confirmation password.
+     * @return {@code true} if the password is successfully changed.
+     * @throws AppException if the user does not exist, the new password and confirmation do not match,
+     *                      or the new password is the same as the old password.
+     * @implNote This method verifies that the user exists, ensures the new password matches the confirmation password,
+     * checks that the new password is not the same as the old password, and updates the password securely.
+     */
+    @Override
+    public boolean changePasswordAfterReset(ChangePassAfterResetRequest cpRequest) {
+        User user = userRepository.findByEmail(cpRequest.getEmail()).orElseThrow(() -> 
+        new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if(!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) 
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+
+        if(passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
+        }
+        try {
+            user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
+            user.setIsReset(false);
+            userRepository.save(user);
+            return true;
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
@@ -548,5 +635,4 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         mailService.sendSimpleEmail(cMailRequest.getOldEmail(),"Thông báo tài khoản yêu cầu đổi email",
                 "Tài khoản của bạn đã yêu cầu đổi email, nếu không phải bạn vui lòng liên hệ với chúng tôi");
     }
-    
 }

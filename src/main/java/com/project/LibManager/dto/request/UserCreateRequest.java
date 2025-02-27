@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -33,7 +34,19 @@ public class UserCreateRequest {
     @NotNull(message = "NOT_BLANK")
     @Past(message = "BIRTH_DATE_MUST_BE_IN_PAST")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
-    @DateTimeFormat(pattern = "yyyy/MM/d") 
+    @DateTimeFormat(pattern = "yyyy/MM/d")
     private LocalDate birthDate;
+
+    @NotNull(message = "NOT_BLANK")
+    private Boolean isVerified;
+
+    @NotNull(message = "NOT_BLANK")
+    private List<String> listRole;
+
+    @NotNull(message = "NOT_BLANK")
+    private Boolean isDeleted;
+
+    @NotNull(message = "NOT_BLANK")
+    private Boolean isReset;
 }
 

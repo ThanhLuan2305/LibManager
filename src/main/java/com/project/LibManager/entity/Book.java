@@ -3,6 +3,11 @@ package com.project.LibManager.entity;
 import java.time.LocalDate;
 import java.util.Set;
 
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +22,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Book {
+public class Book extends AuditTable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,6 +57,9 @@ public class Book {
 
     @Column(nullable = false)
     private String coverImageUrl;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     private Set<Borrowing> borrowings;

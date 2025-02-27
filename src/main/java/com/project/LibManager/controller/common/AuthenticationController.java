@@ -1,4 +1,4 @@
-package com.project.LibManager.controller;
+package com.project.LibManager.controller.common;
 
 import java.text.ParseException;
 
@@ -15,11 +15,13 @@ import com.project.LibManager.dto.request.AuthenticationRequest;
 import com.project.LibManager.dto.request.ChangeMailRequest;
 import com.project.LibManager.dto.request.ChangePasswordRequest;
 import com.project.LibManager.dto.request.LogoutRequest;
+import com.project.LibManager.dto.request.RegisterRequest;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.VerifyChangeMailRequest;
 import com.project.LibManager.dto.response.ApiResponse;
 import com.project.LibManager.dto.response.AuthenticationResponse;
+import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.service.IAuthenticationService;
@@ -41,6 +43,7 @@ public class AuthenticationController {
         var rs = aService.authenticate(aRequest);
         ApiResponse<AuthenticationResponse> response = ApiResponse.<AuthenticationResponse>builder()
                                                                   .result(rs)
+                                                                  .message("Login successfully.")
                                                                   .build();
         return ResponseEntity.ok(response);
 
@@ -51,15 +54,17 @@ public class AuthenticationController {
         IntrospectResponse result = aService.introspectToken(introspectRequest);
         ApiResponse<IntrospectResponse> response = ApiResponse.<IntrospectResponse>builder()
                                                               .result(result)
+                                                              .message("Token introspection successful.")
                                                               .build();
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequest lRequest) throws ParseException, Exception {
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody LogoutRequest lRequest) throws ParseException, Exception {
         aService.logout(lRequest);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
+        ApiResponse<String> response = ApiResponse.<String>builder()
                                                .message("Logout successfully")
+                                               .result("success")
                                                .build();
         return ResponseEntity.ok(response);
     }
@@ -69,6 +74,7 @@ public class AuthenticationController {
         AuthenticationResponse result = aService.refreshToken(rfRequest);
         ApiResponse<AuthenticationResponse> response = ApiResponse.<AuthenticationResponse>builder()
                                                                   .result(result)
+                                                                  .message("Token refreshed successfully.")
                                                                   .build();
         return ResponseEntity.ok(response);
     }
@@ -76,30 +82,21 @@ public class AuthenticationController {
     @GetMapping("/verify-email")
     public ResponseEntity<ApiResponse<Boolean>> verifyEmail(@RequestParam("token") String token) throws JOSEException, ParseException {
         Boolean result = aService.verifyEmail(token);
+        String message = result ? "Email verification successful." : "Email verification failed.";
         ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
                                                   .result(result)
-                                                  .message("Verify email successfully")
+                                                  .message(message)
                                                   .build();
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody @Valid UserCreateRequest ucrRequest) throws JOSEException, ParseException {
-        UserResponse result = aService.registerUser(ucrRequest);
+    public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody @Valid RegisterRequest registerRequest) throws JOSEException, ParseException {
+        UserResponse result = aService.registerUser(registerRequest);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                                                         .result(result)
                                                         .message("Register successfully, please verify your email to login!")
                                                         .build();
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest cpRequest) throws JOSEException, ParseException {
-        Boolean result = aService.changePassword(cpRequest);
-        ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
-                                                  .message("Change password successfully")
-                                                  .result(result)
-                                                  .build();
         return ResponseEntity.ok(response);
     }
 
@@ -133,23 +130,14 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/change-mail")
-    public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody ChangeMailRequest eMailRequest) throws Exception {
-        aService.changeEmail(eMailRequest);
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                                                 .message("Please verify your new email to change new email")
-                                                 .result("success")
-                                                 .build();
+    @PostMapping("/change-password-after-reset")
+    public ResponseEntity<ApiResponse<Boolean>> changePasswordAfterReset(@RequestBody ChangePassAfterResetRequest cpRequest) throws JOSEException, ParseException {
+        Boolean result = aService.changePasswordAfterReset(cpRequest);
+        ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
+                                                  .message("Change password successfully")
+                                                  .result(result)
+                                                  .build();
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/verify-change-mail")
-    public ResponseEntity<ApiResponse<String>> verifyChangeMail(@RequestBody VerifyChangeMailRequest eMailRequest) throws Exception {
-        aService.verifyChangeEmail(eMailRequest);
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                                                 .message("Change email successfully, you can login with new email")
-                                                 .result("success")
-                                                 .build();
-        return ResponseEntity.ok(response);
-    }
 }

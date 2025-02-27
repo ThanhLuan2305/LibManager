@@ -27,8 +27,21 @@
             <column name="is_deleted" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_reset" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="late_return_count" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATE">
+            </column>
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(255)">
             </column>
         </createTable>
 
@@ -42,6 +55,16 @@
             <column name="description" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+           <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATE">
+            </column>
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(255)">
+            </column>
         </createTable>
 
         <createTable tableName="user_roles">
@@ -50,6 +73,16 @@
             </column>
             <column name="role_id" type="BIGINT">
                 <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATE">
+            </column>
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(255)">
             </column>
         </createTable>
 
@@ -68,6 +101,16 @@
             </column>
             <column name="name" type="VARCHAR(255)">
                 <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATE">
+            </column>
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(255)">
             </column>
         </createTable>
 
@@ -105,6 +148,19 @@
             <column name="location" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATE">
+            </column>
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(255)">
+            </column>
         </createTable>
 
         <addForeignKeyConstraint baseTableName="books" baseColumnNames="type_id"
@@ -127,7 +183,16 @@
             <column name="due_date" type="DATE">
                 <constraints nullable="false"/>
             </column>
-            <column name="return_date" type="DATE"/>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATE">
+            </column>
+            <column name="created_by" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(255)">
+            </column>
         </createTable>
 
         <addForeignKeyConstraint baseTableName="borrowings" baseColumnNames="user_id"

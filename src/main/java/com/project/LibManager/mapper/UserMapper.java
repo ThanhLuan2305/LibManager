@@ -3,6 +3,7 @@ package com.project.LibManager.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
+import com.project.LibManager.dto.request.RegisterRequest;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.UserResponse;
@@ -16,4 +17,5 @@ public interface UserMapper {
 
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
     
+    User fromRegisterRequest(RegisterRequest request);
 }

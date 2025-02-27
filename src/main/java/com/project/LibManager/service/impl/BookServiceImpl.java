@@ -81,12 +81,12 @@ public class BookServiceImpl implements IBookService {
             if (existingBook.isPresent()) {
                 Book book = existingBook.get();
                 book.setStock(book.getStock() + bookCreateRequest.getStock());
-                bookRepository.save(book);
+                book = bookRepository.save(book);
                 return bookMapper.toBookResponse(book);
             } else {
                 Book book = bookMapper.toBook(bookCreateRequest);
                 book.setType(type);
-                bookRepository.save(book);
+                book = bookRepository.save(book);
                 return bookMapper.toBookResponse(book);
             }
         } catch (DataAccessException e) {
@@ -126,7 +126,8 @@ public class BookServiceImpl implements IBookService {
         try {
             bookMapper.updateBook(book, bookUpdateRequest);
             book.setType(type);
-            return bookMapper.toBookResponse(bookRepository.save(book));
+            book = bookRepository.save(book);
+            return bookMapper.toBookResponse(book);
         } catch (DataAccessException e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -144,14 +145,15 @@ public class BookServiceImpl implements IBookService {
     @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.BOOK_NOT_EXISTED));
-        
-        boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
-        if (isBorrowed) {
-            throw new AppException(ErrorCode.BOOK_IS_CURRENTLY_BORROWED);
-        }
 
         try {
-            bookRepository.delete(book);
+            boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
+            if (isBorrowed) {
+                book.setIsDeleted(true);;
+                bookRepository.save(book);
+            }
+            else 
+                bookRepository.delete(book);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -332,10 +334,40 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
-        List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
-        if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-
         try {
+            List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
+            if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            List<BookResponse> lstBook = borrowings.stream()
+                    .map(b -> bookMapper.toBookResponse(b.getBook()))
+                    .collect(Collectors.toList());
+
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), lstBook.size());
+            List<BookResponse> pageContent = lstBook.subList(start, end);
+
+            return new PageImpl<>(pageContent, pageable, lstBook.size());
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    /**
+     * Retrieves a paginated list of books currently borrowed by the authenticated user.
+     *
+     * @param pageable Pagination details.
+     * @return A paginated list of books borrowed by the user.
+     * @throws AppException If an error occurs while fetching borrowed books.
+     * @implNote This method fetches all active borrowings for the authenticated user, 
+     *           maps them to book responses, and returns them in a paginated format.
+     */
+    @Override
+    public Page<BookResponse> getBookBorrowForUser(Pageable pageable) {
+        try {
+            User user = getAuthenticatedUser();
+            List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(user.getId());
             List<BookResponse> lstBook = borrowings.stream()
                     .map(b -> bookMapper.toBookResponse(b.getBook()))
                     .collect(Collectors.toList());
@@ -402,6 +434,7 @@ public class BookServiceImpl implements IBookService {
                                 .maxBorrowDays(Integer.parseInt(record.get("maxBorrowDays")))
                                 .location(record.get("location"))
                                 .coverImageUrl(record.get("coverImageUrl"))
+                                .isDeleted(false)
                                 .build());
             }).collect(Collectors.toList());
             

@@ -39,12 +39,13 @@ public class ImageCloundServiceImpl implements IImageCloundService{
      * 
      * @param imgUrl The image file to be uploaded.
      * @return The secure URL of the uploaded image.
-     * @throws AppException If the image cannot be uploaded or an error occurs.
-     * @implNote This method validates the file before uploading and uses Cloudinary API to upload the image.
-     *           It stores the image in a specified folder and generates a secure URL.
-     */
-    @Override
-    public String uploadImage(MultipartFile imgUrl) {
+          * @throws IOException 
+          * @throws AppException If the image cannot be uploaded or an error occurs.
+          * @implNote This method validates the file before uploading and uses Cloudinary API to upload the image.
+          *           It stores the image in a specified folder and generates a secure URL.
+          */
+         @Override
+         public String uploadImage(MultipartFile imgUrl) throws IOException {
         try {
             validateFile(imgUrl);
 
@@ -65,10 +66,10 @@ public class ImageCloundServiceImpl implements IImageCloundService{
             return (String) pic.get("secure_url");
         } catch (IOException e) {
             log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw e;
         } catch (Exception e) {
             log.error(e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw e;
         }
     }
 
@@ -77,12 +78,13 @@ public class ImageCloundServiceImpl implements IImageCloundService{
      * 
      * @param fileName The name of the image to be deleted.
      * @return true if the image was successfully deleted, false if the image was not found.
-     * @throws AppException If the deletion process encounters an error.
-     * @implNote This method attempts to delete an image by its public ID on Cloudinary. It logs warnings if the image 
-     *           is not found or if there are issues with deletion.
-     */
-    @Override
-    public boolean deleteImage(String fileName) {
+          * @throws Exception 
+          * @throws AppException If the deletion process encounters an error.
+          * @implNote This method attempts to delete an image by its public ID on Cloudinary. It logs warnings if the image 
+          *           is not found or if there are issues with deletion.
+          */
+         @Override
+         public boolean deleteImage(String fileName) throws Exception {
         try {
             String publicId = folder + "/" + fileName;
 
@@ -108,7 +110,7 @@ public class ImageCloundServiceImpl implements IImageCloundService{
             return true;
         } catch (Exception e) {
             log.error("Error deleting image '{}': {}", fileName, e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new IllegalArgumentException("File does not exist on Cloudinary.");
         }
     }
 
@@ -131,7 +133,7 @@ public class ImageCloundServiceImpl implements IImageCloundService{
             return uploadImage(newFile);
         } catch (Exception e) {
             log.error("Error update image: {}", e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new IllegalArgumentException("File does not exist on Cloudinary.");
             
         }
     }

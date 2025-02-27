@@ -59,14 +59,14 @@ public class UserServiceImpl implements IUserService {
         if(userRepository.existsByEmail(request.getEmail())) 
         	throw new AppException(ErrorCode.USER_EXISTED);
 
-        Role role = roleRepository.findByName(PredefinedRole.USER_ROLE).orElseThrow(() -> 
-            new AppException(ErrorCode.ROLE_NOT_EXISTED));
         Set<Role> roles = new HashSet<>();
-        roles.add(role);
-        user.setRoles(roles);
-        user.setIsVerified(false);
-        user.setIsDeleted(false);
+        roles.addAll(request.getListRole().stream()
+                                            .map(x -> roleRepository.findByName(x)
+                                                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
+                                            .collect(Collectors.toSet()));
+
         try {
+            user.setRoles(roles);
             userRepository.save(user);
             return userMapper.toUserResponse(user);
         } catch (DataIntegrityViolationException exception) {
@@ -185,15 +185,24 @@ public class UserServiceImpl implements IUserService {
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         try {
+            userMapper.updateUser(u, request);
 
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 u.setPassword(passwordEncoder.encode(request.getPassword()));
             }
+            
+            Set<Role> roles = new HashSet<>();
+            roles.addAll(request.getListRole().stream()
+                                            .map(x -> roleRepository.findByName(x)
+                                                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
+                                            .collect(Collectors.toSet()));
+            u.setRoles(roles);
+            u = userRepository.save(u);
 
-            userMapper.updateUser(u, request);
-
-            userRepository.save(u);
             return userMapper.toUserResponse(u);
+        } catch (AppException e) {
+            log.error("Error updating user: {}", e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             log.error("Error updating user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);

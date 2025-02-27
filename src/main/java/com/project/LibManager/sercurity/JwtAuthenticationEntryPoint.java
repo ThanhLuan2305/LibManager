@@ -1,4 +1,4 @@
-package com.project.LibManager.config;
+package com.project.LibManager.sercurity;
 
 import java.io.IOException;
 

@@ -165,7 +165,7 @@ public class BookServiceTest {
             .isbn(book.getIsbn())
             .title(book.getTitle())
             .author(book.getAuthor())
-            .bookType(new BookTypeResponse(bookType.getId(), bookType.getName()))
+            .bookType(BookTypeResponse.builder().id(1L).name("Programming").build())
             .stock(book.getStock())
             .publisher(book.getPublisher())
             .publishedDate(book.getPublishedDate())

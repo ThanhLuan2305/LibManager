@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Borrowing {
+public class Borrowing extends AuditTable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

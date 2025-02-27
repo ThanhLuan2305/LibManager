@@ -1,4 +1,4 @@
-package com.project.LibManager.config;
+package com.project.LibManager.sercurity;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+
+import com.project.LibManager.config.CustomAccessDeniedHandler;
+import com.project.LibManager.config.CustomDecoder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +46,7 @@ public class SercurityConfig {
                 .requestMatchers(ADMIN_ENDPOINT).hasAnyAuthority("ROLE_ADMIN")
                 .requestMatchers(USER_ENDPOINT).hasAnyAuthority("ROLE_USER")
                 .anyRequest()
-                .authenticated());
+                .permitAll());
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2
                             .jwt(jwtConfigure -> jwtConfigure
                                                     .decoder(customDecoder)
