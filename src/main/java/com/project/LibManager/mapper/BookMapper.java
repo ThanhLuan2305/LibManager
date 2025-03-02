@@ -11,12 +11,21 @@ import com.project.LibManager.entity.Book;
 
 @Mapper(componentModel = "spring")
 public interface BookMapper {
-
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "borrowings", ignore = true)
+    @Mapping(target = "type", ignore = true)
     Book toBook(BookCreateRequest bookRequest);
 
     @Mapping(target = "bookType", source = "type")
     BookResponse toBookResponse(Book book);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "borrowings", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "type", ignore = true)
     void updateBook(@MappingTarget Book book, BookUpdateRequest bookCreateRequest);
 
 }

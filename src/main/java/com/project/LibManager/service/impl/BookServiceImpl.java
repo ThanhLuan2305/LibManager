@@ -59,10 +59,13 @@ public class BookServiceImpl implements IBookService {
     /**
      * Creates a new book or updates an existing book if the ISBN already exists.
      *
-     * @param bookCreateRequest The request containing information about the book to be created.
+     * @param bookCreateRequest The request containing information about the book to
+     *                          be created.
      * @return The response containing the details of the created or updated book.
-     * @throws AppException If the book type does not exist or there is a database error.
-     * @implNote If the book with the same ISBN exists, the stock will be updated. Otherwise, a new book will be created.
+     * @throws AppException If the book type does not exist or there is a database
+     *                      error.
+     * @implNote If the book with the same ISBN exists, the stock will be updated.
+     *           Otherwise, a new book will be created.
      */
     @Transactional
     @Override
@@ -98,11 +101,14 @@ public class BookServiceImpl implements IBookService {
     /**
      * Updates the information of an existing book.
      *
-     * @param bookUpdateRequest The request containing updated information about the book.
-     * @param bookId The ID of the book to be updated.
+     * @param bookUpdateRequest The request containing updated information about the
+     *                          book.
+     * @param bookId            The ID of the book to be updated.
      * @return The response containing the updated book details.
-     * @throws AppException If the book does not exist, the book type is invalid, or any other error occurs.
-     * @implNote This method updates the book if the ISBN is unique; otherwise, it throws an error if a book with the same ISBN exists.
+     * @throws AppException If the book does not exist, the book type is invalid, or
+     *                      any other error occurs.
+     * @implNote This method updates the book if the ISBN is unique; otherwise, it
+     *           throws an error if a book with the same ISBN exists.
      */
     @Transactional
     @Override
@@ -117,10 +123,9 @@ public class BookServiceImpl implements IBookService {
 
         BookType type = bookTypeRepository.findById(bookUpdateRequest.getTypeId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED));
-        if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())) {
-            if (bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
-                throw new AppException(ErrorCode.BOOK_EXISTED);
-            }
+        if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())
+                && bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
+            throw new AppException(ErrorCode.BOOK_EXISTED);
         }
 
         try {
@@ -139,20 +144,20 @@ public class BookServiceImpl implements IBookService {
      *
      * @param id The ID of the book to be deleted.
      * @throws AppException If the book does not exist or is currently borrowed.
-     * @implNote This method checks if the book is borrowed before attempting to delete it.
+     * @implNote This method checks if the book is borrowed before attempting to
+     *           delete it.
      */
     @Transactional
     @Override
     public void deleteBook(Long id) {
-        Book book = bookRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.BOOK_NOT_EXISTED));
+        Book book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
         try {
             boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
             if (isBorrowed) {
-                book.setIsDeleted(true);;
+                book.setIsDeleted(true);
                 bookRepository.save(book);
-            }
-            else 
+            } else
                 bookRepository.delete(book);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -166,12 +171,13 @@ public class BookServiceImpl implements IBookService {
      * @param pageable Pagination details.
      * @return A page of books.
      * @throws AppException If there is an error while fetching the books.
-     * @implNote This method retrieves books from the database and returns them in a paginated format.
+     * @implNote This method retrieves books from the database and returns them in a
+     *           paginated format.
      */
     @Override
     public Page<BookResponse> getBooks(Pageable pageable) {
         Page<Book> pageBook = bookRepository.findAll(pageable);
-        if(pageBook.isEmpty()) {
+        if (pageBook.isEmpty()) {
             log.error("Book not found in the database");
             throw new AppException(ErrorCode.BOOK_NOT_EXISTED);
         }
@@ -183,16 +189,17 @@ public class BookServiceImpl implements IBookService {
      *
      * @param bookPage The page of books.
      * @return A page of book responses.
-     * @implNote This method maps the content of the book page to a list of book responses and returns a paginated response.
+     * @implNote This method maps the content of the book page to a list of book
+     *           responses and returns a paginated response.
      */
     @Override
     public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage) {
         List<BookResponse> bookResponses = bookPage.getContent().stream()
-            .map(book -> mapToBookResponseByMapper(book.getId()))
-            .collect(Collectors.toList());
+                .map(book -> mapToBookResponseByMapper(book.getId()))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(bookResponses, bookPage.getPageable(), bookPage.getTotalElements());
-	}
+    }
 
     /**
      * Fetches the response of a book by its ID.
@@ -200,12 +207,13 @@ public class BookServiceImpl implements IBookService {
      * @param id The ID of the book.
      * @return The response of the book.
      * @throws AppException If the book does not exist.
-     * @implNote This method retrieves a single book from the repository and returns its response.
+     * @implNote This method retrieves a single book from the repository and returns
+     *           its response.
      */
     @Override
     public BookResponse mapToBookResponseByMapper(Long id) {
 
-        Book book = bookRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.BOOK_NOT_EXISTED));
+        Book book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
         BookResponse bookResponse = bookMapper.toBookResponse(book);
         bookResponse.setBookType(bookTypeMapper.toBookTypeResponse(book.getType()));
@@ -227,11 +235,11 @@ public class BookServiceImpl implements IBookService {
 
     private User getAuthenticatedUser() {
         var jwtContext = SecurityContextHolder.getContext();
-        if (jwtContext == null || jwtContext.getAuthentication() == null || 
-            !jwtContext.getAuthentication().isAuthenticated()) {
+        if (jwtContext == null || jwtContext.getAuthentication() == null ||
+                !jwtContext.getAuthentication().isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
-    
+
         String email = jwtContext.getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -242,26 +250,28 @@ public class BookServiceImpl implements IBookService {
      *
      * @param bRequest The borrowing request containing the user and book details.
      * @return The response containing the details of the borrowing.
-     * @throws AppException If the book is out of stock, already borrowed, or the user does not exist.
-     * @implNote This method updates the stock of the book and records the borrowing details.
+     * @throws AppException If the book is out of stock, already borrowed, or the
+     *                      user does not exist.
+     * @implNote This method updates the stock of the book and records the borrowing
+     *           details.
      */
     @Override
     public BorrowingResponse borrowBook(Long bookId) {
         User user = getAuthenticatedUser();
-        
-        if (user.getIsDeleted()) 
+        boolean isDeleted = user.getIsDeleted();
+        if (isDeleted)
             throw new AppException(ErrorCode.USER_IS_DELETED);
 
-        if (borrowingRepository.existsOverdueBorrowingsByUser(user.getId())) 
+        if (borrowingRepository.existsOverdueBorrowingsByUser(user.getId()))
             throw new AppException(ErrorCode.USER_HAS_OVERDUE_BOOKS);
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
-        if (book.getStock() <= 0) 
+        if (book.getStock() <= 0)
             throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
 
-        if (borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)) 
+        if (borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId))
             throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
 
         try {
@@ -293,29 +303,30 @@ public class BookServiceImpl implements IBookService {
      * @param bRequest The return request containing user and book details.
      * @return The response containing the updated borrowing details.
      * @throws AppException If the book was not borrowed or is returned late.
-     * @implNote This method updates the return date of the borrowing and increases the stock of the book.
+     * @implNote This method updates the return date of the borrowing and increases
+     *           the stock of the book.
      */
     public BorrowingResponse returnBook(Long bookId) {
         User user = getAuthenticatedUser();
-    
+
         Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
-    
+
         LocalDate returnDate = LocalDate.now();
         borrowing.setReturnDate(returnDate);
-    
+
         if (returnDate.isAfter(borrowing.getDueDate())) {
             user.setLateReturnCount(user.getLateReturnCount() + 1);
         }
-    
+
         try {
-            
+
             userRepository.save(user);
-            
+
             Book book = borrowing.getBook();
             book.setStock(book.getStock() + 1);
             bookRepository.save(book);
-    
+
             return borrowingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
         } catch (Exception e) {
             log.error("Error returning book: {}", e.getMessage());
@@ -326,17 +337,17 @@ public class BookServiceImpl implements IBookService {
     /**
      * Fetches a paginated list of books borrowed by a user.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param pageable Pagination details.
      * @return A paginated list of borrowed books.
      * @throws AppException If the user has no borrowed books or there is an error.
-     * @implNote This method retrieves books borrowed by the user and returns them in a paginated format.
+     * @implNote This method retrieves books borrowed by the user and returns them
+     *           in a paginated format.
      */
     @Override
     public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
         try {
             List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
-            if(borrowings.isEmpty()) throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
             List<BookResponse> lstBook = borrowings.stream()
                     .map(b -> bookMapper.toBookResponse(b.getBook()))
                     .collect(Collectors.toList());
@@ -346,8 +357,7 @@ public class BookServiceImpl implements IBookService {
             List<BookResponse> pageContent = lstBook.subList(start, end);
 
             return new PageImpl<>(pageContent, pageable, lstBook.size());
-        } catch (AppException e) {
-            throw e;
+
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -355,13 +365,16 @@ public class BookServiceImpl implements IBookService {
     }
 
     /**
-     * Retrieves a paginated list of books currently borrowed by the authenticated user.
+     * Retrieves a paginated list of books currently borrowed by the authenticated
+     * user.
      *
      * @param pageable Pagination details.
      * @return A paginated list of books borrowed by the user.
      * @throws AppException If an error occurs while fetching borrowed books.
-     * @implNote This method fetches all active borrowings for the authenticated user, 
-     *           maps them to book responses, and returns them in a paginated format.
+     * @implNote This method fetches all active borrowings for the authenticated
+     *           user,
+     *           maps them to book responses, and returns them in a paginated
+     *           format.
      */
     @Override
     public Page<BookResponse> getBookBorrowForUser(Pageable pageable) {
@@ -389,8 +402,10 @@ public class BookServiceImpl implements IBookService {
      * Imports books from a CSV file into the system.
      *
      * @param file The CSV file containing book data.
-     * @throws RuntimeException If the file is empty, too large, or if an error occurs during the import.
-     * @implNote This method reads a CSV file, parses it, and either updates the stock of existing books or creates new books.
+     * @throws RuntimeException If the file is empty, too large, or if an error
+     *                          occurs during the import.
+     * @implNote This method reads a CSV file, parses it, and either updates the
+     *           stock of existing books or creates new books.
      */
     @Override
     @Transactional
@@ -402,7 +417,8 @@ public class BookServiceImpl implements IBookService {
             throw new AppException(ErrorCode.FILE_LIMIT);
         }
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
             CSVParser csvParser = CSVFormat.DEFAULT
                     .builder()
                     .setHeader()
@@ -414,30 +430,29 @@ public class BookServiceImpl implements IBookService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/d");
 
             Map<String, Book> booksToUpdate = new HashMap<>();
-            List<Book> newBooks = csvParser.getRecords().stream().map(record -> {
-                String isbn = record.get("isbn");
+            List<Book> newBooks = csvParser.getRecords().stream().map(csvRow -> {
+                String isbn = csvRow.get("isbn");
                 return bookRepository.findByIsbn(isbn)
                         .map(book -> {
-                            book.setStock(book.getStock() + Integer.parseInt(record.get("stock")));
+                            book.setStock(book.getStock() + Integer.parseInt(csvRow.get("stock")));
                             booksToUpdate.put(isbn, book);
                             return book;
                         })
                         .orElseGet(() -> Book.builder()
                                 .isbn(isbn)
-                                .title(record.get("title"))
-                                .author(record.get("author"))
-                                .type(bookTypeRepository.findById(Long.parseLong(record.get("typeId")))
+                                .title(csvRow.get("title"))
+                                .author(csvRow.get("author"))
+                                .type(bookTypeRepository.findById(Long.parseLong(csvRow.get("typeId")))
                                         .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED)))
-                                .stock(Integer.parseInt(record.get("stock")))
-                                .publisher(record.get("publisher"))
-                                .publishedDate(LocalDate.parse(record.get("publishedDate"), formatter))
-                                .maxBorrowDays(Integer.parseInt(record.get("maxBorrowDays")))
-                                .location(record.get("location"))
-                                .coverImageUrl(record.get("coverImageUrl"))
+                                .stock(Integer.parseInt(csvRow.get("stock")))
+                                .publisher(csvRow.get("publisher"))
+                                .publishedDate(LocalDate.parse(csvRow.get("publishedDate"), formatter))
+                                .maxBorrowDays(Integer.parseInt(csvRow.get("maxBorrowDays")))
+                                .location(csvRow.get("location"))
+                                .coverImageUrl(csvRow.get("coverImageUrl"))
                                 .isDeleted(false)
                                 .build());
             }).collect(Collectors.toList());
-            
 
             bookRepository.saveAll(booksToUpdate.values());
             bookRepository.saveAll(newBooks);

@@ -2,23 +2,17 @@ package com.project.LibManager.entity;
 
 import java.time.LocalDate;
 import java.util.Set;
-
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "books")
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,6 +32,7 @@ public class Book extends AuditTable {
 
     @ManyToOne
     @JoinColumn(name = "type_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private BookType type;
 
     @Column(nullable = false)
@@ -59,9 +54,10 @@ public class Book extends AuditTable {
     private String coverImageUrl;
 
     @Column(nullable = false)
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
     private Set<Borrowing> borrowings;
 }
 

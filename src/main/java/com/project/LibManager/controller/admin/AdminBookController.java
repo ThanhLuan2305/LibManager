@@ -1,7 +1,7 @@
 package com.project.LibManager.controller.admin;
 
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -82,7 +82,11 @@ public class AdminBookController {
 
     @PostMapping("/import")
     public ResponseEntity<ApiResponse<String>> importBooks(@RequestParam("file") MultipartFile file) {
-        if (!Objects.equals(file.getContentType(), "text/csv") && !file.getOriginalFilename().endsWith(".csv")) {
+        boolean checkCSV = Optional.ofNullable(file.getOriginalFilename())
+        .map(name -> name.endsWith(".csv"))
+        .orElse(false);
+
+        if (!Objects.equals(file.getContentType(), "text/csv") && !checkCSV) {
             ApiResponse<String> response = ApiResponse.<String>builder()
                     .message("Only CSV files are supported.")
                     .result("error")

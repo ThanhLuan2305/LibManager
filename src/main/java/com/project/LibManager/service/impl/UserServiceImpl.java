@@ -1,7 +1,6 @@
 package com.project.LibManager.service.impl;
 
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.UserResponse;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,27 +41,29 @@ public class UserServiceImpl implements IUserService {
     /**
      * Creates a new user and assigns a default role.
      *
-     * @param request The request containing information about the user to be created.
+     * @param request The request containing information about the user to be
+     *                created.
      * @return The response containing the details of the created user.
-     * @throws AppException If the user already exists or there is an error during creation.
-     * @implNote This method encrypts the user's password and assigns the default user role. The user is marked as not verified.
+     * @throws AppException If the user already exists or there is an error during
+     *                      creation.
+     * @implNote This method encrypts the user's password and assigns the default
+     *           user role. The user is marked as not verified.
      */
     @Transactional
     @Override
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        if(userRepository.existsByEmail(request.getEmail())) 
-        	throw new AppException(ErrorCode.USER_EXISTED);
+        if (userRepository.existsByEmail(request.getEmail()))
+            throw new AppException(ErrorCode.USER_EXISTED);
 
         Set<Role> roles = new HashSet<>();
         roles.addAll(request.getListRole().stream()
-                                            .map(x -> roleRepository.findByName(x)
-                                                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
-                                            .collect(Collectors.toSet()));
+                .map(x -> roleRepository.findByName(x)
+                        .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
+                .collect(Collectors.toSet()));
 
         try {
             user.setRoles(roles);
@@ -80,12 +80,13 @@ public class UserServiceImpl implements IUserService {
      * @param pageable Pagination details.
      * @return A page of users.
      * @throws AppException If there is an error during retrieval.
-     * @implNote This method fetches all users from the repository and returns them in a paginated format.
+     * @implNote This method fetches all users from the repository and returns them
+     *           in a paginated format.
      */
     @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
         Page<User> pageUser = userRepository.findAll(pageable);
-        if(pageUser.isEmpty()) {
+        if (pageUser.isEmpty()) {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
         return mapUserPageUserResponsePage(pageUser);
@@ -96,15 +97,15 @@ public class UserServiceImpl implements IUserService {
      *
      * @param userPage The page of users.
      * @return A page of user responses.
-     * @implNote This method maps the content of the user page to a list of user responses and returns the paginated response.
+     * @implNote This method maps the content of the user page to a list of user
+     *           responses and returns the paginated response.
      */
     @Override
     public Page<UserResponse> mapUserPageUserResponsePage(Page<User> userPage) {
         List<UserResponse> userResponses = userPage.getContent().stream()
-                                            .map(user -> mapToUserResponseByMapper(user.getId()))
-                                            .collect(Collectors.toList());
-    
-            return new PageImpl<>(userResponses, userPage.getPageable(), userPage.getTotalElements());
+                .map(user -> mapToUserResponseByMapper(user.getId())).toList();
+
+        return new PageImpl<>(userResponses, userPage.getPageable(), userPage.getTotalElements());
     }
 
     /**
@@ -113,7 +114,8 @@ public class UserServiceImpl implements IUserService {
      * @param id The ID of the user.
      * @return The response containing the details of the user.
      * @throws AppException If the user does not exist.
-     * @implNote This method retrieves a specific user by ID and returns the user response.
+     * @implNote This method retrieves a specific user by ID and returns the user
+     *           response.
      */
     @Override
     public UserResponse mapToUserResponseByMapper(Long id) {
@@ -132,7 +134,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponse getUser(Long id) {
         return userMapper.toUserResponse(
-                            userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
+                userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
 
     /**
@@ -140,27 +142,28 @@ public class UserServiceImpl implements IUserService {
      *
      * @return The response containing the details of the authenticated user.
      * @throws AppException If the user is not authenticated or does not exist.
-     * @implNote This method retrieves the currently logged-in user using the security context.
+     * @implNote This method retrieves the currently logged-in user using the
+     *           security context.
      */
     @Override
     public UserResponse getMyInfo() {
         try {
             var jwtContext = SecurityContextHolder.getContext();
-    
-            if (jwtContext == null || jwtContext.getAuthentication() == null || 
-                !jwtContext.getAuthentication().isAuthenticated()) {
+
+            if (jwtContext == null || jwtContext.getAuthentication() == null ||
+                    !jwtContext.getAuthentication().isAuthenticated()) {
                 throw new AppException(ErrorCode.UNAUTHORIZED);
             }
-    
+
             String email = jwtContext.getAuthentication().getName();
 
-            User user = userRepository.findByEmail(email).orElseThrow(() -> 
-        new AppException(ErrorCode.USER_NOT_EXISTED));
-    
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
             if (user == null) {
                 throw new AppException(ErrorCode.USER_NOT_EXISTED);
             }
-    
+
             return userMapper.toUserResponse(user);
         } catch (AppException e) {
             log.error("Error getting user info: {}", e.getMessage());
@@ -174,10 +177,11 @@ public class UserServiceImpl implements IUserService {
     /**
      * Updates the information of an existing user.
      *
-     * @param id The ID of the user to be updated.
+     * @param id      The ID of the user to be updated.
      * @param request The request containing updated information about the user.
      * @return The response containing the updated user details.
-     * @throws AppException If the user does not exist, the email already exists, or an error occurs during the update.
+     * @throws AppException If the user does not exist, the email already exists, or
+     *                      an error occurs during the update.
      * @implNote This method updates the user's information, password.
      */
     @Transactional
@@ -190,12 +194,12 @@ public class UserServiceImpl implements IUserService {
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 u.setPassword(passwordEncoder.encode(request.getPassword()));
             }
-            
+
             Set<Role> roles = new HashSet<>();
             roles.addAll(request.getListRole().stream()
-                                            .map(x -> roleRepository.findByName(x)
-                                                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
-                                            .collect(Collectors.toSet()));
+                    .map(x -> roleRepository.findByName(x)
+                            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
+                    .collect(Collectors.toSet()));
             u.setRoles(roles);
             u = userRepository.save(u);
 
@@ -213,8 +217,10 @@ public class UserServiceImpl implements IUserService {
      * Deletes a user from the system.
      *
      * @param userId The ID of the user to be deleted.
-     * @throws AppException If the user does not exist or there is an error during deletion.
-     * @implNote This method checks if the user has borrowings before deleting. If so, the user is marked as deleted instead of being fully deleted.
+     * @throws AppException If the user does not exist or there is an error during
+     *                      deletion.
+     * @implNote This method checks if the user has borrowings before deleting. If
+     *           so, the user is marked as deleted instead of being fully deleted.
      */
     @Transactional
     @Override

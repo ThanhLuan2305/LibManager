@@ -24,10 +24,10 @@ public class MailServiceImpl implements IMailService {
     private final TemplateEngine templateEngine;
 
     @Value("${app.verify-email-url}")
-    private String VERIFY_EMAIL_URL;
+    private String verifyEmailUrl;
 
     @Value("${app.support-email}")
-    private String SUPPORT_EMAIL;
+    private String supportEmail;
 
     /**
      * Sends a verification email to the user with a provided token for email verification.
@@ -48,14 +48,14 @@ public class MailServiceImpl implements IMailService {
            // Process the template with the given context
            Context context = new Context();
             context.setVariable("name", fullName);
-            context.setVariable("verifyUrl", VERIFY_EMAIL_URL + token);
+            context.setVariable("verifyUrl", verifyEmailUrl + token);
            String html = templateEngine.process("emailTemplate", context);
 
            // Set email properties
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
-           helper.setFrom(SUPPORT_EMAIL);
+           helper.setFrom(supportEmail);
 
            //send the email
            javaMailSender.send(message);
@@ -96,7 +96,7 @@ public class MailServiceImpl implements IMailService {
            helper.setTo(email);
            helper.setSubject("Xác thực Email");
            helper.setText(html, true);
-           helper.setFrom(SUPPORT_EMAIL);
+           helper.setFrom(supportEmail);
 
            //send the email
            javaMailSender.send(message);
@@ -121,7 +121,7 @@ public class MailServiceImpl implements IMailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
-        message.setFrom(SUPPORT_EMAIL);
+        message.setFrom(supportEmail);
         
         javaMailSender.send(message);
     }

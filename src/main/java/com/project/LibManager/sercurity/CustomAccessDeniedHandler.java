@@ -1,4 +1,4 @@
-package com.project.LibManager.config;
+package com.project.LibManager.sercurity;
 
 import java.io.IOException;
 
@@ -26,7 +26,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(errorCode.getStatusCode().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        ApiResponse apiResponse = ApiResponse.builder()
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .build();

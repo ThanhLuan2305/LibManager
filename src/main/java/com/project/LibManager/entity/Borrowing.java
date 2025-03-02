@@ -3,16 +3,16 @@ package com.project.LibManager.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDate;
 
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "borrowings")
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,10 +23,12 @@ public class Borrowing extends AuditTable{
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "book_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private Book book;
 
     @Column(nullable = false)

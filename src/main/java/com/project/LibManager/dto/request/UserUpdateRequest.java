@@ -7,7 +7,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -28,7 +27,7 @@ public class UserUpdateRequest {
 
     @Past(message = "BIRTH_DATE_MUST_BE_IN_PAST")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
-    @DateTimeFormat(pattern = "yyyy/MM/d") 
+    @DateTimeFormat(pattern = "yyyy/MM/d")
     private LocalDate birthDate;
 
     private Boolean isVerified;
@@ -38,4 +37,6 @@ public class UserUpdateRequest {
     private Boolean isDeleted;
 
     private Boolean isReset;
+
+    private int lateReturnCount;
 }

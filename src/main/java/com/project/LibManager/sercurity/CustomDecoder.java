@@ -1,10 +1,9 @@
-package com.project.LibManager.config;
+package com.project.LibManager.sercurity;
 
 import java.util.Objects;
 
 import javax.crypto.spec.SecretKeySpec;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.BadJwtException;
@@ -16,15 +15,17 @@ import org.springframework.stereotype.Component;
 import com.project.LibManager.dto.request.TokenRequest;
 import com.project.LibManager.service.IAuthenticationService;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @Component
+@RequiredArgsConstructor
 public class CustomDecoder implements JwtDecoder {
     @Value("${jwt.signing.key}")
-    String SIGN_KEY;
+    String signKey;
 
-    @Autowired
-    private IAuthenticationService authenticationService;
+    private final IAuthenticationService authenticationService;
 
     private NimbusJwtDecoder nimbusJwtDecoder = null;
 
@@ -43,7 +44,7 @@ public class CustomDecoder implements JwtDecoder {
 
         if (Objects.isNull(nimbusJwtDecoder)) {
             // check token từ header 
-            SecretKeySpec secretKeySpec = new SecretKeySpec(SIGN_KEY.getBytes(), "HS512");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(signKey.getBytes(), "HS512");
             nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)
                     .macAlgorithm(MacAlgorithm.HS512)
                     .build();

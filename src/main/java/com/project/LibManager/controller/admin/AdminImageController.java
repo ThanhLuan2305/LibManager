@@ -12,7 +12,6 @@ import com.project.LibManager.service.IImageCloundService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.io.IOException;
-import java.util.Map;
 
 @RestController
 @RequestMapping("admin/images")
@@ -24,7 +23,8 @@ public class AdminImageController {
     private final IImageCloundService imageCloudService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file)
+            throws IOException {
         String imageUrl = imageCloudService.uploadImage(file);
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .message("Image uploaded successfully")
@@ -62,4 +62,3 @@ public class AdminImageController {
     }
 
 }
-

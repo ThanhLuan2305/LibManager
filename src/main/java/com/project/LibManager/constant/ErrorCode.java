@@ -28,8 +28,8 @@ public enum ErrorCode {
     CHARACTER_LIMIT_EXCEEDED(1021, "Character length must not exceed 255", HttpStatus.BAD_REQUEST),
     BIRTH_DATE_MUST_BE_IN_PAST(1022, "Birth date must be in past", HttpStatus.BAD_REQUEST),
     VALUE_OUT_OF_RANGE(1023, "Value is out of allowed range", HttpStatus.BAD_REQUEST),
-    MAINTENACE_MODE(503,"The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
-    BOOK_IS_CURRENTLY_BORROWED(1024,"This book is currently borrowed and cannot be deleted.", HttpStatus.BAD_REQUEST),
+    MAINTENACE_MODE(503, "The system is under maintenance. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE),
+    BOOK_IS_CURRENTLY_BORROWED(1024, "This book is currently borrowed and cannot be deleted.", HttpStatus.BAD_REQUEST),
     BOOK_EXISTED(1025, "Book existed", HttpStatus.BAD_REQUEST),
     JWT_TOKEN_INVALID(1026, "JWT Token invalid", HttpStatus.BAD_REQUEST),
     FROMDATE_BEFORE_TODATE(1027, "Fromdate must be before todate", HttpStatus.BAD_REQUEST),
@@ -38,28 +38,34 @@ public enum ErrorCode {
     FILE_LIMIT(1030, "The file is too large. Maximum allowed size is 5MB.", HttpStatus.BAD_REQUEST),
     JWT_TOKEN_EXPIRED(1031, "JWT token has expired.", HttpStatus.UNAUTHORIZED),
     USER_IS_DELETED(1032, "User has been deleted", HttpStatus.NOT_FOUND),
-    USER_HAS_OVERDUE_BOOKS(1033, "User has overdue books and must return them before borrowing new ones.", HttpStatus.BAD_REQUEST),
+    USER_HAS_OVERDUE_BOOKS(1033, "User has overdue books and must return them before borrowing new ones.",
+            HttpStatus.BAD_REQUEST),
     USER_HAS_TOO_MANY_LATE_RETURNS(1034, "User has exceeded the maximum allowed late returns.", HttpStatus.BAD_REQUEST),
     USER_NOT_BORROW(1035, "The user has not borrowed any books.", HttpStatus.NOT_FOUND),
     LOGOUT_FAIL(1036, "Logout fail!.", HttpStatus.NOT_FOUND),
+    MAIL_EXISTED(1037, "Mail existed", HttpStatus.BAD_REQUEST),
     ;
-	private int code;
+
+    private int code;
     private String message;
     private final HttpStatusCode statusCode;
+
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;
         this.statusCode = statusCode;
     }
-	public int getCode() {
-		return code;
-	}
-	public String getMessage() {
-		return message;
-	}
-	public HttpStatusCode getStatusCode() {
-		return statusCode;
-	}
-    
-    
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public HttpStatusCode getStatusCode() {
+        return statusCode;
+    }
+
 }

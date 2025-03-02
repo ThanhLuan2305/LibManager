@@ -3,6 +3,7 @@ package com.project.LibManager.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +18,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class User extends AuditTable{
+@EqualsAndHashCode(callSuper = false)
+public class User extends AuditTable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,23 +39,23 @@ public class User extends AuditTable{
     @Column(nullable = true)
     private LocalDate birthDate;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles",
-               joinColumns = @JoinColumn(name = "user_id"),
-               inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @EqualsAndHashCode.Exclude
     private Set<Role> roles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
     private Set<Borrowing> borrowings;
 
     @Column(nullable = false)
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @Column(nullable = false)
-    private Boolean isReset = false;
+    private Boolean isReset;
 
     @Column(nullable = false)
-    private int lateReturnCount = 0;
+    private int lateReturnCount;
 
     public static final int MAX_LATE_RETURNS = 3;
 
@@ -61,4 +63,3 @@ public class User extends AuditTable{
         return lateReturnCount >= MAX_LATE_RETURNS;
     }
 }
-

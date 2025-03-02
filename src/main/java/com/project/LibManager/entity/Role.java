@@ -1,20 +1,17 @@
 package com.project.LibManager.entity;
 
-import java.time.LocalDate;
 import java.util.Set;
 
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "roles")
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
 @NoArgsConstructor
@@ -31,5 +28,6 @@ public class Role extends AuditTable{
     private String description;
 
     @ManyToMany(mappedBy = "roles")
+    @EqualsAndHashCode.Exclude
     private Set<User> users;
 }

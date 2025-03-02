@@ -38,8 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 public class AdminUserController {
     private final IUserService userService;
     private final UserQueryService userQueryService;
+
     @PostMapping("")
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) {
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @RequestBody @Valid UserCreateRequest userCreateRequest) {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(userCreateRequest))
                 .message("User created successfully.")
@@ -48,7 +50,8 @@ public class AdminUserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest, @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@RequestBody @Valid UserUpdateRequest userUpdateRequest,
+            @PathVariable Long id) {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .message("User updated successfully.")
                 .result(userService.updateUser(id, userUpdateRequest))
@@ -67,7 +70,8 @@ public class AdminUserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> SerachUsers(@ParameterObject UserCriteria criteria, Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> serachUsers(@ParameterObject UserCriteria criteria,
+            Pageable pageable) {
         Page<User> users = userQueryService.findByCriteria(criteria, pageable);
         Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
@@ -79,11 +83,11 @@ public class AdminUserController {
 
     @GetMapping("")
     public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(@RequestParam(defaultValue = "0") int offset,
-                                            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("User: {}", authentication.getName());
         authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
-        
+
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
                 .message("Users retrieved successfully.")

@@ -9,9 +9,9 @@ public interface IImageCloundService {
     public String uploadImage(MultipartFile imgUrl) throws IOException;
     
 
-    public boolean deleteImage(String fileName) throws Exception;
+    public boolean deleteImage(String fileName);
     
-    public String updateImage(String oldFileName, MultipartFile newFile) throws Exception;
+    public String updateImage(String oldFileName, MultipartFile newFile);
     
 
     public String getPreviewUrl(String fileName) ;

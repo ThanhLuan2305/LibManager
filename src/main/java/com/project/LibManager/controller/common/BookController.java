@@ -1,8 +1,5 @@
 package com.project.LibManager.controller.common;
 
-import java.util.Map;
-import java.util.Objects;
-
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,30 +29,29 @@ public class BookController {
     private final IBookService bookService;
     private final BookQueryService bookQueryService;
 
-
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<Page<BookResponse>>> getBooks(@RequestParam(defaultValue = "0") int offset,
-                                                   @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
-                                                              .result(bookService.getBooks(pageable))
-                                                              .message("Books retrieved successfully")
-                                                              .build();
+                .result(bookService.getBooks(pageable))
+                .message("Books retrieved successfully")
+                .build();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/detail/{bookId}")
     public ResponseEntity<ApiResponse<BookResponse>> getBook(@PathVariable Long bookId) {
         ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
-                                                        .result(bookService.getBook(bookId))
-                                                        .message("Book retrieved successfully")
-                                                        .build();
+                .result(bookService.getBook(bookId))
+                .message("Book retrieved successfully")
+                .build();
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@ParameterObject BookCriteria criteria, Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@ParameterObject BookCriteria criteria,
+            Pageable pageable) {
         Page<Book> books = bookQueryService.findByCriteria(criteria, pageable);
         Page<BookResponse> booksReponse = bookService.mapBookPageBookResponsePage(books);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
@@ -65,4 +61,3 @@ public class BookController {
         return ResponseEntity.ok().body(response);
     }
 }
-

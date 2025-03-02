@@ -9,10 +9,10 @@ import com.cloudinary.Cloudinary;
 @Configuration
 public class CloudinaryConfig {
     @Value("${cloudinary.url}")
-    private String CLOUDINARY_URL;
+    private String cloudinaryUrl;
 
     @Bean
     public Cloudinary cloudinary() {
-        return new Cloudinary(CLOUDINARY_URL);
+        return new Cloudinary(cloudinaryUrl);
     }
 }

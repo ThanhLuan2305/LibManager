@@ -23,7 +23,7 @@ public interface IBookService {
     public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage);
 
     public BookResponse mapToBookResponseByMapper(Long id);
-    
+
     public BookResponse getBook(Long id);
 
     public BorrowingResponse borrowBook(Long bookId);

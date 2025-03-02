@@ -2,11 +2,7 @@ package com.project.LibManager.entity;
 
 import java.time.LocalDate;
 
-import org.apache.catalina.security.SecurityUtil;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.exception.AppException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
@@ -32,20 +28,20 @@ public abstract class AuditTable {
 
     @Column(nullable = true)
     private String updatedBy;
- 
+
     @PrePersist
     public void handleBeforeCreate() {
         var jwtContext = SecurityContextHolder.getContext();
-        
-        this.createdBy = jwtContext!=null ? jwtContext.getAuthentication().getName() : "";
+
+        this.createdBy = jwtContext != null ? jwtContext.getAuthentication().getName() : "";
         this.createdAt = LocalDate.now();
     }
- 
+
     @PreUpdate
     public void handleBeforeUpdate() {
         var jwtContext = SecurityContextHolder.getContext();
-        
-        this.updatedBy = jwtContext!=null ? jwtContext.getAuthentication().getName() : "";
+
+        this.updatedBy = jwtContext != null ? jwtContext.getAuthentication().getName() : "";
         this.updatedAt = LocalDate.now();
     }
 }

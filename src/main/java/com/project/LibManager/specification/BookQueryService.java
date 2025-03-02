@@ -9,8 +9,6 @@ import com.project.LibManager.criteria.BookCriteria;
 import com.project.LibManager.entity.Book;
 import com.project.LibManager.entity.BookType_;
 import com.project.LibManager.entity.Book_;
-import com.project.LibManager.entity.Borrowing_;
-import com.project.LibManager.entity.User_;
 import com.project.LibManager.repository.BookRepository;
 
 import jakarta.persistence.criteria.JoinType;

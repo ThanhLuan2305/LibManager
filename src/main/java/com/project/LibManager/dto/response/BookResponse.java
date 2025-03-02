@@ -2,12 +2,6 @@ package com.project.LibManager.dto.response;
 
 import java.time.LocalDate;
 
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +31,7 @@ public class BookResponse {
     private int maxBorrowDays;
 
     private String location;
-    
+
     private String coverImageUrl;
 
     private LocalDate createdAt;
