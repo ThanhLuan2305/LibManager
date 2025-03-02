@@ -49,4 +49,3 @@ public class UserCreateRequest {
     @NotNull(message = "NOT_BLANK")
     private Boolean isReset;
 }
-

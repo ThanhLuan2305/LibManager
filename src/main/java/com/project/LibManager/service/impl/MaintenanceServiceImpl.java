@@ -18,7 +18,8 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
     /**
      * Returns the current status of the maintenance mode.
      * 
-     * @return {@code true} if the application is in maintenance mode, {@code false} otherwise.
+     * @return {@code true} if the application is in maintenance mode, {@code false}
+     *         otherwise.
      */
     @Override
     public boolean isMaintenanceMode() {
@@ -29,7 +30,8 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
      * Sets the maintenance mode status.
      * 
      * @param maintenanceMode The desired maintenance mode status.
-     *                       Pass {@code true} to enable maintenance mode, {@code false} to disable it.
+     *                        Pass {@code true} to enable maintenance mode,
+     *                        {@code false} to disable it.
      */
     @Override
     public void setMaintenanceMode(boolean maintenanceMode) {

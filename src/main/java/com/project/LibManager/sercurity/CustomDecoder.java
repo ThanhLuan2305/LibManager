@@ -37,13 +37,14 @@ public class CustomDecoder implements JwtDecoder {
             var response = authenticationService.introspectToken(
                     TokenRequest.builder().token(token).build());
 
-            if (!response.isValid()) throw new BadJwtException("Token invalid");
+            if (!response.isValid())
+                throw new BadJwtException("Token invalid");
         } catch (Exception e) {
             throw new BadJwtException(e.getMessage());
         }
 
         if (Objects.isNull(nimbusJwtDecoder)) {
-            // check token từ header 
+            // check token từ header
             SecretKeySpec secretKeySpec = new SecretKeySpec(signKey.getBytes(), "HS512");
             nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)
                     .macAlgorithm(MacAlgorithm.HS512)

@@ -33,7 +33,7 @@ public class AdminImageController {
     }
 
     @DeleteMapping("/{fileName}")
-    public ResponseEntity<ApiResponse<String>> deleteImage(@PathVariable String fileName) throws Exception {
+    public ResponseEntity<ApiResponse<String>> deleteImage(@PathVariable String fileName) {
         imageCloudService.deleteImage(fileName);
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .message("Image deleted successfully")
@@ -44,7 +44,7 @@ public class AdminImageController {
     @PutMapping("/update")
     public ResponseEntity<ApiResponse<String>> updateImage(
             @RequestParam("oldFileName") String oldFileName,
-            @RequestParam("file") MultipartFile newFile) throws Exception {
+            @RequestParam("file") MultipartFile newFile) {
         String newImageUrl = imageCloudService.updateImage(oldFileName, newFile);
         return ResponseEntity.ok(ApiResponse.<String>builder()
                 .message("Image updated successfully")

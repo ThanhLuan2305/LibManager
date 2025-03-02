@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserQueryService extends QueryService<User> {
     private final UserRepository userRepository;
+
     public Page<User> findByCriteria(UserCriteria criteria, Pageable pageable) {
         Specification<User> specification = createSpecification(criteria);
         return userRepository.findAll(specification, pageable);
@@ -33,7 +34,7 @@ public class UserQueryService extends QueryService<User> {
         if (criteria.getEmail() != null) {
             specification = specification.and(buildStringSpecification(criteria.getEmail(), User_.email));
         }
-        
+
         if (criteria.getFullName() != null) {
             specification = specification.and(buildStringSpecification(criteria.getFullName(), User_.fullName));
         }
@@ -51,33 +52,34 @@ public class UserQueryService extends QueryService<User> {
         }
 
         if (criteria.getLateReturnCount() != null) {
-            specification = specification.and(buildRangeSpecification(criteria.getLateReturnCount(), User_.lateReturnCount));
+            specification = specification
+                    .and(buildRangeSpecification(criteria.getLateReturnCount(), User_.lateReturnCount));
         }
 
         if (criteria.getBookIsbn() != null) {
-            specification = specification.and(buildSpecification(criteria.getBookIsbn(), 
-                root -> root.join(User_.borrowings, JoinType.INNER)
+            specification = specification.and(buildSpecification(criteria.getBookIsbn(),
+                    root -> root.join(User_.borrowings, JoinType.INNER)
                             .join(Borrowing_.book, JoinType.INNER)
                             .get(Book_.isbn)));
         }
 
         if (criteria.getBookTitle() != null) {
-            specification = specification.and(buildSpecification(criteria.getBookTitle(), 
-                root -> root.join(User_.borrowings, JoinType.INNER)
+            specification = specification.and(buildSpecification(criteria.getBookTitle(),
+                    root -> root.join(User_.borrowings, JoinType.INNER)
                             .join(Borrowing_.book, JoinType.INNER)
                             .get(Book_.title)));
         }
-        
+
         if (criteria.getBorrowDate() != null) {
             specification = specification.and(buildSpecification(criteria.getBorrowDate(),
-                root -> root.join(User_.borrowings, JoinType.INNER).get(Borrowing_.borrowDate)));
+                    root -> root.join(User_.borrowings, JoinType.INNER).get(Borrowing_.borrowDate)));
         }
-        
+
         if (criteria.getReturnDate() != null) {
             specification = specification.and(buildSpecification(criteria.getReturnDate(),
-                root -> root.join(User_.borrowings, JoinType.INNER).get(Borrowing_.returnDate)));
+                    root -> root.join(User_.borrowings, JoinType.INNER).get(Borrowing_.returnDate)));
         }
-        
+
         return specification;
     }
 }

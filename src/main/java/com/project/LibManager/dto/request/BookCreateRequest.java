@@ -29,7 +29,7 @@ public class BookCreateRequest {
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
     private String author;
-    
+
     @NotBlank(message = "NOT_BLANK")
     @Size(min = 13, max = 13, message = "ISBN_MUST_BE_13_CHARACTERS")
     private String isbn;
@@ -38,12 +38,12 @@ public class BookCreateRequest {
     private Long typeId;
 
     @Min(value = 1, message = "VALUE_OUT_OF_RANGE")
-    private int stock;  
+    private int stock;
 
     @NotBlank(message = "NOT_BLANK")
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
     private String publisher;
-    
+
     @NotNull(message = "NOT_BLANK")
     @PastOrPresent(message = "BIRTH_DATE_MUST_BE_IN_PAST")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")

@@ -18,13 +18,12 @@ import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.User;
 
-
 public interface IAuthenticationService {
 
-    public AuthenticationResponse authenticate(AuthenticationRequest aRequest) ;
+    public AuthenticationResponse authenticate(AuthenticationRequest aRequest);
 
     String generateToken(User user, TokenType tokenType);
-    
+
     // Verify token
     IntrospectResponse introspectToken(TokenRequest iRequest);
 
@@ -51,11 +50,11 @@ public interface IAuthenticationService {
 
     String generatePassword(int length);
 
-    String resetPassword(String token) throws JOSEException, ParseException ;
+    String resetPassword(String token) throws JOSEException, ParseException;
 
     boolean changePasswordAfterReset(ChangePassAfterResetRequest cpRequest);
 
     void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest);
-    
-    void changeEmail(ChangeMailRequest cMailRequest) ;
+
+    void changeEmail(ChangeMailRequest cMailRequest);
 }

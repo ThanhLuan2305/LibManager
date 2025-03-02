@@ -36,6 +36,6 @@ public class RegisterRequest {
     @NotNull(message = "NOT_BLANK")
     @Past(message = "BIRTH_DATE_MUST_BE_IN_PAST")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
-    @DateTimeFormat(pattern = "yyyy/MM/d") 
+    @DateTimeFormat(pattern = "yyyy/MM/d")
     private LocalDate birthDate;
 }

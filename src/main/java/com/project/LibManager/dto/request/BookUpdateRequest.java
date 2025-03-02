@@ -31,11 +31,11 @@ public class BookUpdateRequest {
     Long typeId;
 
     @Min(value = 1, message = "VALUE_OUT_OF_RANGE")
-    private int stock;  
+    private int stock;
 
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
     private String publisher;
-    
+
     @PastOrPresent(message = "BIRTH_DATE_MUST_BE_IN_PAST")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
     @DateTimeFormat(pattern = "yyyy/MM/d")

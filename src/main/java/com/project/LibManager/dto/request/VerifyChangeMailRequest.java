@@ -15,7 +15,7 @@ public class VerifyChangeMailRequest {
     @NotBlank(message = "NOT_BLANK")
     @Email(message = "EMAIL_INVALID")
     private String oldEmail;
-    
+
     @NotBlank(message = "NOT_BLANK")
     @Email(message = "EMAIL_INVALID")
     private String newEmail;

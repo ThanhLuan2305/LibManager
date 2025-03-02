@@ -37,7 +37,8 @@ public class AdminBookController {
     private final IBookService bookService;
 
     @PostMapping("")
-    public ResponseEntity<ApiResponse<BookResponse>> createBook(@RequestBody @Valid BookCreateRequest bookCreateRequest) {
+    public ResponseEntity<ApiResponse<BookResponse>> createBook(
+            @RequestBody @Valid BookCreateRequest bookCreateRequest) {
         BookResponse bookResponse = bookService.createBook(bookCreateRequest);
         ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
                 .message("Create Book successfully")
@@ -47,8 +48,8 @@ public class AdminBookController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookResponse>> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest, 
-                                                                @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<BookResponse>> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest,
+            @PathVariable Long id) {
         BookResponse bookResponse = bookService.updateBook(bookUpdateRequest, id);
         ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
                 .message("Update Book successfully")
@@ -68,9 +69,9 @@ public class AdminBookController {
     }
 
     @GetMapping("/borrow-by-user")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrowByUser(@RequestParam Long userId, 
-                                                                               @RequestParam(defaultValue = "0") int offset,
-                                                                               @RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrowByUser(@RequestParam Long userId,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
         Page<BookResponse> bookPage = bookService.getBookBorrowByUser(userId, pageable);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
@@ -83,8 +84,8 @@ public class AdminBookController {
     @PostMapping("/import")
     public ResponseEntity<ApiResponse<String>> importBooks(@RequestParam("file") MultipartFile file) {
         boolean checkCSV = Optional.ofNullable(file.getOriginalFilename())
-        .map(name -> name.endsWith(".csv"))
-        .orElse(false);
+                .map(name -> name.endsWith(".csv"))
+                .orElse(false);
 
         if (!Objects.equals(file.getContentType(), "text/csv") && !checkCSV) {
             ApiResponse<String> response = ApiResponse.<String>builder()

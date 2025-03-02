@@ -2,20 +2,16 @@ package com.project.LibManager.exception;
 
 import com.project.LibManager.constant.ErrorCode;
 
-public class AppException extends RuntimeException  {
-	public AppException(ErrorCode errorCode) {
+public class AppException extends RuntimeException {
+    public AppException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
 
-    private ErrorCode errorCode;
+    private final ErrorCode errorCode;
 
     public ErrorCode getErrorCode() {
         return errorCode;
-    }
-
-    public void setErrorCode(ErrorCode errorCode) {
-        this.errorCode = errorCode;
     }
 
 }

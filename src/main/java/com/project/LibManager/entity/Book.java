@@ -36,7 +36,7 @@ public class Book extends AuditTable {
     private BookType type;
 
     @Column(nullable = false)
-    private int stock;  
+    private int stock;
 
     @Column(nullable = false)
     private String publisher;
@@ -60,4 +60,3 @@ public class Book extends AuditTable {
     @EqualsAndHashCode.Exclude
     private Set<Borrowing> borrowings;
 }
-

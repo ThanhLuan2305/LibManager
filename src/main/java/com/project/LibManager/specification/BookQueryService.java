@@ -17,7 +17,7 @@ import tech.jhipster.service.QueryService;
 
 @Service
 @RequiredArgsConstructor
-public class BookQueryService extends QueryService<Book>{
+public class BookQueryService extends QueryService<Book> {
     private final BookRepository bookRepository;
 
     public Page<Book> findByCriteria(BookCriteria criteria, Pageable pageable) {
@@ -38,8 +38,8 @@ public class BookQueryService extends QueryService<Book>{
             specification = specification.and(buildStringSpecification(criteria.getAuthor(), Book_.author));
         }
         if (criteria.getTypeName() != null) {
-           specification = specification.and(buildSpecification(criteria.getTypeName(),
-                root -> root.join(Book_.type, JoinType.INNER).get(BookType_.name)));
+            specification = specification.and(buildSpecification(criteria.getTypeName(),
+                    root -> root.join(Book_.type, JoinType.INNER).get(BookType_.name)));
         }
         if (criteria.getStock() != null) {
             specification = specification.and(buildRangeSpecification(criteria.getStock(), Book_.stock));
@@ -48,15 +48,17 @@ public class BookQueryService extends QueryService<Book>{
             specification = specification.and(buildStringSpecification(criteria.getPublisher(), Book_.publisher));
         }
         if (criteria.getPublishedDate() != null) {
-            specification = specification.and(buildRangeSpecification(criteria.getPublishedDate(), Book_.publishedDate));
+            specification = specification
+                    .and(buildRangeSpecification(criteria.getPublishedDate(), Book_.publishedDate));
         }
         if (criteria.getMaxBorrowDays() != null) {
-            specification = specification.and(buildRangeSpecification(criteria.getMaxBorrowDays(), Book_.maxBorrowDays));
+            specification = specification
+                    .and(buildRangeSpecification(criteria.getMaxBorrowDays(), Book_.maxBorrowDays));
         }
         if (criteria.getLocation() != null) {
             specification = specification.and(buildStringSpecification(criteria.getLocation(), Book_.location));
         }
-        
+
         return specification;
     }
 }

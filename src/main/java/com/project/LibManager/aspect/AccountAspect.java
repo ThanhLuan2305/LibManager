@@ -34,7 +34,8 @@ public class AccountAspect {
 
     private String getClientIp() {
         try {
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 String ip = request.getHeader("X-Forwarded-For"); // Get Ip if have proxy

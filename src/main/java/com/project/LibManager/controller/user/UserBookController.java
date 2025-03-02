@@ -28,32 +28,32 @@ import lombok.extern.slf4j.Slf4j;
 public class UserBookController {
     private final IBookService bookService;
 
-    @PostMapping("/borrow/{bookId}") 
+    @PostMapping("/borrow/{bookId}")
     public ResponseEntity<ApiResponse<BorrowingResponse>> borrowBooks(@PathVariable Long bookId) {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
-                                                             .message("Borrow book is successfully!")
-                                                             .result(bookService.borrowBook(bookId))
-                                                             .build();
+                .message("Borrow book is successfully!")
+                .result(bookService.borrowBook(bookId))
+                .build();
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/return/{bookId}") 
+    @PostMapping("/return/{bookId}")
     public ResponseEntity<ApiResponse<BorrowingResponse>> returnBooks(@PathVariable Long bookId) {
         ApiResponse<BorrowingResponse> response = ApiResponse.<BorrowingResponse>builder()
-                                                             .message("Return book is successfully!")
-                                                             .result(bookService.returnBook(bookId))
-                                                             .build();
+                .message("Return book is successfully!")
+                .result(bookService.returnBook(bookId))
+                .build();
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/books-borrow") 
+    @GetMapping("/books-borrow")
     public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrow(@RequestParam(defaultValue = "0") int offset,
-                                                                        @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
-                                                             .message("List of borrowed books.")
-                                                             .result(bookService.getBookBorrowForUser(pageable))
-                                                             .build();
+                .message("List of borrowed books.")
+                .result(bookService.getBookBorrowForUser(pageable))
+                .build();
         return ResponseEntity.ok(response);
     }
 }

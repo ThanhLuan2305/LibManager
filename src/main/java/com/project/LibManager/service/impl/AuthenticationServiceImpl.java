@@ -447,7 +447,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         boolean rs = passwordEncoder.matches(cpRequest.getOldPassword(), user.getPassword());
         if (!rs)
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-            
+
         if (passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
         }
