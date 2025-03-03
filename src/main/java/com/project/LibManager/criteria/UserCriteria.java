@@ -9,13 +9,22 @@ import tech.jhipster.service.filter.StringFilter;
 @Data
 public class UserCriteria {
     private StringFilter email;
+
     private StringFilter fullName;
+
     private LocalDateFilter birthDate;
+
     private BooleanFilter isVerified;
+
     private BooleanFilter isDeleted;
+
     private IntegerFilter lateReturnCount;
+
     private StringFilter bookIsbn;
+
     private StringFilter bookTitle;
+
     private LocalDateFilter borrowDate;
+    
     private LocalDateFilter returnDate;
 }

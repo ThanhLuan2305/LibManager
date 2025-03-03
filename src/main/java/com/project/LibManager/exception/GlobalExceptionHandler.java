@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNullPointerException(NullPointerException ex) {
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .code(500)
-                .message("Lỗi hệ thống: " + ex.getMessage())
+                .message("Error system: " + ex.getMessage())
                 .result(null)
                 .build();
 

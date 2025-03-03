@@ -93,7 +93,6 @@ public class ImageCloundServiceImpl implements IImageCloundService {
     public boolean deleteImage(String fileName) {
         String publicId = folder + "/" + fileName;
         try {
-            // Gọi Cloudinary API để xóa ảnh
             @SuppressWarnings("unchecked")
             Map<String, Object> result = cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
 

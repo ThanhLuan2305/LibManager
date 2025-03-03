@@ -38,9 +38,10 @@ public class AccountAspect {
                     .getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
-                String ip = request.getHeader("X-Forwarded-For"); // Get Ip if have proxy
+                // Get Ip if have proxy
+                String ip = request.getHeader("X-Forwarded-For"); 
                 if (ip == null || ip.isEmpty()) {
-                    ip = request.getRemoteAddr(); // Get Ip
+                    ip = request.getRemoteAddr();
                 }
                 return ip;
             }

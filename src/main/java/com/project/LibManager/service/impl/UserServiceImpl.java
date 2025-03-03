@@ -53,13 +53,14 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
-
+        Set<Role> roles = new HashSet<>();
+        
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        if (userRepository.existsByEmail(request.getEmail()))
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.USER_EXISTED);
+        }
 
-        Set<Role> roles = new HashSet<>();
         roles.addAll(request.getListRole().stream()
                 .map(x -> roleRepository.findByName(x)
                         .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))

@@ -106,6 +106,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         boolean isVerified = user.getIsVerified();
         boolean isDeleted = user.getIsDeleted();
         boolean isReset = user.getIsReset();
+        Role role = roleRepository.findByName(PredefinedRole.USER_ROLE)
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+        boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
 
         if (!isVerified)
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
@@ -113,13 +116,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (isDeleted) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
         }
-        Role role = roleRepository.findByName(PredefinedRole.USER_ROLE)
-                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
+
         if (maintenanceService.isMaintenanceMode() && user.getRoles().contains(role)) {
             throw new AppException(ErrorCode.MAINTENACE_MODE);
         }
 
-        boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
         if (!rs)
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
 
@@ -258,19 +259,22 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 .plus(refreshDuration, ChronoUnit.SECONDS)
                 .toEpochMilli())
                 : signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        boolean rs = signedJWT.verify(verifier);
+
         if (!expTime.after(new Date())) {
             log.error("Token expired");
             throw new AppException(ErrorCode.JWT_TOKEN_EXPIRED);
         }
 
-        boolean rs = signedJWT.verify(verifier);
         if (!rs) {
-            log.error("Token expired");
+            log.error("Token invalid");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         }
+
         if (invalidateTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
-            log.error("Invalid token");
+            log.error("Token invalid");
             throw new AppException(ErrorCode.UNAUTHENTICATED);
 
         }
@@ -416,8 +420,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
 
-        log.info("Email of user: {}", user.getEmail());
-        log.info("Role of user: {}", user.getRoles());
         if (!user.getRoles().isEmpty()) {
             user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
         }
@@ -445,15 +447,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         boolean rs = passwordEncoder.matches(cpRequest.getOldPassword(), user.getPassword());
-        if (!rs)
+        if (!rs) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
 
         if (passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
         }
 
-        if (!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword()))
+        if (!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
 
         user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
         userRepository.save(user);
@@ -521,8 +525,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (otp.getExpiredAt().isBefore(LocalDateTime.now()))
+        if (otp.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new AppException(ErrorCode.OTP_EXPIRED);
+        }
 
         return generateToken(user, TokenType.ACCESS);
     }
@@ -599,8 +604,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         User user = userRepository.findByEmail(cpRequest.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword()))
+        if (!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
 
         if (passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
@@ -659,8 +665,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String email = jwtContex.getAuthentication().getName();
 
-        if (!email.equals(cMailRequest.getOldEmail()))
+        if (!email.equals(cMailRequest.getOldEmail())) {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
 
         boolean checkMail = userRepository.existsByEmail(cMailRequest.getNewEmail());
         if (checkMail) {

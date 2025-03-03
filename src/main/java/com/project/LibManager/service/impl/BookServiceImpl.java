@@ -256,23 +256,28 @@ public class BookServiceImpl implements IBookService {
      *           details.
      */
     @Override
+    @Transactional
     public BorrowingResponse borrowBook(Long bookId) {
         User user = getAuthenticatedUser();
         boolean isDeleted = user.getIsDeleted();
-        if (isDeleted)
+        if (isDeleted) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
+        }
 
-        if (borrowingRepository.existsOverdueBorrowingsByUser(user.getId()))
+        if (borrowingRepository.existsOverdueBorrowingsByUser(user.getId())) {
             throw new AppException(ErrorCode.USER_HAS_OVERDUE_BOOKS);
+        }
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
-        if (book.getStock() <= 0)
+        if (book.getStock() <= 0) {
             throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+        }
 
-        if (borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId))
+        if (borrowingRepository.existsByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)) {
             throw new AppException(ErrorCode.BOOK_ALREADY_BORROWED);
+        }
 
         try {
             LocalDate borrowDate = LocalDate.now();
@@ -285,7 +290,7 @@ public class BookServiceImpl implements IBookService {
                     .dueDate(dueDate)
                     .build();
 
-            borrowingRepository.save(borrowing); // Lưu trước khi giảm stock để tránh lỗi rollback
+            borrowingRepository.save(borrowing);
 
             book.setStock(book.getStock() - 1);
             bookRepository.save(book);
@@ -306,6 +311,8 @@ public class BookServiceImpl implements IBookService {
      * @implNote This method updates the return date of the borrowing and increases
      *           the stock of the book.
      */
+    @Override
+    @Transactional
     public BorrowingResponse returnBook(Long bookId) {
         User user = getAuthenticatedUser();
 
@@ -320,7 +327,6 @@ public class BookServiceImpl implements IBookService {
         }
 
         try {
-
             userRepository.save(user);
 
             Book book = borrowing.getBook();

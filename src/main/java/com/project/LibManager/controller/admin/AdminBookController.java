@@ -34,72 +34,73 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "JWT Authentication")
 public class AdminBookController {
-    private final IBookService bookService;
+        private final IBookService bookService;
 
-    @PostMapping("")
-    public ResponseEntity<ApiResponse<BookResponse>> createBook(
-            @RequestBody @Valid BookCreateRequest bookCreateRequest) {
-        BookResponse bookResponse = bookService.createBook(bookCreateRequest);
-        ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
-                .message("Create Book successfully")
-                .result(bookResponse)
-                .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookResponse>> updateBook(@RequestBody @Valid BookUpdateRequest bookUpdateRequest,
-            @PathVariable Long id) {
-        BookResponse bookResponse = bookService.updateBook(bookUpdateRequest, id);
-        ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
-                .message("Update Book successfully")
-                .result(bookResponse)
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteBook(@PathVariable Long id) {
-        bookService.deleteBook(id);
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                .message("Delete Book successfully")
-                .result("success")
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/borrow-by-user")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrowByUser(@RequestParam Long userId,
-            @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
-        Pageable pageable = PageRequest.of(offset, limit);
-        Page<BookResponse> bookPage = bookService.getBookBorrowByUser(userId, pageable);
-        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
-                .message("Fetched books borrowed by user successfully")
-                .result(bookPage)
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/import")
-    public ResponseEntity<ApiResponse<String>> importBooks(@RequestParam("file") MultipartFile file) {
-        boolean checkCSV = Optional.ofNullable(file.getOriginalFilename())
-                .map(name -> name.endsWith(".csv"))
-                .orElse(false);
-
-        if (!Objects.equals(file.getContentType(), "text/csv") && !checkCSV) {
-            ApiResponse<String> response = ApiResponse.<String>builder()
-                    .message("Only CSV files are supported.")
-                    .result("error")
-                    .build();
-            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(response);
+        @PostMapping("")
+        public ResponseEntity<ApiResponse<BookResponse>> createBook(
+                        @RequestBody @Valid BookCreateRequest bookCreateRequest) {
+                BookResponse bookResponse = bookService.createBook(bookCreateRequest);
+                ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+                                .message("Create Book successfully")
+                                .result(bookResponse)
+                                .build();
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
 
-        bookService.importBooks(file);
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                .message("Books imported successfully!")
-                .result("success")
-                .build();
-        return ResponseEntity.ok(response);
-    }
+        @PutMapping("/{id}")
+        public ResponseEntity<ApiResponse<BookResponse>> updateBook(
+                        @RequestBody @Valid BookUpdateRequest bookUpdateRequest,
+                        @PathVariable Long id) {
+                BookResponse bookResponse = bookService.updateBook(bookUpdateRequest, id);
+                ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+                                .message("Update Book successfully")
+                                .result(bookResponse)
+                                .build();
+                return ResponseEntity.ok(response);
+        }
+
+        @DeleteMapping("/{id}")
+        public ResponseEntity<ApiResponse<String>> deleteBook(@PathVariable Long id) {
+                bookService.deleteBook(id);
+                ApiResponse<String> response = ApiResponse.<String>builder()
+                                .message("Delete Book successfully")
+                                .result("success")
+                                .build();
+                return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/borrow-by-user")
+        public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrowByUser(@RequestParam Long userId,
+                        @RequestParam(defaultValue = "0") int offset,
+                        @RequestParam(defaultValue = "10") int limit) {
+                Pageable pageable = PageRequest.of(offset, limit);
+                Page<BookResponse> bookPage = bookService.getBookBorrowByUser(userId, pageable);
+                ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                                .message("Fetched books borrowed by user successfully")
+                                .result(bookPage)
+                                .build();
+                return ResponseEntity.ok(response);
+        }
+
+        @PostMapping("/import")
+        public ResponseEntity<ApiResponse<String>> importBooks(@RequestParam("file") MultipartFile file) {
+                boolean checkCSV = Optional.ofNullable(file.getOriginalFilename())
+                                .map(name -> name.endsWith(".csv"))
+                                .orElse(false);
+
+                if (!Objects.equals(file.getContentType(), "text/csv") && !checkCSV) {
+                        ApiResponse<String> response = ApiResponse.<String>builder()
+                                        .message("Only CSV files are supported.")
+                                        .result("error")
+                                        .build();
+                        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(response);
+                }
+
+                bookService.importBooks(file);
+                ApiResponse<String> response = ApiResponse.<String>builder()
+                                .message("Books imported successfully!")
+                                .result("success")
+                                .build();
+                return ResponseEntity.ok(response);
+        }
 }
