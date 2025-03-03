@@ -36,73 +36,73 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SecurityRequirement(name = "JWT Authentication")
 public class AdminUserController {
-        private final IUserService userService;
-        private final UserQueryService userQueryService;
+    private final IUserService userService;
+    private final UserQueryService userQueryService;
 
-        @PostMapping("")
-        public ResponseEntity<ApiResponse<UserResponse>> createUser(
-                        @RequestBody @Valid UserCreateRequest userCreateRequest) {
-                ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
-                                .result(userService.createUser(userCreateRequest))
-                                .message("User created successfully.")
-                                .build();
-                return ResponseEntity.ok(response);
-        }
+    @PostMapping("")
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(
+            @RequestBody @Valid UserCreateRequest userCreateRequest) {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .result(userService.createUser(userCreateRequest))
+                .message("User created successfully.")
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
-        @PutMapping("/{id}")
-        public ResponseEntity<ApiResponse<UserResponse>> updateUser(
-                        @RequestBody @Valid UserUpdateRequest userUpdateRequest,
-                        @PathVariable Long id) {
-                ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
-                                .message("User updated successfully.")
-                                .result(userService.updateUser(id, userUpdateRequest))
-                                .build();
-                return ResponseEntity.ok(response);
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @RequestBody @Valid UserUpdateRequest userUpdateRequest,
+            @PathVariable Long id) {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .message("User updated successfully.")
+                .result(userService.updateUser(id, userUpdateRequest))
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
-        @DeleteMapping("/{id}")
-        public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
-                userService.deleteUser(id);
-                ApiResponse<String> response = ApiResponse.<String>builder()
-                                .message("User deleted successfully.")
-                                .result("success")
-                                .build();
-                return ResponseEntity.ok(response);
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .message("User deleted successfully.")
+                .result("success")
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
-        @GetMapping("/search")
-        public ResponseEntity<ApiResponse<Page<UserResponse>>> serachUsers(@ParameterObject UserCriteria criteria,
-                        Pageable pageable) {
-                Page<User> users = userQueryService.findByCriteria(criteria, pageable);
-                Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
-                ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
-                                .message("Users retrieved successfully based on search criteria.")
-                                .result(usersResponse)
-                                .build();
-                return ResponseEntity.ok().body(response);
-        }
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> serachUsers(@ParameterObject UserCriteria criteria,
+            Pageable pageable) {
+        Page<User> users = userQueryService.findByCriteria(criteria, pageable);
+        Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
+        ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
+                .message("Users retrieved successfully based on search criteria.")
+                .result(usersResponse)
+                .build();
+        return ResponseEntity.ok().body(response);
+    }
 
-        @GetMapping("")
-        public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(@RequestParam(defaultValue = "0") int offset,
-                        @RequestParam(defaultValue = "10") int limit) {
-                var authentication = SecurityContextHolder.getContext().getAuthentication();
-                log.info("User: {}", authentication.getName());
-                authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(@RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("User: {}", authentication.getName());
+        authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
 
-                Pageable pageable = PageRequest.of(offset, limit);
-                ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
-                                .message("Users retrieved successfully.")
-                                .result(userService.getUsers(pageable))
-                                .build();
-                return ResponseEntity.ok(response);
-        }
+        Pageable pageable = PageRequest.of(offset, limit);
+        ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
+                .message("Users retrieved successfully.")
+                .result(userService.getUsers(pageable))
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
-        @GetMapping("/{userId}")
-        public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long userId) {
-                ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
-                                .message("User retrieved successfully.")
-                                .result(userService.getUser(userId))
-                                .build();
-                return ResponseEntity.ok(response);
-        }
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long userId) {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .message("User retrieved successfully.")
+                .result(userService.getUser(userId))
+                .build();
+        return ResponseEntity.ok(response);
+    }
 }
