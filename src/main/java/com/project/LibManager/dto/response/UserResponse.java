@@ -1,24 +1,35 @@
 package com.project.LibManager.dto.response;
 
 import java.time.LocalDate;
+import java.util.Set;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserResponse {
-	Long id;
-	String email;
-	String password;
-    String fullName;
-    LocalDate birthDate;
-    Boolean isVerified;
+    private Long id;
+
+    private String email;
+
+    private String fullName;
+
+    private LocalDate birthDate;
+
+    private Boolean isVerified;
+
+    private Set<RoleResponse> roles;
+
+    private LocalDate createdAt;
+
+    private LocalDate updatedAt;
+
+    private String createdBy;
+
+    private String updatedBy;
 }
