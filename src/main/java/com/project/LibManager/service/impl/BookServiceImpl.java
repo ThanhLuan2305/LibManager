@@ -31,9 +31,9 @@ import com.project.LibManager.entity.BookType;
 import com.project.LibManager.entity.Borrowing;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.mapper.BookMapper;
-import com.project.LibManager.mapper.BookTypeMapper;
-import com.project.LibManager.mapper.BorrowingMapper;
+import com.project.LibManager.service.mapper.BookMapper;
+import com.project.LibManager.service.mapper.BookTypeMapper;
+import com.project.LibManager.service.mapper.BorrowingMapper;
 import com.project.LibManager.repository.BookRepository;
 import com.project.LibManager.repository.BookTypeRepository;
 import com.project.LibManager.repository.BorrowingRepository;
@@ -246,14 +246,13 @@ public class BookServiceImpl implements IBookService {
     }
 
     /**
-     * Allows a user to borrow a book.
+     * Allows an authenticated user to borrow a book.
      *
-     * @param bRequest The borrowing request containing the user and book details.
-     * @return The response containing the details of the borrowing.
-     * @throws AppException If the book is out of stock, already borrowed, or the
-     *                      user does not exist.
-     * @implNote This method updates the stock of the book and records the borrowing
-     *           details.
+     * @param bookId The ID of the book to be borrowed.
+     * @return A BorrowingResponse containing details of the borrowed book.
+     * @throws AppException If the user is deleted, has overdue books, the book is out of stock,
+     *                      or the book has already been borrowed.
+     * @implNote This method checks user status, verifies book availability, and records the borrowing transaction.
      */
     @Override
     @Transactional
@@ -303,13 +302,13 @@ public class BookServiceImpl implements IBookService {
     }
 
     /**
-     * Allows a user to return a borrowed book.
+     * Allows an authenticated user to return a borrowed book.
      *
-     * @param bRequest The return request containing user and book details.
-     * @return The response containing the updated borrowing details.
-     * @throws AppException If the book was not borrowed or is returned late.
-     * @implNote This method updates the return date of the borrowing and increases
-     *           the stock of the book.
+     * @param bookId The ID of the book to be returned.
+     * @return A BorrowingResponse containing details of the returned book.
+     * @throws AppException If the book was not borrowed by the user.
+     * @implNote This method verifies the borrowing record, updates the return date,
+     *           and adjusts the book stock accordingly.
      */
     @Override
     @Transactional

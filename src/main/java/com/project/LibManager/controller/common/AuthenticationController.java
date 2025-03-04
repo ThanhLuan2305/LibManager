@@ -37,9 +37,10 @@ public class AuthenticationController {
     public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate(
             @RequestBody AuthenticationRequest aRequest) {
         var rs = aService.authenticate(aRequest);
+        String mess = rs.isForceChangePassword() ? "You must change new password before login" : "Login successfully!";
         ApiResponse<AuthenticationResponse> response = ApiResponse.<AuthenticationResponse>builder()
                 .result(rs)
-                .message("Login successfully.")
+                .message(mess)
                 .build();
         return ResponseEntity.ok(response);
 

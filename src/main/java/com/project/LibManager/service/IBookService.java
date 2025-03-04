@@ -12,28 +12,28 @@ import com.project.LibManager.entity.Book;
 
 public interface IBookService {
 
-    public BookResponse createBook(BookCreateRequest bookCreateRequest);
+    BookResponse createBook(BookCreateRequest bookCreateRequest);
 
-    public BookResponse updateBook(BookUpdateRequest bookUpdateRequest, Long bookId);
+    BookResponse updateBook(BookUpdateRequest bookUpdateRequest, Long bookId);
 
-    public void deleteBook(Long id);
+    void deleteBook(Long id);
 
-    public Page<BookResponse> getBooks(Pageable pageable);
+    Page<BookResponse> getBooks(Pageable pageable);
 
-    public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage);
+    Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage);
 
-    public BookResponse mapToBookResponseByMapper(Long id);
+    BookResponse mapToBookResponseByMapper(Long id);
 
-    public BookResponse getBook(Long id);
+    BookResponse getBook(Long id);
 
-    public BorrowingResponse borrowBook(Long bookId);
+    BorrowingResponse borrowBook(Long bookId);
 
-    public BorrowingResponse returnBook(Long bookId);
+    BorrowingResponse returnBook(Long bookId);
 
-    public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable);
+    Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable);
 
-    public Page<BookResponse> getBookBorrowForUser(Pageable pageable);
+    Page<BookResponse> getBookBorrowForUser(Pageable pageable);
 
-    public void importBooks(MultipartFile file);
+    void importBooks(MultipartFile file);
 
 }

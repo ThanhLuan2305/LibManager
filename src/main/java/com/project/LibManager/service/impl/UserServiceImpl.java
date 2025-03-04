@@ -7,7 +7,7 @@ import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.mapper.UserMapper;
+import com.project.LibManager.service.mapper.UserMapper;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.service.IUserService;

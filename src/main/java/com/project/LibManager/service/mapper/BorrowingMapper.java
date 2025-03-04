@@ -1,4 +1,4 @@
-package com.project.LibManager.mapper;
+package com.project.LibManager.service.mapper;
 
 import org.mapstruct.Mapper;
 

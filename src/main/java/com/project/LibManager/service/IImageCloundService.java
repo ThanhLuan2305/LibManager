@@ -6,14 +6,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface IImageCloundService {
 
-    public String uploadImage(MultipartFile imgUrl) throws IOException;
+    String uploadImage(MultipartFile imgUrl) throws IOException;
 
-    public boolean deleteImage(String fileName);
+    boolean deleteImage(String fileName);
 
-    public String updateImage(String oldFileName, MultipartFile newFile);
+    String updateImage(String oldFileName, MultipartFile newFile);
 
-    public String getPreviewUrl(String fileName);
+    String getPreviewUrl(String fileName);
 
-    public void validateFile(MultipartFile file);
+    void validateFile(MultipartFile file);
 
 }

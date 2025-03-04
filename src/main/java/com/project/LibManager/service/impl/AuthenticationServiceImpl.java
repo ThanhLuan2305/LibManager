@@ -1,43 +1,13 @@
 package com.project.LibManager.service.impl;
 
-import java.security.SecureRandom;
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.constant.TokenType;
-import com.project.LibManager.dto.request.AuthenticationRequest;
-import com.project.LibManager.dto.request.ChangeMailRequest;
-import com.project.LibManager.dto.request.ChangePasswordRequest;
-import com.project.LibManager.dto.request.LogoutRequest;
-import com.project.LibManager.dto.request.RegisterRequest;
-import com.project.LibManager.dto.request.TokenRequest;
-import com.project.LibManager.dto.request.VerifyChangeMailRequest;
+import com.project.LibManager.dto.request.*;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
 import com.project.LibManager.dto.response.IntrospectResponse;
@@ -47,17 +17,31 @@ import com.project.LibManager.entity.OtpVerification;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
-import com.project.LibManager.mapper.UserMapper;
 import com.project.LibManager.repository.InvalidateTokenRepository;
 import com.project.LibManager.repository.OtpVerificationRepository;
 import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
+import com.project.LibManager.sercurity.JwtTokenProvider;
 import com.project.LibManager.service.IAuthenticationService;
 import com.project.LibManager.service.IMailService;
 import com.project.LibManager.service.IMaintenanceService;
-
+import com.project.LibManager.service.mapper.UserMapper;
+import com.project.LibManager.util.CommonUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -71,33 +55,26 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final IMaintenanceService maintenanceService;
     private final RoleRepository roleRepository;
-    private Random randomOTP = new Random();
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CommonUtil commonUtil;
 
     @Value("${jwt.signing.key}")
     private String signKey;
 
-    @Value("${jwt.valid-duration}")
-    private Long validDuration;
-
     @Value("${jwt.refresh-duration}")
     private Long refreshDuration;
 
-    @Value("${jwt.mail-duration}")
-    private Long mailDuration;
-
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-    private static final SecureRandom random = new SecureRandom();
 
     /**
      * Authenticates a user based on email and password.
      *
      * @param aRequest the authentication request containing email and password.
      * @return an {@link AuthenticationResponse} containing authentication status
-     *         and token.
+     * and token.
      * @throws AppException if the user does not exist, email is not verified, or
      *                      password is incorrect.
      * @implNote This method verifies user credentials and generates a JWT token
-     *           upon successful authentication.
+     * upon successful authentication.
      */
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
@@ -128,64 +105,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             return AuthenticationResponse.builder().authenticate(rs).forceChangePassword(user.getIsReset()).build();
         }
 
-        String accessToken = generateToken(user, TokenType.ACCESS);
-        String refreshToken = generateToken(user, TokenType.REFRESH);
+        String accessToken = jwtTokenProvider.generateToken(user, TokenType.ACCESS);
+        String refreshToken = jwtTokenProvider.generateToken(user, TokenType.REFRESH);
 
         return AuthenticationResponse.builder().authenticate(rs).accessToken(accessToken).refreshToken(refreshToken)
                 .forceChangePassword(user.getIsReset()).build();
     }
 
     /**
-     * Generates a JWT token for the given user.
-     *
-     * @param user        the user for whom the token is generated.
-     * @param verifyEmail flag to determine if the token is for email verification.
-     * @return the generated JWT token as a string.
-     * @throws AppException if an error occurs during token creation.
-     * @implNote Uses a JWT builder to generate and sign tokens with specific
-     *           claims.
-     */
-    @Override
-    public String generateToken(User user, TokenType tokenType) {
-        try {
-            // Header
-            JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
-
-            long duration;
-            switch (tokenType) {
-                case REFRESH -> duration = refreshDuration;
-                case VERIFY_MAIL -> duration = mailDuration;
-                default -> duration = validDuration;
-            }
-
-            // JWT claims
-            JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                    .subject(user.getEmail())
-                    .issuer("NTL")
-                    .issueTime(new Date())
-                    .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
-                    .jwtID(UUID.randomUUID().toString())
-                    .claim("scope", buildScope(user))
-                    .claim("type", tokenType.name())
-                    .build();
-
-            // Build Token
-            JWSObject jwsObject = new JWSObject(jwsHeader, new Payload(jwtClaimsSet.toJSONObject()));
-
-            // Signature
-            jwsObject.sign(new MACSigner(signKey.getBytes()));
-
-            return jwsObject.serialize();
-        } catch (JOSEException e) {
-            log.error("Cannot create token ", e.getMessage());
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
-    }
-
-    /**
      * Logs out a user by invalidating the given token.
      *
-     * @param aRequest the token request containing the token to be invalidated.
+     * @param iRequest the token request containing the token to be invalidated.
      * @throws AppException if the token is already expired or invalid.
      * @implNote Marks the token as invalid in the token store or database.
      */
@@ -204,6 +134,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     }
 
+    /**
+     * Invalidates a given JWT token by storing it in the database.
+     *
+     * @param token The JWT token to be invalidated.
+     * @throws ParseException If there is an error parsing the token.
+     * @throws JOSEException  If there is an error during the token's cryptographic verification.
+     * @implNote This method verifies the token, extracts its unique ID and expiration time,
+     * and saves it to the database to prevent further use.
+     */
     private void invalidToken(String token) throws ParseException, JOSEException {
         var sigToken = verifyToken(token, false);
 
@@ -218,14 +157,12 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     /**
-     * Verifies a given JWT token.
+     * Logs out a user by invalidating their access and refresh tokens.
      *
-     * @param token     the token to be verified.
-     * @param isRefresh flag indicating whether it is a refresh token.
-     * @return a signed JWT if verification is successful.
-     * @throws AppException if the token is invalid, expired, or already
-     *                      invalidated.
-     * @implNote Uses cryptographic validation to verify JWT integrity.
+     * @param logoutRequest The request containing the access and refresh tokens to be invalidated.
+     * @throws ParseException If there is an error parsing the tokens.
+     * @throws JOSEException  If there is an error with the token's cryptographic operations.
+     * @throws AppException   If the tokens are already expired or if there is a failure during logout.
      */
     @Override
     public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {
@@ -239,13 +176,17 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     /**
-     * Refreshes an expired authentication token.
+     * Verifies the provided JWT token, checks its expiration time,
+     * and ensures it has not been invalidated.
      *
-     * @param refreshRequest the request containing the expired token.
-     * @return a new authentication response with a fresh token.
-     * @throws AppException if the token is invalid or the user does not exist.
-     * @implNote Generates a new token by validating the refresh token and issuing a
-     *           fresh one.
+     * @param token     The JWT token to verify.
+     * @param isRefresh Indicates whether the token is a refresh token.
+     * @return The parsed and verified SignedJWT.
+     * @throws JOSEException  If there is an error during token signature verification.
+     * @throws ParseException If the token cannot be parsed.
+     * @throws AppException   If the token is expired, invalid, or has been revoked.
+     * @implNote This method parses the JWT, verifies its signature, checks its expiration time,
+     * and ensures it is not present in the invalidated token repository.
      */
     @Override
     public SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
@@ -289,14 +230,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      *
      * @param refreshRequest the request containing the refresh token.
      * @return an AuthenticationResponse containing the new access token and refresh
-     *         token.
+     * token.
      * @throws JOSEException  if there is an error during JWT processing.
      * @throws ParseException if the refresh token cannot be parsed.
      * @throws AppException   if the user associated with the token does not exist.
      * @implNote This method verifies the refresh token, invalidates the old token
-     *           by storing it in the database,
-     *           retrieves the user associated with the token, and generates new
-     *           authentication tokens.
+     * by storing it in the database,
+     * retrieves the user associated with the token, and generates new
+     * authentication tokens.
      */
     @Override
     public AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException {
@@ -315,8 +256,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        String accesstoken = generateToken(user, TokenType.ACCESS);
-        String refreshtoken = generateToken(user, TokenType.REFRESH);
+        String accesstoken = jwtTokenProvider.generateToken(user, TokenType.ACCESS);
+        String refreshtoken = jwtTokenProvider.generateToken(user, TokenType.REFRESH);
         return AuthenticationResponse.builder().authenticate(true).accessToken(accesstoken).refreshToken(refreshtoken)
                 .build();
     }
@@ -331,12 +272,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @throws AppException if the user already exists, the role is not found, or an
      *                      unexpected error occurs.
      * @implNote This method maps the registration request to a User entity, encodes
-     *           the password,
-     *           checks for duplicate emails, assigns the default role, saves the
-     *           user, generates a verification token,
-     *           and sends a verification email.
+     * the password,
+     * checks for duplicate emails, assigns the default role, saves the
+     * user, generates a verification token,
+     * and sends a verification email.
      */
     @Override
+    @Transactional
     public UserResponse registerUser(RegisterRequest registerRequest) {
         User user = userMapper.fromRegisterRequest(registerRequest);
 
@@ -355,7 +297,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             user.setIsDeleted(false);
             user.setIsReset(false);
             userRepository.save(user);
-            String token = generateToken(user, TokenType.VERIFY_MAIL);
+            String token = jwtTokenProvider.generateToken(user, TokenType.VERIFY_MAIL);
 
             // send email verify
             mailService.sendEmailVerify(registerRequest.getFullName(), token, registerRequest.getEmail());
@@ -376,7 +318,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @throws ParseException If an error occurs while parsing the token.
      * @throws AppException   If the user does not exist or cannot be authenticated.
      * @implNote This method checks the validity of the token and uses it to verify
-     *           the user's email.
+     * the user's email.
      */
     @Override
     public boolean verifyEmail(String token) throws JOSEException, ParseException {
@@ -404,29 +346,6 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     }
 
     /**
-     * Builds the scope (permissions) for the user based on their roles.
-     *
-     * @param user The user whose scope is to be built.
-     * @return A string containing the user's roles in the format "ROLE_<role>".
-     * @throws AppException If the user does not exist.
-     * @implNote This method constructs the user's scope based on the roles
-     *           associated with the user.
-     */
-    @Override
-    public String buildScope(User user) {
-        StringJoiner stringJoiner = new StringJoiner(" ");
-
-        if (user == null) {
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
-        }
-
-        if (!user.getRoles().isEmpty()) {
-            user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
-        }
-        return stringJoiner.toString();
-    }
-
-    /**
      * Changes the user's password.
      *
      * @param cpRequest The request containing the old password, new password, and
@@ -436,8 +355,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      *                      passwords do not match, old password is incorrect, new
      *                      password is the same as the old one).
      * @implNote This method allows the user to change their password, ensuring that
-     *           the old password is correct and the new password is different from
-     *           the old one.
+     * the old password is correct and the new password is different from
+     * the old one.
      */
     @Override
     public boolean changePassword(ChangePasswordRequest cpRequest) {
@@ -471,7 +390,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @throws AppException If the user does not exist or if the email is not
      *                      verified.
      * @implNote This method sends an OTP (One-Time Password) to the user's email
-     *           for password reset.
+     * for password reset.
      */
     @Override
     public void forgetPassword(String email) {
@@ -481,29 +400,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
 
         }
-        Integer otp = generateOTP(email);
+        Integer otp = commonUtil.generateOTP(email, otpRepository);
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
-    }
-
-    /**
-     * Generates a One-Time Password (OTP) for email verification or password reset.
-     *
-     * @param email The email address to associate the OTP with.
-     * @return The generated OTP.
-     * @implNote This method generates a 6-digit OTP and saves it in the database
-     *           with a 5-minute expiration time.
-     */
-    @Override
-    public Integer generateOTP(String email) {
-        Integer otp = randomOTP.nextInt(100000, 999999);
-        LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(5);
-
-        otpRepository.save(OtpVerification.builder()
-                .email(email)
-                .otp(otp)
-                .expiredAt(expiredAt)
-                .build());
-        return otp;
     }
 
     /**
@@ -512,11 +410,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @param token The OTP provided by the user.
      * @param email The email address associated with the OTP.
      * @return An authentication response containing the generated JWT token if OTP
-     *         is valid.
+     * is valid.
      * @throws AppException If the OTP does not exist, has expired, or any other
      *                      error occurs.
      * @implNote This method checks the validity of the OTP and generates a new JWT
-     *           token for authentication.
+     * token for authentication.
      */
     @Override
     public String verifyOTP(Integer token, String email) {
@@ -529,24 +427,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             throw new AppException(ErrorCode.OTP_EXPIRED);
         }
 
-        return generateToken(user, TokenType.ACCESS);
-    }
-
-    /**
-     * Generates a random password of a specified length.
-     *
-     * @param length The length of the password to be generated.
-     * @return The generated password.
-     * @implNote This method generates a random password consisting of letters and
-     *           digits based on the specified length.
-     */
-    @Override
-    public String generatePassword(int length) {
-        StringBuilder password = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-        }
-        return password.toString();
+        return jwtTokenProvider.generateToken(user, TokenType.ACCESS);
     }
 
     /**
@@ -558,27 +439,24 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @throws ParseException if the token cannot be parsed.
      * @throws AppException   if the user does not exist.
      * @implNote Decodes the token, verifies its validity, and generates a new
-     *           password for the user.
+     * password for the user.
      */
     @Override
     public String resetPassword(String token) throws JOSEException, ParseException {
+        var signedJWT = verifyToken(token, false);
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         try {
-            var signedJWT = verifyToken(token, false);
-            String email = signedJWT.getJWTClaimsSet().getSubject();
 
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-            String password = generatePassword(9);
+            String password = commonUtil.generatePassword(9);
             user.setPassword(passwordEncoder.encode(password));
             user.setIsReset(true);
             userRepository.save(user);
 
             invalidToken(token);
             return password;
-        } catch (AppException e) {
-            log.error(e.getMessage());
-            throw e;
         } catch (Exception e) {
             log.error(e.getMessage());
             throw e;
@@ -595,9 +473,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      *                      confirmation do not match,
      *                      or the new password is the same as the old password.
      * @implNote This method verifies that the user exists, ensures the new password
-     *           matches the confirmation password,
-     *           checks that the new password is not the same as the old password,
-     *           and updates the password securely.
+     * matches the confirmation password,
+     * checks that the new password is not the same as the old password,
+     * and updates the password securely.
      */
     @Override
     public boolean changePasswordAfterReset(ChangePassAfterResetRequest cpRequest) {
@@ -628,7 +506,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @throws AppException if the OTP does not exist, is expired, or the user does
      *                      not exist.
      * @implNote Checks the validity of the OTP and updates the user's email if
-     *           valid.
+     * valid.
      */
     @Override
     public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
@@ -652,7 +530,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @param cMailRequest the request containing old and new email addresses.
      * @throws AppException if the user is not authenticated or does not exist.
      * @implNote Validates the old email, generates an OTP, and sends it to the new
-     *           email address.
+     * email address.
      */
     @Override
     public void changeEmail(ChangeMailRequest cMailRequest) {
@@ -676,7 +554,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        int otp = generateOTP(cMailRequest.getNewEmail());
+        int otp = commonUtil.generateOTP(cMailRequest.getNewEmail(), otpRepository);
         mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
         mailService.sendSimpleEmail(cMailRequest.getOldEmail(), "Thông báo tài khoản yêu cầu đổi email",
                 "Tài khoản của bạn đã yêu cầu đổi email, nếu không phải bạn vui lòng liên hệ với chúng tôi");

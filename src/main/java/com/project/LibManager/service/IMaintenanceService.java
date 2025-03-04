@@ -2,7 +2,7 @@ package com.project.LibManager.service;
 
 public interface IMaintenanceService {
 
-    public boolean isMaintenanceMode();
+    boolean isMaintenanceMode();
 
-    public void setMaintenanceMode(boolean maintenanceMode);
+    void setMaintenanceMode(boolean maintenanceMode);
 }

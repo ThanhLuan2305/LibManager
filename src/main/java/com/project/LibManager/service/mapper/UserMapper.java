@@ -1,4 +1,4 @@
-package com.project.LibManager.mapper;
+package com.project.LibManager.service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -9,8 +9,9 @@ import com.project.LibManager.dto.request.UserCreateRequest;
 import com.project.LibManager.dto.request.UserUpdateRequest;
 import com.project.LibManager.dto.response.UserResponse;
 import com.project.LibManager.entity.User;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "borrowings", ignore = true)

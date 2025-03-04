@@ -10,19 +10,19 @@ import org.springframework.data.domain.Pageable;
 
 public interface IUserService {
 
-    public UserResponse createUser(UserCreateRequest request);
+    UserResponse createUser(UserCreateRequest request);
 
-    public Page<UserResponse> getUsers(Pageable pageable);
+    Page<UserResponse> getUsers(Pageable pageable);
 
-    public Page<UserResponse> mapUserPageUserResponsePage(Page<User> userPage);
+    Page<UserResponse> mapUserPageUserResponsePage(Page<User> userPage);
 
-    public UserResponse mapToUserResponseByMapper(Long id);
+    UserResponse mapToUserResponseByMapper(Long id);
 
-    public UserResponse getUser(Long id);
+    UserResponse getUser(Long id);
 
-    public UserResponse getMyInfo();
+    UserResponse getMyInfo();
 
-    public UserResponse updateUser(Long id, UserUpdateRequest request);
+    UserResponse updateUser(Long id, UserUpdateRequest request);
 
-    public void deleteUser(Long userId);
+    void deleteUser(Long userId);
 }

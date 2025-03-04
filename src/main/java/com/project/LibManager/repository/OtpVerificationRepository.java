@@ -1,14 +1,10 @@
 package com.project.LibManager.repository;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
+import com.project.LibManager.entity.OtpVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.project.LibManager.entity.OtpVerification;
+import java.util.Optional;
 
 public interface OtpVerificationRepository extends JpaRepository<OtpVerification, Long> {
-    boolean deleteByExpiredAtBefore(LocalDateTime expiredAt);
-
     Optional<OtpVerification> findByOtp(Integer otp);
 }

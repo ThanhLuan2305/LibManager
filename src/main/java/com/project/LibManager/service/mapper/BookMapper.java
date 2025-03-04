@@ -1,4 +1,4 @@
-package com.project.LibManager.mapper;
+package com.project.LibManager.service.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -8,24 +8,15 @@ import com.project.LibManager.dto.request.BookCreateRequest;
 import com.project.LibManager.dto.request.BookUpdateRequest;
 import com.project.LibManager.dto.response.BookResponse;
 import com.project.LibManager.entity.Book;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BookMapper {
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "borrowings", ignore = true)
-    @Mapping(target = "type", ignore = true)
     Book toBook(BookCreateRequest bookRequest);
 
     @Mapping(target = "bookType", source = "type")
     BookResponse toBookResponse(Book book);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "borrowings", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "type", ignore = true)
     void updateBook(@MappingTarget Book book, BookUpdateRequest bookCreateRequest);
 
 }
