@@ -2,13 +2,11 @@ package com.project.LibManager.service;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
-import com.project.LibManager.constant.TokenType;
 import com.project.LibManager.dto.request.*;
 import com.project.LibManager.dto.response.AuthenticationResponse;
 import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
 import com.project.LibManager.dto.response.IntrospectResponse;
 import com.project.LibManager.dto.response.UserResponse;
-import com.project.LibManager.entity.User;
 
 import java.text.ParseException;
 
