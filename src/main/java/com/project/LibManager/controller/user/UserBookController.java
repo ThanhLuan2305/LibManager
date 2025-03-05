@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.BookResponse;
-import com.project.LibManager.dto.response.BorrowingResponse;
+import com.project.LibManager.service.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.BookResponse;
+import com.project.LibManager.service.dto.response.BorrowingResponse;
 import com.project.LibManager.service.IBookService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

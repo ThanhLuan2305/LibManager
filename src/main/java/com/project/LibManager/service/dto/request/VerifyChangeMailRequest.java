@@ -1,4 +1,4 @@
-package com.project.LibManager.dto.request;
+package com.project.LibManager.service.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,12 +11,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChangeMailRequest {
+public class VerifyChangeMailRequest {
+    @NotBlank(message = "NOT_BLANK")
+    @Email(message = "EMAIL_INVALID")
+    private String oldEmail;
+
     @NotBlank(message = "NOT_BLANK")
     @Email(message = "EMAIL_INVALID")
     private String newEmail;
 
     @NotBlank(message = "NOT_BLANK")
     @Email(message = "EMAIL_INVALID")
-    private String oldEmail;
+    private Integer otp;
 }

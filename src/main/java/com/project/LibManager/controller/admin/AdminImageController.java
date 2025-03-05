@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.project.LibManager.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.ApiResponse;
 import com.project.LibManager.service.IImageCloundService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -41,7 +41,7 @@ public class AdminImageController {
                 .build());
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity<ApiResponse<String>> updateImage(
             @RequestParam("oldFileName") String oldFileName,
             @RequestParam("file") MultipartFile newFile) {

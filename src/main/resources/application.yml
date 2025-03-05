@@ -44,7 +44,7 @@ jwt:
   signing.key: yGIVSMe9sP0iJDJMpSIph503ZM1uhQlfiPVjp/Hi1Yyv6Nd0kbwQ6omdwcAgA7xt
   valid-duration: 3600
   refresh-duration: 360000
-  mail-duration: 3600
+  mail-duration: 5
 
 security:
   public-endpoints-post: /auth/login,/auth/introspect,/auth/logout,/auth/refresh,/auth/register,/auth/verify-email,/auth/forget-password,/auth/reset-password,/auth/verify-otp,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/search

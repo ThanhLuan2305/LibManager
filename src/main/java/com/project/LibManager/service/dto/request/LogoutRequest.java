@@ -1,4 +1,4 @@
-package com.project.LibManager.dto.request;
+package com.project.LibManager.service.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

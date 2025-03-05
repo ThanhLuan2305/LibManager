@@ -19,10 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.project.LibManager.dto.request.BookCreateRequest;
-import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.BookResponse;
+import com.project.LibManager.service.dto.request.BookCreateRequest;
+import com.project.LibManager.service.dto.request.BookUpdateRequest;
+import com.project.LibManager.service.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.BookResponse;
 import com.project.LibManager.service.IBookService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminBookController {
     private final IBookService bookService;
 
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<ApiResponse<BookResponse>> createBook(
             @RequestBody @Valid BookCreateRequest bookCreateRequest) {
         BookResponse bookResponse = bookService.createBook(bookCreateRequest);

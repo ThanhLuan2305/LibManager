@@ -1,6 +1,6 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.response;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MaintenanceResponse {
     private boolean maintenanceMode;
-    private LocalDate from;
+    private Instant from;
 }

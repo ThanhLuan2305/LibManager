@@ -31,7 +31,7 @@
             <column name="is_verified" valueNumeric="1"/>
             <column name="full_name" value="Admin User"/>
             <column name="is_deleted" valueNumeric="0"/>
-            <column name="is_reset" valueNumeric="0"/>
+            <column name="is_reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -44,7 +44,7 @@
             <column name="is_verified" valueNumeric="1"/>
             <column name="full_name" value="John Doe"/>
             <column name="is_deleted" valueNumeric="0"/>
-            <column name="is_reset" valueNumeric="0"/>
+            <column name="is_reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="1"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -57,7 +57,7 @@
             <column name="is_verified" valueNumeric="1"/>
             <column name="full_name" value="Jane Smith"/>
             <column name="is_deleted" valueNumeric="0"/>
-            <column name="is_reset" valueNumeric="0"/>
+            <column name="is_reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>

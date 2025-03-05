@@ -3,23 +3,18 @@ package com.project.LibManager.controller.common;
 import java.text.ParseException;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.nimbusds.jose.JOSEException;
-import com.project.LibManager.dto.request.AuthenticationRequest;
-import com.project.LibManager.dto.request.LogoutRequest;
-import com.project.LibManager.dto.request.RegisterRequest;
-import com.project.LibManager.dto.request.TokenRequest;
-import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.AuthenticationResponse;
-import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
-import com.project.LibManager.dto.response.IntrospectResponse;
-import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.service.dto.request.AuthenticationRequest;
+import com.project.LibManager.service.dto.request.LogoutRequest;
+import com.project.LibManager.service.dto.request.RegisterRequest;
+import com.project.LibManager.service.dto.request.TokenRequest;
+import com.project.LibManager.service.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.AuthenticationResponse;
+import com.project.LibManager.service.dto.response.ChangePassAfterResetRequest;
+import com.project.LibManager.service.dto.response.IntrospectResponse;
+import com.project.LibManager.service.dto.response.UserResponse;
 import com.project.LibManager.service.IAuthenticationService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -68,7 +63,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/refresh")
+    @PutMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(@RequestBody TokenRequest rfRequest)
             throws JOSEException, ParseException {
         AuthenticationResponse result = aService.refreshToken(rfRequest);
@@ -102,7 +97,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/forget-password")
+    @PutMapping("/forget-password")
     public ResponseEntity<ApiResponse<String>> forgetPassword(@RequestParam("email") String email) {
         aService.forgetPassword(email);
         ApiResponse<String> response = ApiResponse.<String>builder()
@@ -123,7 +118,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reset-password")
+    @PutMapping("/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody TokenRequest tokenRequest)
             throws JOSEException, ParseException {
         String result = aService.resetPassword(tokenRequest.getToken());
@@ -134,7 +129,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/change-password-after-reset")
+    @PutMapping("/change-password-after-reset")
     public ResponseEntity<ApiResponse<Boolean>> changePasswordAfterReset(
             @RequestBody ChangePassAfterResetRequest cpRequest) {
         Boolean result = aService.changePasswordAfterReset(cpRequest);

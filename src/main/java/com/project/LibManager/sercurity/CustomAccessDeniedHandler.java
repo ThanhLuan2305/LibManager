@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.ApiResponse;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

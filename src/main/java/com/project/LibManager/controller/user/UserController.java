@@ -1,17 +1,13 @@
 package com.project.LibManager.controller.user;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.project.LibManager.dto.request.ChangeMailRequest;
-import com.project.LibManager.dto.request.ChangePasswordRequest;
-import com.project.LibManager.dto.request.VerifyChangeMailRequest;
-import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.service.dto.request.ChangeMailRequest;
+import com.project.LibManager.service.dto.request.ChangePasswordRequest;
+import com.project.LibManager.service.dto.request.VerifyChangeMailRequest;
+import com.project.LibManager.service.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.UserResponse;
 import com.project.LibManager.service.IAuthenticationService;
 import com.project.LibManager.service.IUserService;
 
@@ -37,7 +33,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest cpRequest) {
         Boolean result = aService.changePassword(cpRequest);
         ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
@@ -47,7 +43,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/change-mail")
+    @PutMapping("/change-mail")
     public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody ChangeMailRequest eMailRequest) {
         aService.changeEmail(eMailRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
@@ -57,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/verify-change-mail")
+    @PutMapping("/verify-change-mail")
     public ResponseEntity<ApiResponse<String>> verifyChangeMail(@RequestBody VerifyChangeMailRequest eMailRequest) {
         aService.verifyChangeEmail(eMailRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()

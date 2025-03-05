@@ -1,9 +1,10 @@
 package com.project.LibManager.service.impl;
 
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.dto.request.UserCreateRequest;
-import com.project.LibManager.dto.request.UserUpdateRequest;
-import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.criteria.UserCriteria;
+import com.project.LibManager.service.dto.request.UserCreateRequest;
+import com.project.LibManager.service.dto.request.UserUpdateRequest;
+import com.project.LibManager.service.dto.response.UserResponse;
 import com.project.LibManager.entity.Role;
 import com.project.LibManager.entity.User;
 import com.project.LibManager.exception.AppException;
@@ -12,6 +13,7 @@ import com.project.LibManager.repository.RoleRepository;
 import com.project.LibManager.repository.UserRepository;
 import com.project.LibManager.service.IUserService;
 
+import com.project.LibManager.specification.UserQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ public class UserServiceImpl implements IUserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserQueryService userQueryService;
 
     /**
      * Creates a new user and assigns a default role.
@@ -230,7 +233,7 @@ public class UserServiceImpl implements IUserService {
 
         try {
             if (!user.getBorrowings().isEmpty()) {
-                user.setIsDeleted(true);
+                user.setDeleted(true);
                 userRepository.save(user);
             } else {
                 user.getRoles().clear();
@@ -241,5 +244,11 @@ public class UserServiceImpl implements IUserService {
             log.error("Error deleting user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+    }
+
+    @Override
+    public Page<UserResponse> searchUSer(UserCriteria criteria, Pageable pageable) {
+        Page<User> users = userQueryService.findByCriteria(criteria, pageable);
+        return mapUserPageUserResponsePage(users);
     }
 }

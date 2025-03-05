@@ -1,24 +1,24 @@
 package com.project.LibManager.entity;
 
-import java.util.Date;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.Table;
+import lombok.*;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class InvalidateToken {
+@Table(name = "invalidate_token")
+@EqualsAndHashCode(callSuper = false)
+public class InvalidateToken extends AuditTable {
     @Id
     private String id;
 
     @Column
-    private Date expiryTime;
+    private Instant expiryTime;
 }

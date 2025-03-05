@@ -1,8 +1,17 @@
 package com.project.LibManager.entity;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Set;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,7 +51,7 @@ public class Book extends AuditTable {
     private String publisher;
 
     @Column(nullable = false)
-    private LocalDate publishedDate;
+    private Instant publishedDate;
 
     @Column(nullable = false)
     private int maxBorrowDays;

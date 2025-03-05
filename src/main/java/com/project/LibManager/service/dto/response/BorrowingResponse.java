@@ -1,6 +1,6 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.response;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,15 +18,15 @@ public class BorrowingResponse {
 
     private BookResponse book;
 
-    private LocalDate borrowDate;
+    private Instant borrowDate;
 
-    private LocalDate dueDate;
+    private Instant dueDate;
 
-    private LocalDate returnDate;
+    private Instant returnDate;
 
-    private LocalDate createdAt;
+    private Instant createdAt;
 
-    private LocalDate updatedAt;
+    private Instant updatedAt;
 
     private String createdBy;
 

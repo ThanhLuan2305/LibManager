@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,13 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.LibManager.criteria.UserCriteria;
-import com.project.LibManager.dto.request.UserCreateRequest;
-import com.project.LibManager.dto.request.UserUpdateRequest;
-import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.UserResponse;
-import com.project.LibManager.entity.User;
+import com.project.LibManager.service.dto.request.UserCreateRequest;
+import com.project.LibManager.service.dto.request.UserUpdateRequest;
+import com.project.LibManager.service.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.UserResponse;
 import com.project.LibManager.service.IUserService;
-import com.project.LibManager.specification.UserQueryService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -37,9 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @SecurityRequirement(name = "JWT Authentication")
 public class AdminUserController {
     private final IUserService userService;
-    private final UserQueryService userQueryService;
 
-    @PostMapping("")
+    @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> createUser(
             @RequestBody @Valid UserCreateRequest userCreateRequest) {
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
@@ -73,21 +69,17 @@ public class AdminUserController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<UserResponse>>> serachUsers(@ParameterObject UserCriteria criteria,
             Pageable pageable) {
-        Page<User> users = userQueryService.findByCriteria(criteria, pageable);
-        Page<UserResponse> usersResponse = userService.mapUserPageUserResponsePage(users);
+
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
                 .message("Users retrieved successfully based on search criteria.")
-                .result(usersResponse)
+                .result(userService.searchUSer(criteria, pageable))
                 .build();
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("")
+    @GetMapping
     public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(@RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("User: {}", authentication.getName());
-        authentication.getAuthorities().forEach(gr -> log.info("Role: {}", gr.getAuthority()));
 
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()

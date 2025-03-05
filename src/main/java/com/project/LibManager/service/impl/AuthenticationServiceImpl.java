@@ -7,11 +7,17 @@ import com.nimbusds.jwt.SignedJWT;
 import com.project.LibManager.constant.ErrorCode;
 import com.project.LibManager.constant.PredefinedRole;
 import com.project.LibManager.constant.TokenType;
-import com.project.LibManager.dto.request.*;
-import com.project.LibManager.dto.response.AuthenticationResponse;
-import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
-import com.project.LibManager.dto.response.IntrospectResponse;
-import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.service.dto.request.AuthenticationRequest;
+import com.project.LibManager.service.dto.request.LogoutRequest;
+import com.project.LibManager.service.dto.request.RegisterRequest;
+import com.project.LibManager.service.dto.request.TokenRequest;
+import com.project.LibManager.service.dto.request.ChangePasswordRequest;
+import com.project.LibManager.service.dto.request.VerifyChangeMailRequest;
+import com.project.LibManager.service.dto.request.ChangeMailRequest;
+import com.project.LibManager.service.dto.response.AuthenticationResponse;
+import com.project.LibManager.service.dto.response.ChangePassAfterResetRequest;
+import com.project.LibManager.service.dto.response.IntrospectResponse;
+import com.project.LibManager.service.dto.response.UserResponse;
 import com.project.LibManager.entity.InvalidateToken;
 import com.project.LibManager.entity.OtpVerification;
 import com.project.LibManager.entity.Role;
@@ -37,7 +43,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashSet;
@@ -80,9 +87,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
         User user = userRepository.findByEmail(aRequest.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        boolean isVerified = user.getIsVerified();
-        boolean isDeleted = user.getIsDeleted();
-        boolean isReset = user.getIsReset();
+        boolean isVerified = user.isVerified();
+        boolean isDeleted = user.isDeleted();
+        boolean isResetPass = user.isResetPassword();
         Role role = roleRepository.findByName(PredefinedRole.USER_ROLE)
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
         boolean rs = passwordEncoder.matches(aRequest.getPassword(), user.getPassword());
@@ -101,15 +108,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (!rs)
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
 
-        if (isReset) {
-            return AuthenticationResponse.builder().authenticate(rs).forceChangePassword(user.getIsReset()).build();
+        if (isResetPass) {
+            return AuthenticationResponse.builder().forceChangePassword(user.isResetPassword()).build();
         }
 
         String accessToken = jwtTokenProvider.generateToken(user, TokenType.ACCESS);
         String refreshToken = jwtTokenProvider.generateToken(user, TokenType.REFRESH);
 
-        return AuthenticationResponse.builder().authenticate(rs).accessToken(accessToken).refreshToken(refreshToken)
-                .forceChangePassword(user.getIsReset()).build();
+        return AuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
+                .forceChangePassword(user.isResetPassword()).build();
     }
 
     /**
@@ -147,7 +154,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         var sigToken = verifyToken(token, false);
 
         String jwtID = sigToken.getJWTClaimsSet().getJWTID();
-        Date expTime = sigToken.getJWTClaimsSet().getExpirationTime();
+        Instant expTime = sigToken.getJWTClaimsSet().getExpirationTime().toInstant();
         InvalidateToken invalidateToken = InvalidateToken.builder()
                 .id(jwtID)
                 .expiryTime(expTime)
@@ -244,7 +251,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         var signedJWT = verifyToken(refreshRequest.getToken(), true);
 
         String jwtID = signedJWT.getJWTClaimsSet().getJWTID();
-        Date expTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        Instant expTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
 
         InvalidateToken invalidateToken = InvalidateToken.builder()
                 .id(jwtID)
@@ -258,7 +265,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         String accesstoken = jwtTokenProvider.generateToken(user, TokenType.ACCESS);
         String refreshtoken = jwtTokenProvider.generateToken(user, TokenType.REFRESH);
-        return AuthenticationResponse.builder().authenticate(true).accessToken(accesstoken).refreshToken(refreshtoken)
+        return AuthenticationResponse.builder().accessToken(accesstoken).refreshToken(refreshtoken)
                 .build();
     }
 
@@ -293,9 +300,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         roles.add(role);
         try {
             user.setRoles(roles);
-            user.setIsVerified(false);
-            user.setIsDeleted(false);
-            user.setIsReset(false);
+            user.setVerified(false);
+            user.setDeleted(false);
+            user.setResetPassword(false);
             userRepository.save(user);
             String token = jwtTokenProvider.generateToken(user, TokenType.VERIFY_MAIL);
 
@@ -339,7 +346,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             String email = signedJWT.getJWTClaimsSet().getSubject();
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            user.setIsVerified(true);
+            user.setVerified(true);
             userRepository.save(user);
             return true;
         }
@@ -395,12 +402,18 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     @Override
     public void forgetPassword(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        boolean isVerified = user.getIsVerified();
+        boolean isVerified = user.isVerified();
         if (!isVerified) {
             throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
 
         }
-        Integer otp = commonUtil.generateOTP(email, otpRepository);
+        Integer otp = commonUtil.generateOTP();
+        Instant expiredAt = Instant.now().plus(Duration.ofMinutes(5));
+        otpRepository.save(OtpVerification.builder()
+                .email(email)
+                .otp(otp)
+                .expiredAt(expiredAt)
+                .build());
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
     }
 
@@ -423,7 +436,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (otp.getExpiredAt().isBefore(LocalDateTime.now())) {
+        if (otp.getExpiredAt().isBefore(Instant.now())) {
             throw new AppException(ErrorCode.OTP_EXPIRED);
         }
 
@@ -452,7 +465,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
             String password = commonUtil.generatePassword(9);
             user.setPassword(passwordEncoder.encode(password));
-            user.setIsReset(true);
+            user.setResetPassword(true);
             userRepository.save(user);
 
             invalidToken(token);
@@ -491,7 +504,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         }
         try {
             user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
-            user.setIsReset(false);
+            user.setResetPassword(false);
             userRepository.save(user);
             return true;
         } catch (Exception e) {
@@ -516,10 +529,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         User user = userRepository.findByEmail(changeMailRequest.getOldEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (otp.getExpiredAt().isBefore(LocalDateTime.now())) {
+        if (otp.getExpiredAt().isBefore(Instant.now())) {
             throw new AppException(ErrorCode.OTP_EXPIRED);
         }
-
+        // Delete otp
         user.setEmail(changeMailRequest.getNewEmail());
         userRepository.save(user);
     }
@@ -554,7 +567,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        int otp = commonUtil.generateOTP(cMailRequest.getNewEmail(), otpRepository);
+        int otp = commonUtil.generateOTP();
+        Instant expiredAt = Instant.now().plus(Duration.ofMinutes(5));
+        otpRepository.save(OtpVerification.builder()
+                .email(email)
+                .otp(otp)
+                .expiredAt(expiredAt)
+                .build());
         mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
         mailService.sendSimpleEmail(cMailRequest.getOldEmail(), "Thông báo tài khoản yêu cầu đổi email",
                 "Tài khoản của bạn đã yêu cầu đổi email, nếu không phải bạn vui lòng liên hệ với chúng tôi");

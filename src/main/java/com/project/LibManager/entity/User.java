@@ -1,6 +1,16 @@
 package com.project.LibManager.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -8,7 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Set;
 
 @Entity
@@ -31,13 +41,13 @@ public class User extends AuditTable {
     private String password;
 
     @Column(nullable = false)
-    private Boolean isVerified;
+    private boolean isVerified;
 
     @Column(nullable = false)
     private String fullName;
 
     @Column(nullable = true)
-    private LocalDate birthDate;
+    private Instant birthDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -49,10 +59,10 @@ public class User extends AuditTable {
     private Set<Borrowing> borrowings;
 
     @Column(nullable = false)
-    private Boolean isDeleted;
+    private boolean isDeleted;
 
     @Column(nullable = false)
-    private Boolean isReset;
+    private boolean isResetPassword;
 
     @Column(nullable = false)
     private int lateReturnCount;

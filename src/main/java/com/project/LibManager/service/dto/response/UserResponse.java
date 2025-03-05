@@ -1,6 +1,6 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.response;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -19,15 +19,15 @@ public class UserResponse {
 
     private String fullName;
 
-    private LocalDate birthDate;
+    private Instant birthDate;
 
-    private Boolean isVerified;
+    private boolean isVerified;
 
     private Set<RoleResponse> roles;
 
-    private LocalDate createdAt;
+    private Instant createdAt;
 
-    private LocalDate updatedAt;
+    private Instant updatedAt;
 
     private String createdBy;
 

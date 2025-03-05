@@ -1,4 +1,4 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AuthenticationResponse {
-    private boolean authenticate;
-
     private String accessToken;
 
     private String refreshToken;

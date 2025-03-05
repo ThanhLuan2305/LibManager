@@ -1,7 +1,7 @@
 package com.project.LibManager.exception;
 
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.ApiResponse;
 
 import lombok.extern.slf4j.Slf4j;
 

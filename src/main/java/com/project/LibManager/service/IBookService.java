@@ -1,13 +1,14 @@
 package com.project.LibManager.service;
 
+import com.project.LibManager.criteria.BookCriteria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.project.LibManager.dto.request.BookCreateRequest;
-import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.response.BookResponse;
-import com.project.LibManager.dto.response.BorrowingResponse;
+import com.project.LibManager.service.dto.request.BookCreateRequest;
+import com.project.LibManager.service.dto.request.BookUpdateRequest;
+import com.project.LibManager.service.dto.response.BookResponse;
+import com.project.LibManager.service.dto.response.BorrowingResponse;
 import com.project.LibManager.entity.Book;
 
 public interface IBookService {
@@ -36,4 +37,5 @@ public interface IBookService {
 
     void importBooks(MultipartFile file);
 
+    Page<BookResponse> searchBook( BookCriteria criteria, Pageable pageable);
 }

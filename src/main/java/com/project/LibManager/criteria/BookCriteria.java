@@ -1,8 +1,8 @@
 package com.project.LibManager.criteria;
 
 import lombok.Data;
+import tech.jhipster.service.filter.InstantFilter;
 import tech.jhipster.service.filter.IntegerFilter;
-import tech.jhipster.service.filter.LocalDateFilter;
 import tech.jhipster.service.filter.StringFilter;
 
 @Data
@@ -19,7 +19,7 @@ public class BookCriteria {
 
     private StringFilter publisher;
 
-    private LocalDateFilter publishedDate;
+    private InstantFilter publishedDate;
 
     private IntegerFilter maxBorrowDays;
 

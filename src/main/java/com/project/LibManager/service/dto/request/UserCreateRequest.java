@@ -1,18 +1,19 @@
-package com.project.LibManager.dto.request;
+package com.project.LibManager.service.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
-import lombok.*;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
 
-import org.springframework.format.annotation.DateTimeFormat;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -33,19 +34,18 @@ public class UserCreateRequest {
 
     @NotNull(message = "NOT_BLANK")
     @Past(message = "BIRTH_DATE_MUST_BE_IN_PAST")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
-    @DateTimeFormat(pattern = "yyyy/MM/d")
-    private LocalDate birthDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private Instant birthDate;
 
     @NotNull(message = "NOT_BLANK")
-    private Boolean isVerified;
+    private boolean isVerified;
 
     @NotNull(message = "NOT_BLANK")
     private List<String> listRole;
 
     @NotNull(message = "NOT_BLANK")
-    private Boolean isDeleted;
+    private boolean isDeleted;
 
     @NotNull(message = "NOT_BLANK")
-    private Boolean isReset;
+    private boolean isReset;
 }

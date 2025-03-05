@@ -1,6 +1,6 @@
 package com.project.LibManager.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,10 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "otp_verification")
@@ -19,7 +16,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OtpVerification {
+@EqualsAndHashCode(callSuper = false)
+public class OtpVerification extends AuditTable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,5 +29,5 @@ public class OtpVerification {
     private Integer otp;
 
     @Column(nullable = false)
-    private LocalDateTime expiredAt;
+    private Instant expiredAt;
 }

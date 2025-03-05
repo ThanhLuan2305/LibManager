@@ -4,9 +4,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import com.project.LibManager.dto.request.BookCreateRequest;
-import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.response.BookResponse;
+import com.project.LibManager.service.dto.request.BookCreateRequest;
+import com.project.LibManager.service.dto.request.BookUpdateRequest;
+import com.project.LibManager.service.dto.response.BookResponse;
 import com.project.LibManager.entity.Book;
 import org.mapstruct.ReportingPolicy;
 

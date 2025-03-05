@@ -3,14 +3,19 @@ package com.project.LibManager.service.impl;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.project.LibManager.criteria.BookCriteria;
+import com.project.LibManager.specification.BookQueryService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.springframework.dao.DataAccessException;
@@ -22,10 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.LibManager.constant.ErrorCode;
-import com.project.LibManager.dto.request.BookCreateRequest;
-import com.project.LibManager.dto.request.BookUpdateRequest;
-import com.project.LibManager.dto.response.BookResponse;
-import com.project.LibManager.dto.response.BorrowingResponse;
+import com.project.LibManager.service.dto.request.BookCreateRequest;
+import com.project.LibManager.service.dto.request.BookUpdateRequest;
+import com.project.LibManager.service.dto.response.BookResponse;
+import com.project.LibManager.service.dto.response.BorrowingResponse;
 import com.project.LibManager.entity.Book;
 import com.project.LibManager.entity.BookType;
 import com.project.LibManager.entity.Borrowing;
@@ -55,6 +60,7 @@ public class BookServiceImpl implements IBookService {
     private final BookTypeMapper bookTypeMapper;
     private final BorrowingRepository borrowingRepository;
     private final BorrowingMapper borrowingMapper;
+    private final BookQueryService bookQueryService;
 
     /**
      * Creates a new book or updates an existing book if the ISBN already exists.
@@ -196,7 +202,7 @@ public class BookServiceImpl implements IBookService {
     public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage) {
         List<BookResponse> bookResponses = bookPage.getContent().stream()
                 .map(book -> mapToBookResponseByMapper(book.getId()))
-                .collect(Collectors.toList());
+                .toList();
 
         return new PageImpl<>(bookResponses, bookPage.getPageable(), bookPage.getTotalElements());
     }
@@ -258,7 +264,7 @@ public class BookServiceImpl implements IBookService {
     @Transactional
     public BorrowingResponse borrowBook(Long bookId) {
         User user = getAuthenticatedUser();
-        boolean isDeleted = user.getIsDeleted();
+        boolean isDeleted = user.isDeleted();
         if (isDeleted) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
         }
@@ -279,8 +285,8 @@ public class BookServiceImpl implements IBookService {
         }
 
         try {
-            LocalDate borrowDate = LocalDate.now();
-            LocalDate dueDate = borrowDate.plusDays(book.getMaxBorrowDays());
+            Instant borrowDate = Instant.now();
+            Instant dueDate = borrowDate.plus(book.getMaxBorrowDays(), ChronoUnit.DAYS);
 
             Borrowing borrowing = Borrowing.builder()
                     .user(user)
@@ -318,7 +324,7 @@ public class BookServiceImpl implements IBookService {
         Borrowing borrowing = borrowingRepository.findByUserIdAndBookIdAndReturnDateIsNull(user.getId(), bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_BORROWED));
 
-        LocalDate returnDate = LocalDate.now();
+        Instant returnDate = Instant.now();
         borrowing.setReturnDate(returnDate);
 
         if (returnDate.isAfter(borrowing.getDueDate())) {
@@ -355,7 +361,7 @@ public class BookServiceImpl implements IBookService {
             List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
             List<BookResponse> lstBook = borrowings.stream()
                     .map(b -> bookMapper.toBookResponse(b.getBook()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), lstBook.size());
@@ -388,7 +394,7 @@ public class BookServiceImpl implements IBookService {
             List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(user.getId());
             List<BookResponse> lstBook = borrowings.stream()
                     .map(b -> bookMapper.toBookResponse(b.getBook()))
-                    .collect(Collectors.toList());
+                    .toList();
 
             int start = (int) pageable.getOffset();
             int end = Math.min((start + pageable.getPageSize()), lstBook.size());
@@ -437,6 +443,7 @@ public class BookServiceImpl implements IBookService {
             Map<String, Book> booksToUpdate = new HashMap<>();
             List<Book> newBooks = csvParser.getRecords().stream().map(csvRow -> {
                 String isbn = csvRow.get("isbn");
+                LocalDate localDate = LocalDate.parse(csvRow.get("publishedDate"), formatter);
                 return bookRepository.findByIsbn(isbn)
                         .map(book -> {
                             book.setStock(book.getStock() + Integer.parseInt(csvRow.get("stock")));
@@ -451,13 +458,13 @@ public class BookServiceImpl implements IBookService {
                                         .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED)))
                                 .stock(Integer.parseInt(csvRow.get("stock")))
                                 .publisher(csvRow.get("publisher"))
-                                .publishedDate(LocalDate.parse(csvRow.get("publishedDate"), formatter))
+                                .publishedDate(localDate.atStartOfDay(ZoneId.of("UTC")).toInstant())
                                 .maxBorrowDays(Integer.parseInt(csvRow.get("maxBorrowDays")))
                                 .location(csvRow.get("location"))
                                 .coverImageUrl(csvRow.get("coverImageUrl"))
                                 .isDeleted(false)
                                 .build());
-            }).collect(Collectors.toList());
+            }).toList();
 
             bookRepository.saveAll(booksToUpdate.values());
             bookRepository.saveAll(newBooks);
@@ -469,5 +476,12 @@ public class BookServiceImpl implements IBookService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
+    @Override
+    public Page<BookResponse> searchBook(BookCriteria criteria, Pageable pageable) {
+        Page<Book> books = bookQueryService.findByCriteria(criteria, pageable);
+        return mapBookPageBookResponsePage(books);
+    }
+
 
 }

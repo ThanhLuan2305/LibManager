@@ -1,4 +1,4 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class IntrospectResponse {
-    private boolean valid;
+public class TokenRequest {
+    private String token;
 }

@@ -1,9 +1,7 @@
-package com.project.LibManager.dto.request;
+package com.project.LibManager.service.dto.request;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.List;
-
-import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -26,17 +24,16 @@ public class UserUpdateRequest {
     private String fullName;
 
     @Past(message = "BIRTH_DATE_MUST_BE_IN_PAST")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
-    @DateTimeFormat(pattern = "yyyy/MM/d")
-    private LocalDate birthDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private Instant birthDate;
 
-    private Boolean isVerified;
+    private boolean isVerified;
 
     private List<String> listRole;
 
-    private Boolean isDeleted;
+    private boolean isDeleted;
 
-    private Boolean isReset;
+    private boolean isReset;
 
     private int lateReturnCount;
 }

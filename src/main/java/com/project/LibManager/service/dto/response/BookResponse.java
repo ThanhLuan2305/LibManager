@@ -1,6 +1,6 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.response;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +26,7 @@ public class BookResponse {
 
     private String publisher;
 
-    private LocalDate publishedDate;
+    private Instant publishedDate;
 
     private int maxBorrowDays;
 
@@ -34,9 +34,9 @@ public class BookResponse {
 
     private String coverImageUrl;
 
-    private LocalDate createdAt;
+    private Instant createdAt;
 
-    private LocalDate updatedAt;
+    private Instant updatedAt;
 
     private String createdBy;
 

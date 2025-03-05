@@ -1,13 +1,20 @@
 package com.project.LibManager.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -32,11 +39,11 @@ public class Borrowing extends AuditTable {
     private Book book;
 
     @Column(nullable = false)
-    private LocalDate borrowDate;
+    private Instant borrowDate;
 
     @Column(nullable = false)
-    private LocalDate dueDate;
+    private Instant dueDate;
 
     @Column
-    private LocalDate returnDate;
+    private Instant returnDate;
 }

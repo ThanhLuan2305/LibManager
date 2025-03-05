@@ -1,8 +1,6 @@
-package com.project.LibManager.dto.request;
+package com.project.LibManager.service.dto.request;
 
-import java.time.LocalDate;
-
-import org.springframework.format.annotation.DateTimeFormat;
+import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -35,7 +33,6 @@ public class RegisterRequest {
 
     @NotNull(message = "NOT_BLANK")
     @Past(message = "BIRTH_DATE_MUST_BE_IN_PAST")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/d")
-    @DateTimeFormat(pattern = "yyyy/MM/d")
-    private LocalDate birthDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private Instant birthDate;
 }

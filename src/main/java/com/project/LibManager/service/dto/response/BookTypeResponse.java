@@ -1,6 +1,6 @@
-package com.project.LibManager.dto.response;
+package com.project.LibManager.service.dto.response;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,16 +11,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoleResponse {
+public class BookTypeResponse {
     private Long id;
 
     private String name;
 
-    private String description;
+    private Instant createdAt;
 
-    private LocalDate createdAt;
-
-    private LocalDate updatedAt;
+    private Instant updatedAt;
 
     private String createdBy;
 

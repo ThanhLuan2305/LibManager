@@ -1,6 +1,6 @@
 package com.project.LibManager.controller.admin;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.project.LibManager.dto.response.ApiResponse;
-import com.project.LibManager.dto.response.MaintenanceResponse;
+import com.project.LibManager.service.dto.response.ApiResponse;
+import com.project.LibManager.service.dto.response.MaintenanceResponse;
 import com.project.LibManager.service.IMaintenanceService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -45,7 +45,7 @@ public class MaintenanceController {
                 .message(message)
                 .result(MaintenanceResponse.builder()
                         .maintenanceMode(isMaintenance)
-                        .from(LocalDate.now())
+                        .from(Instant.now())
                         .build())
                 .build();
         return ResponseEntity.ok(response);

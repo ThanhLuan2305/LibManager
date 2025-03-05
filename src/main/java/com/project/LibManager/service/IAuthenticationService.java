@@ -2,11 +2,17 @@ package com.project.LibManager.service;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
-import com.project.LibManager.dto.request.*;
-import com.project.LibManager.dto.response.AuthenticationResponse;
-import com.project.LibManager.dto.response.ChangePassAfterResetRequest;
-import com.project.LibManager.dto.response.IntrospectResponse;
-import com.project.LibManager.dto.response.UserResponse;
+import com.project.LibManager.service.dto.request.AuthenticationRequest;
+import com.project.LibManager.service.dto.request.LogoutRequest;
+import com.project.LibManager.service.dto.request.RegisterRequest;
+import com.project.LibManager.service.dto.request.TokenRequest;
+import com.project.LibManager.service.dto.request.ChangePasswordRequest;
+import com.project.LibManager.service.dto.request.VerifyChangeMailRequest;
+import com.project.LibManager.service.dto.request.ChangeMailRequest;
+import com.project.LibManager.service.dto.response.AuthenticationResponse;
+import com.project.LibManager.service.dto.response.ChangePassAfterResetRequest;
+import com.project.LibManager.service.dto.response.IntrospectResponse;
+import com.project.LibManager.service.dto.response.UserResponse;
 
 import java.text.ParseException;
 

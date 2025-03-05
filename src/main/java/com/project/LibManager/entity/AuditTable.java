@@ -1,6 +1,6 @@
 package com.project.LibManager.entity;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -18,10 +18,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public abstract class AuditTable {
     @Column(nullable = false, updatable = false)
-    private LocalDate createdAt;
+    private Instant createdAt;
 
     @Column(nullable = true)
-    private LocalDate updatedAt;
+    private Instant updatedAt;
 
     @Column(nullable = false, updatable = false)
     private String createdBy;
@@ -34,7 +34,7 @@ public abstract class AuditTable {
         var jwtContext = SecurityContextHolder.getContext();
 
         this.createdBy = jwtContext != null ? jwtContext.getAuthentication().getName() : "";
-        this.createdAt = LocalDate.now();
+        this.createdAt = Instant.now();
     }
 
     @PreUpdate
@@ -42,6 +42,6 @@ public abstract class AuditTable {
         var jwtContext = SecurityContextHolder.getContext();
 
         this.updatedBy = jwtContext != null ? jwtContext.getAuthentication().getName() : "";
-        this.updatedAt = LocalDate.now();
+        this.updatedAt = Instant.now();
     }
 }

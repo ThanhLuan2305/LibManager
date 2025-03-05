@@ -2,8 +2,8 @@ package com.project.LibManager.criteria;
 
 import lombok.Data;
 import tech.jhipster.service.filter.BooleanFilter;
+import tech.jhipster.service.filter.InstantFilter;
 import tech.jhipster.service.filter.IntegerFilter;
-import tech.jhipster.service.filter.LocalDateFilter;
 import tech.jhipster.service.filter.StringFilter;
 
 @Data
@@ -12,7 +12,7 @@ public class UserCriteria {
 
     private StringFilter fullName;
 
-    private LocalDateFilter birthDate;
+    private InstantFilter birthDate;
 
     private BooleanFilter isVerified;
 
@@ -24,7 +24,7 @@ public class UserCriteria {
 
     private StringFilter bookTitle;
 
-    private LocalDateFilter borrowDate;
+    private InstantFilter borrowDate;
     
-    private LocalDateFilter returnDate;
+    private InstantFilter returnDate;
 }
