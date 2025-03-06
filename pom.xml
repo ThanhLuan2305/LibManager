@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.project</groupId>
-    <artifactId>LibManager</artifactId>
+    <artifactId>libmanager</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>LibManager</name>
+    <name>libmanager</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>
@@ -218,10 +218,10 @@
                 </executions>
                 <configuration>
                     <excludes>
-                        <exclude>com/project/LibManager/dto/**</exclude>
-                        <exclude>com/project/LibManager/entity/**</exclude>
-                        <exclude>com/project/LibManager/mapper/**</exclude>
-                        <exclude>com/project/LibManager/config/**</exclude>
+                        <exclude>com/project/libmanager/dto/**</exclude>
+                        <exclude>com/project/libmanager/entity/**</exclude>
+                        <exclude>com/project/libmanager/mapper/**</exclude>
+                        <exclude>com/project/libmanager/config/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>

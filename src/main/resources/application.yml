@@ -1,6 +1,6 @@
 spring:
   application:
-    name: LibManager
+    name: libmanager
   datasource:
     url: jdbc:mysql://localhost:3306/library_manage1
     username: root
@@ -38,20 +38,20 @@ server:
 app:
   support-email: libmanage.support@gmail.com
   maintenance-mode: false
-  verify-email-url: http://localhost:8080/auth/verify-email?token=
+  verify-email-url: http://localhost:8080/account/verify-email?token=
 
 jwt:
   signing.key: yGIVSMe9sP0iJDJMpSIph503ZM1uhQlfiPVjp/Hi1Yyv6Nd0kbwQ6omdwcAgA7xt
   valid-duration: 3600
   refresh-duration: 360000
-  mail-duration: 5
+  mail-duration: 3600
 
 security:
-  public-endpoints-post: /auth/login,/auth/introspect,/auth/logout,/auth/refresh,/auth/register,/auth/verify-email,/auth/forget-password,/auth/reset-password,/auth/verify-otp,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/search
+  public-endpoints-post: /auth/**,/account/**,/password/**,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/search
   public-endpoints-get: /auth/verify-email,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/all,/books/detail
   permissions:
-    admin_role: /admin/books/**,/admin/users/**,/admin/config/**,/admin/images/**
-    user_role: /user/books/**,/user/users/**
+    admin_role: /admin/**
+    user_role: /user/**
 
 cloudinary:
   url: cloudinary://889665562338234:0Rwrk8DO16E62EIs7Bz_c6u0fNg@ddvgzy4xh
