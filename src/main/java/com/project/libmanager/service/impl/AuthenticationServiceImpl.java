@@ -1,6 +1,6 @@
 package com.project.libmanager.service.impl;
 
-import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.PredefinedRole;
@@ -12,14 +12,17 @@ import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
 import com.project.libmanager.sercurity.JwtTokenProvider;
 import com.project.libmanager.service.IAuthenticationService;
+import com.project.libmanager.service.ILoginDetailService;
 import com.project.libmanager.service.IMaintenanceService;
 import com.project.libmanager.service.IUserService;
 import com.project.libmanager.service.dto.request.AuthenticationRequest;
-import com.project.libmanager.service.dto.request.LogoutRequest;
+import com.project.libmanager.service.dto.request.LoginDetailRequest;
 import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
+import com.project.libmanager.util.CommonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -28,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @Slf4j
@@ -39,6 +43,11 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final IUserService userService;
+    private final ILoginDetailService loginDetailService;
+    private final CommonUtil commonUtil;
+
+    @Value("${jwt.refresh-duration}")
+    private Long refreshDuration;
 
     /**
      * Authenticates a user based on email and password.
@@ -64,30 +73,53 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         if (maintenanceService.isMaintenanceMode() && userDB.getRoles().contains(role)) {
             throw new AppException(ErrorCode.MAINTENACE_MODE);
         }
+        String jti = commonUtil.generateJTI();
+        String accessToken = jwtTokenProvider.generateToken(userDB, TokenType.ACCESS, jti);
+        String refreshToken = jwtTokenProvider.generateToken(userDB, TokenType.REFRESH, jti);
 
-        String accessToken = jwtTokenProvider.generateToken(userDB, TokenType.ACCESS);
-        String refreshToken = jwtTokenProvider.generateToken(userDB, TokenType.REFRESH);
+        saveRefreshToken(refreshToken);
 
         return AuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
                 .build();
     }
 
+    private void saveRefreshToken(String token) {
+        try {
+            SignedJWT signedJWT = jwtTokenProvider.verifyToken(token, true);
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+            loginDetailService.createLoginDetail(LoginDetailRequest
+                    .builder()
+                    .email(claimsSet.getSubject())
+                    .jti(claimsSet
+                            .getJWTID())
+                    .enabled(true)
+                    .expiredAt(claimsSet
+                            .getExpirationTime()
+                            .toInstant())
+                    .build());
+        } catch (Exception e) {
+            log.error("Error saving refresh token: {}", e.getMessage());
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+    }
 
     /**
      * Logs out a user by invalidating their access and refresh tokens.
      *
      * @param logoutRequest The request containing the access and refresh tokens to be invalidated.
-     * @throws ParseException If there is an error parsing the tokens.
-     * @throws JOSEException  If there is an error with the token's cryptographic operations.
-     * @throws AppException   If the tokens are already expired or if there is a failure during logout.
+     * @throws AppException If the tokens are already expired or if there is a failure during logout.
      */
     @Override
-    public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {
+    public void logout(TokenRequest logoutRequest) {
         try {
+            SignedJWT signedJWT = jwtTokenProvider.verifyToken(logoutRequest.getToken(), true);
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
 
-        } catch (AppException e) {
-            log.info("Token already expired");
-            throw new AppException(ErrorCode.LOGOUT_FAIL);
+            String jwtID = claimsSet.getJWTID();
+            loginDetailService.disableLoginDetailById(jwtID);
+        } catch (Exception e) {
+            log.error("Error logout token", e);
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
     }
 
@@ -99,30 +131,41 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @param refreshRequest the request containing the refresh token.
      * @return an AuthenticationResponse containing the new access token and refresh
      * token.
-     * @throws JOSEException  if there is an error during JWT processing.
-     * @throws ParseException if the refresh token cannot be parsed.
-     * @throws AppException   if the user associated with the token does not exist.
+     * @throws AppException if the user associated with the token does not exist.
      * @implNote This method verifies the refresh token, invalidates the old token
      * by storing it in the database,
      * retrieves the user associated with the token, and generates new
      * authentication tokens.
      */
     @Override
-    public AuthenticationResponse refreshToken(TokenRequest refreshRequest) throws JOSEException, ParseException {
-        var signedJWT = jwtTokenProvider.verifyToken(refreshRequest.getToken(), true);
+    public AuthenticationResponse refreshToken(TokenRequest refreshRequest) {
+        SignedJWT signedJWT = jwtTokenProvider.verifyToken(refreshRequest.getToken(), true);
 
-        String jwtID = signedJWT.getJWTClaimsSet().getJWTID();
-        Instant expTime = signedJWT.getJWTClaimsSet().getExpirationTime().toInstant();
+        JWTClaimsSet claimsSet;
+        try {
+            claimsSet = signedJWT.getJWTClaimsSet();
+        } catch (ParseException e) {
+            log.error("Error parsing token claims", e);
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
 
-        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String jwtID = claimsSet.getJWTID();
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        String accesstoken = jwtTokenProvider.generateToken(user, TokenType.ACCESS);
-        String refreshtoken = jwtTokenProvider.generateToken(user, TokenType.REFRESH);
-        return AuthenticationResponse.builder().accessToken(accesstoken).refreshToken(refreshtoken)
+        String email = claimsSet.getSubject();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        String accessToken = jwtTokenProvider.generateToken(user, TokenType.ACCESS, jwtID);
+        String refreshToken = jwtTokenProvider.renewRefreshToken(user, jwtID);
+
+        loginDetailService.updateLoginDetailIsEnable(jwtID, Instant.now().plus(refreshDuration, ChronoUnit.SECONDS));
+
+
+        return AuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
-
-
 }

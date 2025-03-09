@@ -44,7 +44,7 @@ public class User extends AuditTable {
     private String password;
 
     @Column(nullable = false)
-    private boolean isVerified;
+    private boolean verified;
 
     @Column(nullable = false, length = 100)
     private String fullName;
@@ -62,10 +62,10 @@ public class User extends AuditTable {
     private Set<Borrowing> borrowings;
 
     @Column(nullable = false)
-    private boolean isDeleted;
+    private boolean deleted;
 
     @Column(nullable = false)
-    private boolean isResetPassword;
+    private boolean resetPassword;
 
     @Column(nullable = false)
     private int lateReturnCount;

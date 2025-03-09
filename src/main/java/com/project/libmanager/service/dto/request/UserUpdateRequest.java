@@ -27,13 +27,13 @@ public class UserUpdateRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss.SSSX", timezone = "UTC")
     private Instant birthDate;
 
-    private boolean isVerified;
+    private boolean verified;
 
     private List<String> listRole;
 
-    private boolean isDeleted;
+    private boolean deleted;
 
-    private boolean isReset;
+    private boolean resetPassword;
 
     private int lateReturnCount;
 }

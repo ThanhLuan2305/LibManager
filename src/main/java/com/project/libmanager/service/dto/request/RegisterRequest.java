@@ -24,6 +24,10 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "NOT_BLANK")
+    @Size(min = 10, max = 10, message = "PHONE_INVALID")
+    private String phoneNumber;
+
+    @NotBlank(message = "NOT_BLANK")
     @Size(min = 6, message = "INVALID_PASSWORD")
     private String password;
 

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.nimbusds.jose.JOSEException;
 import com.project.libmanager.service.dto.request.AuthenticationRequest;
-import com.project.libmanager.service.dto.request.LogoutRequest;
 import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
@@ -36,9 +35,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(@RequestBody LogoutRequest lRequest)
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody TokenRequest logoutRequest)
             throws ParseException, JOSEException {
-        aService.logout(lRequest);
+        aService.logout(logoutRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Logout successfully")
                 .result("success")

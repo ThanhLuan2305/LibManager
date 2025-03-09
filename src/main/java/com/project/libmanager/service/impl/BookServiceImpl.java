@@ -92,12 +92,11 @@ public class BookServiceImpl implements IBookService {
                 book.setStock(book.getStock() + bookCreateRequest.getStock());
                 book = bookRepository.save(book);
                 return bookMapper.toBookResponse(book);
-            } else {
-                Book book = bookMapper.toBook(bookCreateRequest);
-                book.setType(type);
-                book = bookRepository.save(book);
-                return bookMapper.toBookResponse(book);
             }
+            Book book = bookMapper.toBook(bookCreateRequest);
+            book.setType(type);
+            book = bookRepository.save(book);
+            return bookMapper.toBookResponse(book);
         } catch (DataAccessException e) {
             log.error("Database error: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -161,7 +160,7 @@ public class BookServiceImpl implements IBookService {
         try {
             boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
             if (isBorrowed) {
-                book.setIsDeleted(true);
+                book.setDeleted(true);
                 bookRepository.save(book);
             } else
                 bookRepository.delete(book);
@@ -463,7 +462,7 @@ public class BookServiceImpl implements IBookService {
                                 .maxBorrowDays(Integer.parseInt(csvRow.get("maxBorrowDays")))
                                 .location(csvRow.get("location"))
                                 .coverImageUrl(csvRow.get("coverImageUrl"))
-                                .isDeleted(false)
+                                .deleted(false)
                                 .build());
             }).toList();
 

@@ -63,7 +63,7 @@ public class Book extends AuditTable {
     private String coverImageUrl;
 
     @Column(nullable = false)
-    private Boolean isDeleted;
+    private boolean deleted;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude

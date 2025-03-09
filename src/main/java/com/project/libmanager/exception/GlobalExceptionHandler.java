@@ -29,7 +29,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse<Void>> handlingAppException(AppException appException) {
         ErrorCode errorCode = appException.getErrorCode();
-
+        log.error("Handling AppException: Code={}, Message={}", appException.getErrorCode().getCode(),
+                appException.getErrorCode().getMessage());
         return ResponseEntity.status(errorCode.getStatusCode()).body(ApiResponse.<Void>builder()
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())

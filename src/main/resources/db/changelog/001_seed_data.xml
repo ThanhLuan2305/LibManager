@@ -27,11 +27,12 @@
     <changeSet id="001-seed-user" author="admin">
         <insert tableName="users">
             <column name="email" value="admin@gmail.com"/>
+            <column name="phone_number" value="0388336411"/>
             <column name="password" value="$2b$12$2WWchKSKpvhn5oVu74MNI.8KZXPJDuTjLmcqbYuk72Ja.KXx4m11C"/>
-            <column name="is_verified" valueNumeric="1"/>
+            <column name="verified" valueNumeric="1"/>
             <column name="full_name" value="Admin User"/>
-            <column name="is_deleted" valueNumeric="0"/>
-            <column name="is_reset_password" valueNumeric="0"/>
+            <column name="deleted" valueNumeric="0"/>
+            <column name="reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -40,11 +41,12 @@
         </insert>
         <insert tableName="users">
             <column name="email" value="john.doe@gmail.com"/>
+            <column name="phone_number" value="0388336412"/>
             <column name="password" value="$2b$12$N6q9jvH6G5wB9B93z9tpXeNJ7oG3GZbzF7/SF8yBoPTjRT5HP9X5W"/>
-            <column name="is_verified" valueNumeric="1"/>
+            <column name="verified" valueNumeric="1"/>
             <column name="full_name" value="John Doe"/>
-            <column name="is_deleted" valueNumeric="0"/>
-            <column name="is_reset_password" valueNumeric="0"/>
+            <column name="deleted" valueNumeric="0"/>
+            <column name="reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="1"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -53,11 +55,12 @@
         </insert>
         <insert tableName="users">
             <column name="email" value="jane.smith@gmail.com"/>
+            <column name="phone_number" value="0388336413"/>
             <column name="password" value="$2b$12$Y0w/RpWb9xF7hWtrqJpXeM9F8LgSe4/MJ7xAfpUbKwEUPnH5pHp7m"/>
-            <column name="is_verified" valueNumeric="1"/>
+            <column name="verified" valueNumeric="1"/>
             <column name="full_name" value="Jane Smith"/>
-            <column name="is_deleted" valueNumeric="0"/>
-            <column name="is_reset_password" valueNumeric="0"/>
+            <column name="deleted" valueNumeric="0"/>
+            <column name="reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -111,7 +114,7 @@
             <column name="published_date" value="2017-12-27"/>
             <column name="max_borrow_days" value="14"/>
             <column name="location" value="Shelf A1"/>
-            <column name="is_deleted" valueNumeric="0"/>
+            <column name="deleted" valueNumeric="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
             <column name="created_by" value="system"/>
@@ -128,7 +131,7 @@
             <column name="published_date" value="2017-03-16"/>
             <column name="max_borrow_days" value="21"/>
             <column name="location" value="Shelf B3"/>
-            <column name="is_deleted" valueNumeric="0"/>
+            <column name="deleted" valueNumeric="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
             <column name="created_by" value="system"/>

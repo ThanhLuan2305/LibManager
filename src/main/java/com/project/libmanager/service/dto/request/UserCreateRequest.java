@@ -25,6 +25,10 @@ public class UserCreateRequest {
     private String email;
 
     @NotBlank(message = "NOT_BLANK")
+    @Size(min = 10, max = 10, message = "PHONE_INVALID")
+    private String phoneNumber;
+
+    @NotBlank(message = "NOT_BLANK")
     @Size(min = 6, message = "INVALID_PASSWORD")
     private String password;
 
@@ -38,14 +42,14 @@ public class UserCreateRequest {
     private Instant birthDate;
 
     @NotNull(message = "NOT_BLANK")
-    private boolean isVerified;
+    private boolean verified;
 
     @NotNull(message = "NOT_BLANK")
     private List<String> listRole;
 
     @NotNull(message = "NOT_BLANK")
-    private boolean isDeleted;
+    private boolean deleted;
 
     @NotNull(message = "NOT_BLANK")
-    private boolean isReset;
+    private boolean resetPassword;
 }

@@ -17,11 +17,19 @@ public class UserResponse {
 
     private String email;
 
+    private String phoneNumber;
+
     private String fullName;
 
     private Instant birthDate;
 
-    private boolean isVerified;
+    private boolean verified;
+
+    private boolean deleted;
+
+    private boolean resetPassword;
+
+    private int lateReturnCount;
 
     private Set<RoleResponse> roles;
 

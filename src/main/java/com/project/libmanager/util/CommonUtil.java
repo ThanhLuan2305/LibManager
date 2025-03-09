@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -27,5 +28,9 @@ public class CommonUtil {
             password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
         }
         return password.toString();
+    }
+
+    public String generateJTI() {
+        return UUID.randomUUID().toString();
     }
 }

@@ -34,6 +34,8 @@ public class BookResponse {
 
     private String coverImageUrl;
 
+    private boolean deleted;
+
     private Instant createdAt;
 
     private Instant updatedAt;

@@ -1,6 +1,9 @@
 package com.project.libmanager.sercurity;
 
-import com.nimbusds.jose.*;
+
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -16,12 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -36,97 +37,82 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-duration}")
     private Long refreshDuration;
 
-    @Value("${jwt.mail-duration}")
-    private Long mailDuration;
+    private static final String ISSUER = "NTL";
+    private static final JWSAlgorithm SIGNING_ALGORITHM = JWSAlgorithm.HS512;
 
-    public String generateToken(User user, TokenType tokenType) {
+    public String generateToken(User user, TokenType tokenType, String jti) {
+        long duration = (tokenType == TokenType.REFRESH) ? refreshDuration : validDuration;
+        return buildToken(user, tokenType, duration, jti);
+    }
+
+    public String renewRefreshToken(User user, String jti) {
+        return buildToken(user, TokenType.REFRESH, refreshDuration, jti);
+    }
+
+    private String buildToken(User user, TokenType tokenType, long duration, String jti) {
         try {
-            // Header
-            JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
-
-            long duration;
-            switch (tokenType) {
-                case REFRESH -> duration = refreshDuration;
-                case VERIFY_MAIL -> duration = mailDuration;
-                default -> duration = validDuration;
-            }
-
-            // JWT claims
-            JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+            JWTClaimsSet claims = new JWTClaimsSet.Builder()
                     .subject(user.getEmail())
-                    .issuer("NTL")
+                    .issuer(ISSUER)
                     .issueTime(new Date())
-                    .expirationTime(new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli()))
-                    .jwtID(UUID.randomUUID().toString())
+                    .expirationTime(Date.from(Instant.now().plus(duration, ChronoUnit.SECONDS)))
+                    .jwtID(jti)
                     .claim("scope", buildScope(user))
                     .claim("type", tokenType.name())
                     .build();
 
-            // Build Token
-            JWSObject jwsObject = new JWSObject(jwsHeader, new Payload(jwtClaimsSet.toJSONObject()));
+            SignedJWT signedJWT = new SignedJWT(new JWSHeader(SIGNING_ALGORITHM), claims);
+            signedJWT.sign(new MACSigner(signKey.getBytes()));
 
-            // Signature
-            jwsObject.sign(new MACSigner(signKey.getBytes()));
-
-            return jwsObject.serialize();
+            return signedJWT.serialize();
         } catch (JOSEException e) {
-            log.error("Cannot create token: {}", e.getMessage());
+            log.error("Error creating token: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
 
-    public String buildScope(User user) {
-        StringJoiner stringJoiner = new StringJoiner(" ");
+    public SignedJWT verifyToken(String token, boolean isRefresh) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            if (!signedJWT.verify(new MACVerifier(signKey.getBytes()))) {
+                log.error("Invalid token");
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            }
 
+            Date expiration = isRefresh
+                    ? Date.from(signedJWT.getJWTClaimsSet().getIssueTime().toInstant().plus(refreshDuration, ChronoUnit.SECONDS))
+                    : signedJWT.getJWTClaimsSet().getExpirationTime();
+
+            if (expiration.before(new Date())) {
+                log.error("Token expired");
+                throw new AppException(ErrorCode.JWT_TOKEN_EXPIRED);
+            }
+
+            return signedJWT;
+        } catch (Exception e) {
+            log.error("Error verifying token", e);
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+    }
+
+
+    private String buildScope(User user) {
         if (user == null) {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
-
-        if (!user.getRoles().isEmpty()) {
-            user.getRoles().forEach(role -> stringJoiner.add("ROLE_" + role.getName()));
-        }
-        return stringJoiner.toString();
+        return Optional.ofNullable(user.getRoles())
+                .map(roles -> roles.stream().map(role -> "ROLE_" + role.getName()).toList())
+                .map(roleList -> String.join(" ", roleList))
+                .orElse("");
     }
 
     public IntrospectResponse introspectToken(TokenRequest iRequest) {
-        String token = iRequest.getToken();
-        boolean invalid = true;
-
         try {
-            verifyToken(token, false);
-            return IntrospectResponse.builder().valid(invalid).build();
+            verifyToken(iRequest.getToken(), false);
+            return IntrospectResponse.builder().valid(true).build();
         } catch (Exception e) {
-            log.error(token, "is error: {}", e.getMessage());
+            log.error("Invalid token {}: {}", iRequest.getToken(), e.getMessage(), e);
             throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
         }
-
-    }
-
-    public SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(signKey.getBytes());
-
-        SignedJWT signedJWT = SignedJWT.parse(token);
-        // check verify or refresh token
-        Date expTime = (isRefresh) ? new Date(signedJWT.getJWTClaimsSet()
-                .getIssueTime()
-                .toInstant()
-                .plus(refreshDuration, ChronoUnit.SECONDS)
-                .toEpochMilli())
-                : signedJWT.getJWTClaimsSet().getExpirationTime();
-
-        boolean rs = signedJWT.verify(verifier);
-
-        if (!expTime.after(new Date())) {
-            log.error("Token expired");
-            throw new AppException(ErrorCode.JWT_TOKEN_EXPIRED);
-        }
-
-        if (!rs) {
-            log.error("Token invalid");
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-
-        }
-
-        return signedJWT;
     }
 }

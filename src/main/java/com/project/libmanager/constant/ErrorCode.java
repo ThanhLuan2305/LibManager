@@ -45,6 +45,9 @@ public enum ErrorCode {
     LOGOUT_FAIL(1036, "Logout fail!.", HttpStatus.NOT_FOUND),
     MAIL_EXISTED(1037, "Mail existed", HttpStatus.BAD_REQUEST),
     USER_NEED_CHANGE_PASSWORD(1038, "User must change password before logging in", HttpStatus.FORBIDDEN),
+    JTI_TOKEN_EXISTED(1039, "JTI Token is existed", HttpStatus.BAD_REQUEST),
+    LOGINDETAIL_NOTFOUND(1040, "Don't found login detail", HttpStatus.NOT_FOUND),
+    PHONE_INVALID(1040, "Phone number must be at least 11 characters ", HttpStatus.NOT_FOUND),
     ;
 
     private int code;

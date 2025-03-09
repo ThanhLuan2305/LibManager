@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -160,7 +161,7 @@ public class PasswordServiceImpl implements IPasswordService {
             throw new AppException(ErrorCode.OTP_EXPIRED);
         }
 
-        return jwtTokenProvider.generateToken(user, TokenType.ACCESS);
+        return jwtTokenProvider.generateToken(user, TokenType.ACCESS, UUID.randomUUID().toString());
     }
 
     /**

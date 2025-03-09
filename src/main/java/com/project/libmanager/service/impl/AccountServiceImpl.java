@@ -3,7 +3,6 @@ package com.project.libmanager.service.impl;
 import com.nimbusds.jose.JOSEException;
 import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.PredefinedRole;
-import com.project.libmanager.constant.TokenType;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.Role;
 import com.project.libmanager.entity.User;
@@ -11,11 +10,8 @@ import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.OtpVerificationRepository;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
-import com.project.libmanager.sercurity.JwtTokenProvider;
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IMailService;
-import com.project.libmanager.service.IMaintenanceService;
-import com.project.libmanager.service.IUserService;
 import com.project.libmanager.service.dto.request.ChangeMailRequest;
 import com.project.libmanager.service.dto.request.RegisterRequest;
 import com.project.libmanager.service.dto.request.VerifyChangeMailRequest;
@@ -25,7 +21,6 @@ import com.project.libmanager.util.CommonUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,12 +41,8 @@ public class AccountServiceImpl implements IAccountService {
     private final IMailService mailService;
     private final OtpVerificationRepository otpRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IMaintenanceService maintenanceService;
     private final RoleRepository roleRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final CommonUtil commonUtil;
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final IUserService userService;
     /**
      * Registers a new user by saving their details, encoding the password,
      * assigning roles,
@@ -87,10 +78,10 @@ public class AccountServiceImpl implements IAccountService {
             user.setDeleted(false);
             user.setResetPassword(false);
             userRepository.save(user);
-            String token = jwtTokenProvider.generateToken(user, TokenType.VERIFY_MAIL);
+            //String token = jwtTokenProvider.generateToken(user, TokenType.VERIFY_MAIL);
 
             // send email verify
-            mailService.sendEmailVerify(registerRequest.getFullName(), token, registerRequest.getEmail());
+            mailService.sendEmailVerify(registerRequest.getFullName(), "token", registerRequest.getEmail());
 
             return userMapper.toUserResponse(user);
         } catch (Exception e) {

@@ -59,6 +59,6 @@ public class BookCreateRequest {
     private String coverImageUrl;
 
     @NotNull(message = "NOT_BLANK")
-    private String isDeleted;
+    private String deleted;
 
 }
