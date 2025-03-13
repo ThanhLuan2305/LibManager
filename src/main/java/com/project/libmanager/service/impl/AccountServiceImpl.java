@@ -13,9 +13,7 @@ import com.project.libmanager.repository.UserRepository;
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IMailService;
 import com.project.libmanager.service.IOtpVerificationService;
-import com.project.libmanager.service.dto.request.ChangeMailRequest;
-import com.project.libmanager.service.dto.request.RegisterRequest;
-import com.project.libmanager.service.dto.request.VerifyChangeMailRequest;
+import com.project.libmanager.service.dto.request.*;
 import com.project.libmanager.service.dto.response.UserResponse;
 import com.project.libmanager.service.mapper.UserMapper;
 import com.project.libmanager.util.CommonUtil;
@@ -157,12 +155,22 @@ public class AccountServiceImpl implements IAccountService {
      */
     @Override
     public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        String currentEmail = authentication.getName();
+        if (!currentEmail.equals(changeMailRequest.getOldEmail())) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
         otpVerificationService.verifyOtp(changeMailRequest.getOtp(), changeMailRequest.getNewEmail(),OtpType.CHANGE_EMAIL,false );
 
         User user = userRepository.findByEmail(changeMailRequest.getOldEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // Delete otp
         user.setEmail(changeMailRequest.getNewEmail());
         userRepository.save(user);
     }
@@ -214,5 +222,57 @@ public class AccountServiceImpl implements IAccountService {
                 "Thông báo: Tài khoản yêu cầu đổi email",
                 "Tài khoản của bạn đã yêu cầu đổi email. Nếu không phải bạn, vui lòng liên hệ với chúng tôi."
         );
+    }
+
+    @Override
+    public void verifyChangePhone(VerifyChangePhoneRequest request) {
+        otpVerificationService.verifyOtp(request.getOtp(), request.getNewPhoneNumber(),OtpType.CHANGE_PHONE,true );
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if(!user.getPhoneNumber().equals(request.getOldPhoneNumber())) {
+            throw new AppException(ErrorCode.OLD_PHONE_INVALID);
+        }
+
+        user.setPhoneNumber(request.getNewPhoneNumber());
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changePhone(ChangePhoneRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        String currentEmail = authentication.getName();
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if(!user.getPhoneNumber().equals(request.getOldPhoneNumber())) {
+            throw new AppException(ErrorCode.OLD_PHONE_NOT_EXISTED);
+        }
+
+        if (userRepository.existsByPhoneNumber(request.getNewPhoneNumber())) {
+            throw new AppException(ErrorCode.PHONE_EXISTED);
+        }
+
+        String otp = commonUtil.generateOTP();
+        Instant expiredAt = Instant.now().plus(Duration.ofMinutes(5));
+
+        OtpVerification otpVerificationPhone = OtpVerification.builder()
+                .phoneNumber(request.getNewPhoneNumber())
+                .otp(otp)
+                .expiredAt(expiredAt)
+                .type(OtpType.CHANGE_PHONE)
+                .build();
+
+        otpVerificationService.createOtp(otpVerificationPhone, true);
     }
 }

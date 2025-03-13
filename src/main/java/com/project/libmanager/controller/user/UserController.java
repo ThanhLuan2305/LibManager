@@ -2,11 +2,9 @@ package com.project.libmanager.controller.user;
 
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IPasswordService;
+import com.project.libmanager.service.dto.request.*;
 import org.springframework.http.ResponseEntity;
 
-import com.project.libmanager.service.dto.request.ChangeMailRequest;
-import com.project.libmanager.service.dto.request.ChangePasswordRequest;
-import com.project.libmanager.service.dto.request.VerifyChangeMailRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.UserResponse;
 import com.project.libmanager.service.IUserService;
@@ -29,6 +27,7 @@ public class UserController {
     private final IUserService userService;
     private final IAccountService acountService;
     private final IPasswordService passwordService;
+    private static final String RS_SUCCESS = "success";
 
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserResponse>> getMyInfo() {
@@ -50,21 +49,41 @@ public class UserController {
     }
 
     @PutMapping("/change-mail")
-    public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody ChangeMailRequest eMailRequest) {
-        acountService.changeEmail(eMailRequest);
+    public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody ChangeMailRequest emailRequest) {
+        acountService.changeEmail(emailRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
-                .message("Please verify your new email to change new email")
-                .result("success")
+                .message("Please verify your new email to change email")
+                .result(RS_SUCCESS)
                 .build();
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/verify-change-mail")
-    public ResponseEntity<ApiResponse<String>> verifyChangeMail(@RequestBody VerifyChangeMailRequest eMailRequest) {
-        acountService.verifyChangeEmail(eMailRequest);
+    public ResponseEntity<ApiResponse<String>> verifyChangeMail(@RequestBody VerifyChangeMailRequest emailRequest) {
+        acountService.verifyChangeEmail(emailRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Change email successfully, you can login with new email")
-                .result("success")
+                .result(RS_SUCCESS)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/change-phone")
+    public ResponseEntity<ApiResponse<String>> changePhone(@RequestBody ChangePhoneRequest phoneRequest) {
+        acountService.changePhone(phoneRequest);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .message("Please verify your new phone to change phone")
+                .result(RS_SUCCESS)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/verify-change-phone")
+    public ResponseEntity<ApiResponse<String>> verifyChangePhone(@RequestBody VerifyChangePhoneRequest phoneRequest) {
+        acountService.verifyChangePhone(phoneRequest);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .message("Change phone successfully, you can login with new phone")
+                .result(RS_SUCCESS)
                 .build();
         return ResponseEntity.ok(response);
     }

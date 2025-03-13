@@ -6,6 +6,7 @@ import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,7 @@ public class AuthenticationController {
     private final IAuthenticationService aService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate(
-            @RequestBody AuthenticationRequest aRequest) {
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate(@Valid @RequestBody AuthenticationRequest aRequest) {
         AuthenticationResponse rs = aService.authenticate(aRequest);
         ApiResponse<AuthenticationResponse> response = ApiResponse.<AuthenticationResponse>builder()
                 .result(rs)

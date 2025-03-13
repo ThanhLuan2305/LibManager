@@ -1,7 +1,7 @@
 package com.project.libmanager.service.dto.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ChangeMailRequest {
     @NotBlank(message = "NOT_BLANK")
-    @Email(message = "EMAIL_INVALID")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "EMAIL_INVALID")
     private String newEmail;
 
     @NotBlank(message = "NOT_BLANK")
-    @Email(message = "EMAIL_INVALID")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "EMAIL_INVALID")
     private String oldEmail;
 }

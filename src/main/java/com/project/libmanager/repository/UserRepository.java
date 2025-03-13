@@ -13,6 +13,8 @@ import org.springframework.lang.NonNull;
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 	boolean existsByEmail(String email);
 
+	boolean existsByPhoneNumber(String phone);
+
 	Optional<User> findByEmail(String email);
 
 	Optional<User> findByPhoneNumber(String phoneNumber);

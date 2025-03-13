@@ -8,7 +8,7 @@ public enum ErrorCode {
     INVALID_KEY(1001, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1003, "Invalid email address", HttpStatus.BAD_REQUEST),
-    INVALID_PASSWORD(1004, "Password must be at least 6 characters", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1004, "The password must be at least 8 characters long and include letters, numbers, and special characters!", HttpStatus.BAD_REQUEST),
     USER_NOT_EXISTED(1005, "User not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1007, "You do not have permission", HttpStatus.FORBIDDEN),
@@ -51,6 +51,9 @@ public enum ErrorCode {
     OTP_INVALID(1042, "OTP is invalid or expired", HttpStatus.BAD_REQUEST),
     OTP_IS_DULICATED(1043, "OTP is duplicated", HttpStatus.BAD_REQUEST),
     USER_NOT_VERIFIED(1044, "User has not verified email or phone number", HttpStatus.FORBIDDEN),
+    PHONE_EXISTED(1045, "Phone existed", HttpStatus.BAD_REQUEST),
+    OLD_PHONE_NOT_EXISTED(1045, "Old phone not existed", HttpStatus.NOT_FOUND),
+    OLD_PHONE_INVALID(1045, "Old phone is invalid", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

@@ -37,7 +37,6 @@ public class CustomDecoder implements JwtDecoder {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
 
-            // Kiểm tra token có hợp lệ không
             if (!signedJWT.verify(new MACVerifier(signKey.getBytes()))) {
                 log.error("Invalid token signature");
                 throw new BadJwtException("Invalid token signature");
@@ -46,7 +45,6 @@ public class CustomDecoder implements JwtDecoder {
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
             String jwtID = claimsSet.getJWTID();
 
-            // Kiểm tra token có tồn tại trong database không
             LoginDetail loginDetail = loginDetailRepository.findByJti(jwtID)
                     .orElseThrow(() -> new BadJwtException("User does not exist"));
 
@@ -55,7 +53,6 @@ public class CustomDecoder implements JwtDecoder {
                 throw new BadJwtException("Token is invalid because the user is logged out");
             }
 
-            // Khởi tạo decoder nếu chưa có
             if (Objects.isNull(nimbusJwtDecoder)) {
                 SecretKeySpec secretKeySpec = new SecretKeySpec(signKey.getBytes(), "HmacSHA512");
                 nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)

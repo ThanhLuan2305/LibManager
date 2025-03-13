@@ -1,11 +1,11 @@
 package com.project.libmanager.service.dto.request;
 
 import com.project.libmanager.constant.VerificationStatus;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserCreateRequest {
     @NotBlank(message = "NOT_BLANK")
-    @Email(message = "EMAIL_INVALID")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "EMAIL_INVALID")
     private String email;
 
     @NotBlank(message = "NOT_BLANK")
@@ -30,7 +30,7 @@ public class UserCreateRequest {
     private String phoneNumber;
 
     @NotBlank(message = "NOT_BLANK")
-    @Size(min = 6, message = "INVALID_PASSWORD")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "INVALID_PASSWORD")
     private String password;
 
     @NotBlank(message = "NOT_BLANK")

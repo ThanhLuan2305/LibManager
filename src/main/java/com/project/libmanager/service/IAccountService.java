@@ -1,8 +1,6 @@
 package com.project.libmanager.service;
 
-import com.project.libmanager.service.dto.request.ChangeMailRequest;
-import com.project.libmanager.service.dto.request.RegisterRequest;
-import com.project.libmanager.service.dto.request.VerifyChangeMailRequest;
+import com.project.libmanager.service.dto.request.*;
 import com.project.libmanager.service.dto.response.UserResponse;
 
 public interface IAccountService {
@@ -11,4 +9,6 @@ public interface IAccountService {
     boolean verifyPhone(String otp, String phone);
     void verifyChangeEmail(VerifyChangeMailRequest request);
     void changeEmail(ChangeMailRequest request);
+    void verifyChangePhone(VerifyChangePhoneRequest request);
+    void changePhone(ChangePhoneRequest request);
 }

@@ -130,7 +130,7 @@ public class PasswordServiceImpl implements IPasswordService {
     public void forgetPassword(String contactInfo, boolean isPhone) {
 
         User user = isPhone ? userRepository.findByPhoneNumber(contactInfo).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED))
-                            : userRepository.findByEmail(contactInfo).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                : userRepository.findByEmail(contactInfo).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         if (!user.getVerificationStatus().equals(VerificationStatus.FULLY_VERIFIED)) {
             throw new AppException(ErrorCode.USER_NOT_VERIFIED);
         }
@@ -141,7 +141,7 @@ public class PasswordServiceImpl implements IPasswordService {
                 .otp(otp)
                 .expiredAt(expiredAt)
                 .type(OtpType.RESET_PASSWORD);
-        if(isPhone) {
+        if (isPhone) {
             otpBuilder.phoneNumber(contactInfo);
         } else {
             otpBuilder.email(contactInfo);
@@ -155,7 +155,7 @@ public class PasswordServiceImpl implements IPasswordService {
      *
      * @param otp the reset otp received by the user.
      * @return the newly generated password.
-     * @throws AppException   if the user does not exist.
+     * @throws AppException if the user does not exist.
      * @implNote Decodes the token, verifies its validity, and generates a new
      * password for the user.
      */
