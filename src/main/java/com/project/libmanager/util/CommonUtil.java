@@ -6,20 +6,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
-import java.util.Random;
 import java.util.UUID;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class CommonUtil {
-    private final Random randomOTP = new Random();
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
     private static final SecureRandom random = new SecureRandom();
     private final OtpVerificationRepository otpRepository;
 
-    public Integer generateOTP() {
-        return randomOTP.nextInt(100000, 999999);
+    public String generateOTP() {
+        int otp = random.nextInt(1000000);
+        return String.format("%06d", otp);
     }
 
     public String generatePassword(int length) {

@@ -3,6 +3,7 @@ package com.project.libmanager.service.dto.response;
 import java.time.Instant;
 import java.util.Set;
 
+import com.project.libmanager.constant.VerificationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class UserResponse {
 
     private Instant birthDate;
 
-    private boolean verified;
+    private VerificationStatus verificationStatus;
 
     private boolean deleted;
 

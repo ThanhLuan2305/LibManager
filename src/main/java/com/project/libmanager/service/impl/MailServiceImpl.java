@@ -51,7 +51,7 @@ public class MailServiceImpl implements IMailService {
             // Process the template with the given context
             Context context = new Context();
             context.setVariable("name", fullName);
-            context.setVariable("verifyUrl", verifyEmailUrl + token);
+            context.setVariable("verifyUrl", verifyEmailUrl + token + "&email=" + email);
             String html = templateEngine.process("emailTemplate", context);
 
             // Set email properties
@@ -85,7 +85,7 @@ public class MailServiceImpl implements IMailService {
      *           password or email change.
      */
     @Override
-    public void sendEmailOTP(Integer otp, String email, boolean isChangePassword, String name) {
+    public void sendEmailOTP(String otp, String email, boolean isChangePassword, String name) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);

@@ -1,5 +1,6 @@
 package com.project.libmanager.service.dto.request;
 
+import com.project.libmanager.constant.VerificationStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -42,7 +43,7 @@ public class UserCreateRequest {
     private Instant birthDate;
 
     @NotNull(message = "NOT_BLANK")
-    private boolean verified;
+    private VerificationStatus verificationStatus;
 
     @NotNull(message = "NOT_BLANK")
     private List<String> listRole;

@@ -1,6 +1,7 @@
 package com.project.libmanager.validation;
 
 import com.project.libmanager.constant.ErrorCode;
+import com.project.libmanager.constant.VerificationStatus;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
 import org.springframework.stereotype.Component;
@@ -11,8 +12,8 @@ public class UserStatusValidator {
         if (user.isDeleted()) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
         }
-        if (!user.isVerified()) {
-            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+        if (user.getVerificationStatus() != VerificationStatus.FULLY_VERIFIED) {
+            throw new AppException(ErrorCode.USER_NOT_VERIFIED);
         }
         if (user.isResetPassword()) {
             throw new AppException(ErrorCode.USER_NEED_CHANGE_PASSWORD);

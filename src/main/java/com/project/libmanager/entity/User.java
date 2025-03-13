@@ -1,8 +1,11 @@
 package com.project.libmanager.entity;
 
+import com.project.libmanager.constant.VerificationStatus;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Column;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.FetchType;
@@ -43,8 +46,9 @@ public class User extends AuditTable {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(nullable = false)
-    private boolean verified;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private VerificationStatus verificationStatus;
 
     @Column(nullable = false, length = 100)
     private String fullName;

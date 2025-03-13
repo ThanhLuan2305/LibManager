@@ -1,16 +1,17 @@
 package com.project.libmanager.controller.common;
 
-import com.nimbusds.jose.JOSEException;
 import com.project.libmanager.service.IPasswordService;
-import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.ChangePassAfterResetRequest;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.text.ParseException;
 
 @RestController
 @RequestMapping("/password")
@@ -29,21 +30,11 @@ public class PasswordController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse<String>> verifyOtp(@RequestParam("otp") Integer otp,
-                                                         @RequestParam("email") String email) {
-        String result = passwordService.verifyOTP(otp, email);
-        ApiResponse<String> response = ApiResponse.<String>builder()
-                .message("Verify OTP successfully")
-                .result(result)
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
     @PutMapping("/reset-password")
-    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody TokenRequest tokenRequest)
-            throws JOSEException, ParseException {
-        String result = passwordService.resetPassword(tokenRequest.getToken());
+    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestParam("otp") String otp,
+                                                             @RequestParam("email") String email,
+                                                             @RequestParam("isPhone") boolean isPhone) {
+        String result = passwordService.resetPassword(otp, email, isPhone);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Reset password successfully, you can login with new password")
                 .result(result)

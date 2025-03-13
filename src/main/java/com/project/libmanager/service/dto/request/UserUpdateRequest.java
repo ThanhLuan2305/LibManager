@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import com.project.libmanager.constant.VerificationStatus;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -27,7 +28,7 @@ public class UserUpdateRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy'T'HH:mm:ss.SSSX", timezone = "UTC")
     private Instant birthDate;
 
-    private boolean verified;
+    private VerificationStatus verificationStatus;
 
     private List<String> listRole;
 

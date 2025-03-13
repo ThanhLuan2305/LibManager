@@ -38,7 +38,7 @@ server:
 app:
   support-email: libmanage.support@gmail.com
   maintenance-mode: false
-  verify-email-url: http://localhost:8080/account/verify-email?token=
+  verify-email-url: http://localhost:8080/account/verify-email?otp=
 
 jwt:
   signing.key: yGIVSMe9sP0iJDJMpSIph503ZM1uhQlfiPVjp/Hi1Yyv6Nd0kbwQ6omdwcAgA7xt

@@ -47,7 +47,10 @@ public enum ErrorCode {
     USER_NEED_CHANGE_PASSWORD(1038, "User must change password before logging in", HttpStatus.FORBIDDEN),
     JTI_TOKEN_EXISTED(1039, "JTI Token is existed", HttpStatus.BAD_REQUEST),
     LOGINDETAIL_NOTFOUND(1040, "Don't found login detail", HttpStatus.NOT_FOUND),
-    PHONE_INVALID(1040, "Phone number must be at least 11 characters ", HttpStatus.NOT_FOUND),
+    PHONE_INVALID(1041, "Phone number must be at least 10 characters ", HttpStatus.BAD_REQUEST),
+    OTP_INVALID(1042, "OTP is invalid or expired", HttpStatus.BAD_REQUEST),
+    OTP_IS_DULICATED(1043, "OTP is duplicated", HttpStatus.BAD_REQUEST),
+    USER_NOT_VERIFIED(1044, "User has not verified email or phone number", HttpStatus.FORBIDDEN),
     ;
 
     private int code;

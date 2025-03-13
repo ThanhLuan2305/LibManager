@@ -1,15 +1,13 @@
 package com.project.libmanager.service.impl;
 
-import com.nimbusds.jose.JOSEException;
 import com.project.libmanager.constant.ErrorCode;
-import com.project.libmanager.constant.TokenType;
+import com.project.libmanager.constant.OtpType;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
-import com.project.libmanager.repository.OtpVerificationRepository;
 import com.project.libmanager.repository.UserRepository;
-import com.project.libmanager.sercurity.JwtTokenProvider;
 import com.project.libmanager.service.IMailService;
+import com.project.libmanager.service.IOtpVerificationService;
 import com.project.libmanager.service.IPasswordService;
 import com.project.libmanager.service.dto.request.ChangePasswordRequest;
 import com.project.libmanager.service.dto.response.ChangePassAfterResetRequest;
@@ -21,10 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -32,9 +28,8 @@ import java.util.UUID;
 public class PasswordServiceImpl implements IPasswordService {
     private final UserRepository userRepository;
     private final IMailService mailService;
-    private final OtpVerificationRepository otpRepository;
+    private final IOtpVerificationService otpVerificationService;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
     private final CommonUtil commonUtil;
 
     /**
@@ -123,18 +118,19 @@ public class PasswordServiceImpl implements IPasswordService {
     @Override
     public void forgetPassword(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        boolean isVerified = user.isVerified();
-        if (!isVerified) {
-            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
-
-        }
-        Integer otp = commonUtil.generateOTP();
+//        boolean isVerified = user.isVerified();
+//        if (!isVerified) {
+//            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
+//       }
+        String otp = commonUtil.generateOTP();
         Instant expiredAt = Instant.now().plus(Duration.ofMinutes(5));
-        otpRepository.save(OtpVerification.builder()
+        OtpVerification otpVerification = OtpVerification.builder()
                 .email(email)
                 .otp(otp)
                 .expiredAt(expiredAt)
-                .build());
+                .type(OtpType.RESET_PASSWORD)
+                .build();
+        otpVerificationService.createOtp(otpVerification, false);
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
     }
 
@@ -150,51 +146,32 @@ public class PasswordServiceImpl implements IPasswordService {
      * @implNote This method checks the validity of the OTP and generates a new JWT
      * token for authentication.
      */
-    @Override
-    public String verifyOTP(Integer token, String email) {
-        OtpVerification otp = otpRepository.findByOtp(token)
-                .orElseThrow(() -> new AppException(ErrorCode.OTP_NOT_EXISTED));
-
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
-        if (otp.getExpiredAt().isBefore(Instant.now())) {
-            throw new AppException(ErrorCode.OTP_EXPIRED);
-        }
-
-        return jwtTokenProvider.generateToken(user, TokenType.ACCESS, UUID.randomUUID().toString());
-    }
 
     /**
      * Resets a user's password using a token.
      *
      * @param token the reset token received by the user.
      * @return the newly generated password.
-     * @throws JOSEException  if there is an error processing the token.
-     * @throws ParseException if the token cannot be parsed.
      * @throws AppException   if the user does not exist.
      * @implNote Decodes the token, verifies its validity, and generates a new
      * password for the user.
      */
     @Override
-    public String resetPassword(String token) throws JOSEException, ParseException {
-//        var signedJWT = verifyToken(token, false);
-//        String email = signedJWT.getJWTClaimsSet().getSubject();
-//
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//        try {
-//
-//            String password = commonUtil.generatePassword(9);
-//            user.setPassword(passwordEncoder.encode(password));
-//            user.setResetPassword(true);
-//            userRepository.save(user);
-//
-//            invalidToken(token);
-//            return password;
-//        } catch (Exception e) {
-//            log.error(e.getMessage());
-//            throw e;
-//        }
-        return "";
+    public String resetPassword(String token, String contactInfo, boolean isPhone) {
+        otpVerificationService.verifyOtp(contactInfo, token, OtpType.RESET_PASSWORD, isPhone);
+
+        User user = userRepository.findByEmail(contactInfo)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        try {
+            String password = commonUtil.generatePassword(9);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setResetPassword(true);
+            userRepository.save(user);
+
+            return password;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw e;
+        }
     }
 }

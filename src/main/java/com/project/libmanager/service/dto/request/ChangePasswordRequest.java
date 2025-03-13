@@ -19,6 +19,6 @@ public class ChangePasswordRequest {
     private String newPassword;
 
     @NotBlank(message = "NOT_BLANK")
-    @Size(min = 6, message = "INVALID_PASSWORD") // them annotation check pass new old confirm
+    @Size(min = 6, message = "INVALID_PASSWORD")
     private String confirmPassword;
 }

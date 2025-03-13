@@ -22,5 +22,5 @@ public class VerifyChangeMailRequest {
 
     @NotBlank(message = "NOT_BLANK")
     @Email(message = "EMAIL_INVALID")
-    private Integer otp;
+    private String otp;
 }

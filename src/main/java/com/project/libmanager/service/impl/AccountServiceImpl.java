@@ -1,17 +1,18 @@
 package com.project.libmanager.service.impl;
 
-import com.nimbusds.jose.JOSEException;
 import com.project.libmanager.constant.ErrorCode;
+import com.project.libmanager.constant.OtpType;
 import com.project.libmanager.constant.PredefinedRole;
+import com.project.libmanager.constant.VerificationStatus;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.Role;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
-import com.project.libmanager.repository.OtpVerificationRepository;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IMailService;
+import com.project.libmanager.service.IOtpVerificationService;
 import com.project.libmanager.service.dto.request.ChangeMailRequest;
 import com.project.libmanager.service.dto.request.RegisterRequest;
 import com.project.libmanager.service.dto.request.VerifyChangeMailRequest;
@@ -26,7 +27,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
@@ -39,9 +39,9 @@ public class AccountServiceImpl implements IAccountService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final IMailService mailService;
-    private final OtpVerificationRepository otpRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final IOtpVerificationService otpVerificationService;
     private final CommonUtil commonUtil;
     /**
      * Registers a new user by saving their details, encoding the password,
@@ -74,14 +74,32 @@ public class AccountServiceImpl implements IAccountService {
         roles.add(role);
         try {
             user.setRoles(roles);
-            user.setVerified(false);
+            user.setVerificationStatus(VerificationStatus.UNVERIFIED);
             user.setDeleted(false);
             user.setResetPassword(false);
             userRepository.save(user);
-            //String token = jwtTokenProvider.generateToken(user, TokenType.VERIFY_MAIL);
 
+            String otpEmail = commonUtil.generateOTP();
+            Instant expiredAtEmail = Instant.now().plus(Duration.ofMinutes(5));
+            OtpVerification otpVerificationEmail = OtpVerification.builder()
+                    .email(registerRequest.getEmail())
+                    .otp(otpEmail)
+                    .expiredAt(expiredAtEmail)
+                    .type(OtpType.VERIFY_EMAIL)
+                    .build();
+            otpVerificationService.createOtp(otpVerificationEmail, false);
             // send email verify
-            mailService.sendEmailVerify(registerRequest.getFullName(), "token", registerRequest.getEmail());
+            mailService.sendEmailVerify(registerRequest.getFullName(), otpEmail, registerRequest.getEmail());
+
+            String otpPhone = commonUtil.generateOTP();
+            Instant expiredAtPhone = Instant.now().plus(Duration.ofMinutes(5));
+            OtpVerification otpVerificationPhone = OtpVerification.builder()
+                    .phoneNumber(registerRequest.getPhoneNumber())
+                    .otp(otpPhone)
+                    .expiredAt(expiredAtPhone)
+                    .type(OtpType.VERIFY_PHONE)
+                    .build();
+            otpVerificationService.createOtp(otpVerificationPhone, true);
 
             return userMapper.toUserResponse(user);
         } catch (Exception e) {
@@ -93,38 +111,39 @@ public class AccountServiceImpl implements IAccountService {
     /**
      * Verifies the user's email through a token.
      *
-     * @param token The token used to verify the email.
+     * @param otp The token used to verify the email.
+     * @param email The email used to verify.
      * @return true if the email was successfully verified, false otherwise.
-     * @throws JOSEException  If an error occurs while verifying the token.
-     * @throws ParseException If an error occurs while parsing the token.
      * @throws AppException   If the user does not exist or cannot be authenticated.
      * @implNote This method checks the validity of the token and uses it to verify
      * the user's email.
      */
     @Override
-    public boolean verifyEmail(String token) throws JOSEException, ParseException {
-//        JWSVerifier verifier = new MACVerifier(signKey.getBytes());
-//
-//        SignedJWT signedJWT = SignedJWT.parse(token);
-//        // check verify or refresh token
-//        Date expTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-//        boolean rs = signedJWT.verify(verifier);
-//        if (!expTime.after(new Date()) || !rs) {
-//            String email = signedJWT.getJWTClaimsSet().getSubject();
-//            User user = userRepository.findByEmail(email)
-//                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//            userRepository.delete(user);
-//            return false;
-//
-//        } else {
-//            String email = signedJWT.getJWTClaimsSet().getSubject();
-//            User user = userRepository.findByEmail(email)
-//                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//            user.setVerified(true);
-//            userRepository.save(user);
-//            return true;
-//        }
-        return true;
+    public boolean verifyEmail(String otp, String email) {
+        boolean rs = otpVerificationService.verifyOtp(otp, email, OtpType.VERIFY_EMAIL, false);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (user.getVerificationStatus() != VerificationStatus.UNVERIFIED) {
+            user.setVerificationStatus(VerificationStatus.FULLY_VERIFIED);
+        } else {
+            user.setVerificationStatus(VerificationStatus.EMAIL_VERIFIED);
+        }
+        userRepository.save(user);
+        return rs;
+    }
+
+    @Override
+    public boolean verifyPhone(String otp, String phone) {
+        boolean rs = otpVerificationService.verifyOtp(otp, phone, OtpType.VERIFY_PHONE, true);
+        User user = userRepository.findByPhoneNumber(phone)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (user.getVerificationStatus() != VerificationStatus.UNVERIFIED) {
+            user.setVerificationStatus(VerificationStatus.FULLY_VERIFIED);
+        } else {
+            user.setVerificationStatus(VerificationStatus.PHONE_VERIFIED);
+        }
+        userRepository.save(user);
+        return rs;
     }
 
     /**
@@ -138,15 +157,11 @@ public class AccountServiceImpl implements IAccountService {
      */
     @Override
     public void verifyChangeEmail(VerifyChangeMailRequest changeMailRequest) {
-        OtpVerification otp = otpRepository.findByOtp(changeMailRequest.getOtp())
-                .orElseThrow(() -> new AppException(ErrorCode.OTP_NOT_EXISTED));
+        otpVerificationService.verifyOtp(changeMailRequest.getOtp(), changeMailRequest.getNewEmail(),OtpType.CHANGE_EMAIL,false );
 
         User user = userRepository.findByEmail(changeMailRequest.getOldEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (otp.getExpiredAt().isBefore(Instant.now())) {
-            throw new AppException(ErrorCode.OTP_EXPIRED);
-        }
         // Delete otp
         user.setEmail(changeMailRequest.getNewEmail());
         userRepository.save(user);
@@ -162,35 +177,42 @@ public class AccountServiceImpl implements IAccountService {
      */
     @Override
     public void changeEmail(ChangeMailRequest cMailRequest) {
-        var jwtContex = SecurityContextHolder.getContext();
-        Authentication authentication = jwtContex.getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String email = jwtContex.getAuthentication().getName();
-
-        if (!email.equals(cMailRequest.getOldEmail())) {
+        String currentEmail = authentication.getName();
+        if (!currentEmail.equals(cMailRequest.getOldEmail())) {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
 
-        boolean checkMail = userRepository.existsByEmail(cMailRequest.getNewEmail());
-        if (checkMail) {
+        if (userRepository.existsByEmail(cMailRequest.getNewEmail())) {
             throw new AppException(ErrorCode.MAIL_EXISTED);
         }
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        int otp = commonUtil.generateOTP();
+        String otp = commonUtil.generateOTP();
         Instant expiredAt = Instant.now().plus(Duration.ofMinutes(5));
-        otpRepository.save(OtpVerification.builder()
-                .email(email)
+
+        OtpVerification otpVerificationPhone = OtpVerification.builder()
+                .email(cMailRequest.getNewEmail())
                 .otp(otp)
                 .expiredAt(expiredAt)
-                .build());
+                .type(OtpType.CHANGE_EMAIL)
+                .build();
+
+        otpVerificationService.createOtp(otpVerificationPhone, false);
+
         mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
-        mailService.sendSimpleEmail(cMailRequest.getOldEmail(), "Thông báo tài khoản yêu cầu đổi email",
-                "Tài khoản của bạn đã yêu cầu đổi email, nếu không phải bạn vui lòng liên hệ với chúng tôi");
+
+        mailService.sendSimpleEmail(
+                cMailRequest.getOldEmail(),
+                "Thông báo: Tài khoản yêu cầu đổi email",
+                "Tài khoản của bạn đã yêu cầu đổi email. Nếu không phải bạn, vui lòng liên hệ với chúng tôi."
+        );
     }
 }

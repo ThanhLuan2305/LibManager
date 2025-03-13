@@ -1,7 +1,6 @@
 package com.project.libmanager.criteria;
 
 import lombok.Data;
-import tech.jhipster.service.filter.BooleanFilter;
 import tech.jhipster.service.filter.InstantFilter;
 import tech.jhipster.service.filter.IntegerFilter;
 import tech.jhipster.service.filter.StringFilter;
@@ -13,10 +12,6 @@ public class UserCriteria {
     private StringFilter fullName;
 
     private InstantFilter birthDate;
-
-    private BooleanFilter isVerified;
-
-    private BooleanFilter isDeleted;
 
     private IntegerFilter lateReturnCount;
 

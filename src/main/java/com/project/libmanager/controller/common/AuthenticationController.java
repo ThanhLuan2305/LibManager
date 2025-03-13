@@ -1,19 +1,14 @@
 package com.project.libmanager.controller.common;
 
-import java.text.ParseException;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.nimbusds.jose.JOSEException;
+import com.project.libmanager.service.IAuthenticationService;
 import com.project.libmanager.service.dto.request.AuthenticationRequest;
 import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
-import com.project.libmanager.service.IAuthenticationService;
-
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,8 +30,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(@RequestBody TokenRequest logoutRequest)
-            throws ParseException, JOSEException {
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody TokenRequest logoutRequest) {
         aService.logout(logoutRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Logout successfully")
@@ -46,8 +40,7 @@ public class AuthenticationController {
     }
 
     @PutMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(@RequestBody TokenRequest rfRequest)
-            throws JOSEException, ParseException {
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(@RequestBody TokenRequest rfRequest) {
         AuthenticationResponse result = aService.refreshToken(rfRequest);
         ApiResponse<AuthenticationResponse> response = ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
@@ -55,11 +48,6 @@ public class AuthenticationController {
                 .build();
         return ResponseEntity.ok(response);
     }
-
-
-
-
-
 
 
 }

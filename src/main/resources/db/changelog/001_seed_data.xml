@@ -29,7 +29,7 @@
             <column name="email" value="admin@gmail.com"/>
             <column name="phone_number" value="0388336411"/>
             <column name="password" value="$2b$12$2WWchKSKpvhn5oVu74MNI.8KZXPJDuTjLmcqbYuk72Ja.KXx4m11C"/>
-            <column name="verified" valueNumeric="1"/>
+            <column name="verification_status" value="FULLY_VERIFIED"/>
             <column name="full_name" value="Admin User"/>
             <column name="deleted" valueNumeric="0"/>
             <column name="reset_password" valueNumeric="0"/>
@@ -39,11 +39,12 @@
             <column name="created_by" value="system"/>
             <column name="updated_by" value="admin"/>
         </insert>
+
         <insert tableName="users">
             <column name="email" value="john.doe@gmail.com"/>
             <column name="phone_number" value="0388336412"/>
             <column name="password" value="$2b$12$N6q9jvH6G5wB9B93z9tpXeNJ7oG3GZbzF7/SF8yBoPTjRT5HP9X5W"/>
-            <column name="verified" valueNumeric="1"/>
+            <column name="verification_status" value="EMAIL_VERIFIED"/>
             <column name="full_name" value="John Doe"/>
             <column name="deleted" valueNumeric="0"/>
             <column name="reset_password" valueNumeric="0"/>
@@ -53,11 +54,12 @@
             <column name="created_by" value="system"/>
             <column name="updated_by" value="admin"/>
         </insert>
+
         <insert tableName="users">
             <column name="email" value="jane.smith@gmail.com"/>
             <column name="phone_number" value="0388336413"/>
             <column name="password" value="$2b$12$Y0w/RpWb9xF7hWtrqJpXeM9F8LgSe4/MJ7xAfpUbKwEUPnH5pHp7m"/>
-            <column name="verified" valueNumeric="1"/>
+            <column name="verification_status" value="PHONE_VERIFIED"/>
             <column name="full_name" value="Jane Smith"/>
             <column name="deleted" valueNumeric="0"/>
             <column name="reset_password" valueNumeric="0"/>

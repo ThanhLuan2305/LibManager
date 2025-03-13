@@ -43,14 +43,6 @@ public class UserQueryService extends QueryService<User> {
             specification = specification.and(buildRangeSpecification(criteria.getBirthDate(), User_.birthDate));
         }
 
-        if (criteria.getIsVerified() != null) {
-            specification = specification.and(buildSpecification(criteria.getIsVerified(), User_.verified));
-        }
-
-        if (criteria.getIsDeleted() != null) {
-            specification = specification.and(buildSpecification(criteria.getIsDeleted(), User_.deleted));
-        }
-
         if (criteria.getLateReturnCount() != null) {
             specification = specification
                     .and(buildRangeSpecification(criteria.getLateReturnCount(), User_.lateReturnCount));
