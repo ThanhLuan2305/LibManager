@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ChangePassAfterResetRequest {
     private String email;
+    private String oldPassword;
     private String newPassword;
     private String confirmPassword;
 }

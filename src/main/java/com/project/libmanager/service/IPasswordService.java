@@ -7,6 +7,6 @@ import com.project.libmanager.service.dto.response.ChangePassAfterResetRequest;
 public interface IPasswordService {
     boolean changePassword(ChangePasswordRequest request);
     boolean changePasswordAfterReset(ChangePassAfterResetRequest request);
-    void forgetPassword(String email);
-    public String resetPassword(String token, String contactInfo, boolean isPhone);
+    void forgetPassword(String contactInfo, boolean isPhone);
+    String resetPassword(String token, String contactInfo, boolean isPhone);
 }

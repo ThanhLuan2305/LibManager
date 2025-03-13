@@ -21,8 +21,9 @@ public class PasswordController {
     private final IPasswordService passwordService;
 
     @PutMapping("/forget-password")
-    public ResponseEntity<ApiResponse<String>> forgetPassword(@RequestParam("email") String email) {
-        passwordService.forgetPassword(email);
+    public ResponseEntity<ApiResponse<String>> forgetPassword(@RequestParam("contactInfo") String contactInfo,
+                                                              @RequestParam("isPhone") boolean isPhone) {
+        passwordService.forgetPassword(contactInfo, isPhone);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Please check your email to reset password")
                 .result("success")
@@ -32,9 +33,9 @@ public class PasswordController {
 
     @PutMapping("/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestParam("otp") String otp,
-                                                             @RequestParam("email") String email,
+                                                             @RequestParam("contactInfo") String contactInfo,
                                                              @RequestParam("isPhone") boolean isPhone) {
-        String result = passwordService.resetPassword(otp, email, isPhone);
+        String result = passwordService.resetPassword(otp, contactInfo, isPhone);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Reset password successfully, you can login with new password")
                 .result(result)

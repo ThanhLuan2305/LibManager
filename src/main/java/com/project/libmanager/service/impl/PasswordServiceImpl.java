@@ -2,6 +2,7 @@ package com.project.libmanager.service.impl;
 
 import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.OtpType;
+import com.project.libmanager.constant.VerificationStatus;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
@@ -14,6 +15,9 @@ import com.project.libmanager.service.dto.response.ChangePassAfterResetRequest;
 import com.project.libmanager.util.CommonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +34,7 @@ public class PasswordServiceImpl implements IPasswordService {
     private final IMailService mailService;
     private final IOtpVerificationService otpVerificationService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final CommonUtil commonUtil;
 
     /**
@@ -89,6 +94,14 @@ public class PasswordServiceImpl implements IPasswordService {
         User user = userRepository.findByEmail(cpRequest.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(
+                new UsernamePasswordAuthenticationToken(cpRequest.getEmail(), cpRequest.getOldPassword())
+        );
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
         if (!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) {
             throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
         }
@@ -96,69 +109,59 @@ public class PasswordServiceImpl implements IPasswordService {
         if (passwordEncoder.matches(cpRequest.getNewPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
         }
-        try {
-            user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
-            user.setResetPassword(false);
-            userRepository.save(user);
-            return true;
-        } catch (Exception e) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
-        }
+
+        user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
+        user.setResetPassword(false);
+        userRepository.save(user);
+
+        return true;
     }
 
     /**
      * Initiates the password reset process by sending an OTP to the user's email.
      *
-     * @param email The email of the user requesting the password reset.
+     * @param contactInfo The contactInfo of the user requesting the password reset.
      * @throws AppException If the user does not exist or if the email is not
      *                      verified.
      * @implNote This method sends an OTP (One-Time Password) to the user's email
      * for password reset.
      */
     @Override
-    public void forgetPassword(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-//        boolean isVerified = user.isVerified();
-//        if (!isVerified) {
-//            throw new AppException(ErrorCode.EMAIL_NOT_VERIFIED);
-//       }
+    public void forgetPassword(String contactInfo, boolean isPhone) {
+
+        User user = isPhone ? userRepository.findByPhoneNumber(contactInfo).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED))
+                            : userRepository.findByEmail(contactInfo).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (!user.getVerificationStatus().equals(VerificationStatus.FULLY_VERIFIED)) {
+            throw new AppException(ErrorCode.USER_NOT_VERIFIED);
+        }
+
         String otp = commonUtil.generateOTP();
         Instant expiredAt = Instant.now().plus(Duration.ofMinutes(5));
-        OtpVerification otpVerification = OtpVerification.builder()
-                .email(email)
+        OtpVerification.OtpVerificationBuilder otpBuilder = OtpVerification.builder()
                 .otp(otp)
                 .expiredAt(expiredAt)
-                .type(OtpType.RESET_PASSWORD)
-                .build();
-        otpVerificationService.createOtp(otpVerification, false);
+                .type(OtpType.RESET_PASSWORD);
+        if(isPhone) {
+            otpBuilder.phoneNumber(contactInfo);
+        } else {
+            otpBuilder.email(contactInfo);
+        }
+        otpVerificationService.createOtp(otpBuilder.build(), false);
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
     }
 
     /**
-     * Verifies the OTP provided by the user for password reset.
-     *
-     * @param token The OTP provided by the user.
-     * @param email The email address associated with the OTP.
-     * @return An authentication response containing the generated JWT token if OTP
-     * is valid.
-     * @throws AppException If the OTP does not exist, has expired, or any other
-     *                      error occurs.
-     * @implNote This method checks the validity of the OTP and generates a new JWT
-     * token for authentication.
-     */
-
-    /**
      * Resets a user's password using a token.
      *
-     * @param token the reset token received by the user.
+     * @param otp the reset otp received by the user.
      * @return the newly generated password.
      * @throws AppException   if the user does not exist.
      * @implNote Decodes the token, verifies its validity, and generates a new
      * password for the user.
      */
     @Override
-    public String resetPassword(String token, String contactInfo, boolean isPhone) {
-        otpVerificationService.verifyOtp(contactInfo, token, OtpType.RESET_PASSWORD, isPhone);
+    public String resetPassword(String otp, String contactInfo, boolean isPhone) {
+        otpVerificationService.verifyOtp(otp, contactInfo, OtpType.RESET_PASSWORD, isPhone);
 
         User user = userRepository.findByEmail(contactInfo)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
