@@ -3,6 +3,7 @@ package com.project.libmanager.controller.user;
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IPasswordService;
 import com.project.libmanager.service.dto.request.*;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 import com.project.libmanager.service.dto.response.ApiResponse;
@@ -39,7 +40,7 @@ public class UserController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody ChangePasswordRequest cpRequest) {
+    public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody @Valid ChangePasswordRequest cpRequest) {
         Boolean result = passwordService.changePassword(cpRequest);
         ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
                 .message("Change password successfully")
@@ -49,7 +50,7 @@ public class UserController {
     }
 
     @PutMapping("/change-mail")
-    public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody ChangeMailRequest emailRequest) {
+    public ResponseEntity<ApiResponse<String>> changeMail(@RequestBody @Valid ChangeMailRequest emailRequest) {
         acountService.changeEmail(emailRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Please verify your new email to change email")
@@ -59,7 +60,7 @@ public class UserController {
     }
 
     @PutMapping("/verify-change-mail")
-    public ResponseEntity<ApiResponse<String>> verifyChangeMail(@RequestBody VerifyChangeMailRequest emailRequest) {
+    public ResponseEntity<ApiResponse<String>> verifyChangeMail(@RequestBody @Valid VerifyChangeMailRequest emailRequest) {
         acountService.verifyChangeEmail(emailRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Change email successfully, you can login with new email")
@@ -69,7 +70,7 @@ public class UserController {
     }
 
     @PutMapping("/change-phone")
-    public ResponseEntity<ApiResponse<String>> changePhone(@RequestBody ChangePhoneRequest phoneRequest) {
+    public ResponseEntity<ApiResponse<String>> changePhone(@RequestBody @Valid ChangePhoneRequest phoneRequest) {
         acountService.changePhone(phoneRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Please verify your new phone to change phone")
@@ -79,7 +80,7 @@ public class UserController {
     }
 
     @PutMapping("/verify-change-phone")
-    public ResponseEntity<ApiResponse<String>> verifyChangePhone(@RequestBody VerifyChangePhoneRequest phoneRequest) {
+    public ResponseEntity<ApiResponse<String>> verifyChangePhone(@RequestBody @Valid VerifyChangePhoneRequest phoneRequest) {
         acountService.verifyChangePhone(phoneRequest);
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Change phone successfully, you can login with new phone")

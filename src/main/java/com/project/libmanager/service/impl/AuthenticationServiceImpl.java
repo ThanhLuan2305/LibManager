@@ -10,7 +10,7 @@ import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
-import com.project.libmanager.sercurity.JwtTokenProvider;
+import com.project.libmanager.security.JwtTokenProvider;
 import com.project.libmanager.service.IAuthenticationService;
 import com.project.libmanager.service.ILoginDetailService;
 import com.project.libmanager.service.IMaintenanceService;
@@ -20,6 +20,8 @@ import com.project.libmanager.service.dto.request.LoginDetailRequest;
 import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
 import com.project.libmanager.util.CommonUtil;
+import com.project.libmanager.util.CookieUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,9 +47,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final IUserService userService;
     private final ILoginDetailService loginDetailService;
     private final CommonUtil commonUtil;
+    private final CookieUtil cookieUtil;
 
     @Value("${jwt.refresh-duration}")
-    private Long refreshDuration;
+    private long refreshDuration;
+
+    @Value("${jwt.valid-duration}")
+    private long validDuration;
+
+    private static final String ACCESS_TOKEN_STR ="accessToken";
+    private static final String REFRESH_TOKEN_STR ="refreshToken";
 
     /**
      * Authenticates a user based on email and password.
@@ -61,7 +70,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * upon successful authentication.
      */
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest aRequest) {
+    public AuthenticationResponse authenticate(AuthenticationRequest aRequest, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(aRequest.getEmail(), aRequest.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -78,6 +87,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         String refreshToken = jwtTokenProvider.generateToken(userDB, TokenType.REFRESH, jti);
 
         saveRefreshToken(refreshToken);
+
+        cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessToken,(int) validDuration);
+        cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshToken, (int)refreshDuration);
 
         return AuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
                 .build();
@@ -110,13 +122,15 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * @throws AppException If the tokens are already expired or if there is a failure during logout.
      */
     @Override
-    public void logout(TokenRequest logoutRequest) {
+    public void logout(TokenRequest logoutRequest, HttpServletResponse response) {
         try {
             SignedJWT signedJWT = jwtTokenProvider.verifyToken(logoutRequest.getToken(), true);
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
 
             String jwtID = claimsSet.getJWTID();
             loginDetailService.disableLoginDetailById(jwtID);
+            cookieUtil.removeCookie(response, ACCESS_TOKEN_STR);
+            cookieUtil.removeCookie(response, REFRESH_TOKEN_STR);
         } catch (Exception e) {
             log.error("Error logout token", e);
             throw new AppException(ErrorCode.UNAUTHENTICATED);
@@ -138,20 +152,25 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * authentication tokens.
      */
     @Override
-    public AuthenticationResponse refreshToken(TokenRequest refreshRequest) {
+    public AuthenticationResponse refreshToken(TokenRequest refreshRequest, HttpServletResponse response) {
+        JWTClaimsSet claimsSet;
+        String typeToken;
         SignedJWT signedJWT = jwtTokenProvider.verifyToken(refreshRequest.getToken(), true);
 
-        JWTClaimsSet claimsSet;
         try {
             claimsSet = signedJWT.getJWTClaimsSet();
+            typeToken = claimsSet.getStringClaim("type");
         } catch (ParseException e) {
             log.error("Error parsing token claims", e);
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
+        if (!TokenType.REFRESH.name().equals(typeToken)) {
+            log.error("Token is not refresh token");
+            throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
+        }
+
         String jwtID = claimsSet.getJWTID();
-
-
         String email = claimsSet.getSubject();
 
         User user = userRepository.findByEmail(email)
@@ -162,7 +181,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         loginDetailService.updateLoginDetailIsEnable(jwtID, Instant.now().plus(refreshDuration, ChronoUnit.SECONDS));
 
-
+        cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessToken,(int) validDuration);
+        cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshToken, (int)refreshDuration);
         return AuthenticationResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

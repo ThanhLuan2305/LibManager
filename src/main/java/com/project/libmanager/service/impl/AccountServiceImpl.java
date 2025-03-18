@@ -86,6 +86,7 @@ public class AccountServiceImpl implements IAccountService {
                     .type(OtpType.VERIFY_EMAIL)
                     .build();
             otpVerificationService.createOtp(otpVerificationEmail, false);
+
             // send email verify
             mailService.sendEmailVerify(registerRequest.getFullName(), otpEmail, registerRequest.getEmail());
 

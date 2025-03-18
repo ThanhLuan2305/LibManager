@@ -1,4 +1,4 @@
-package com.project.libmanager.sercurity;
+package com.project.libmanager.security;
 
 import java.text.ParseException;
 import java.util.Objects;
@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.project.libmanager.constant.TokenType;
 import com.project.libmanager.entity.LoginDetail;
 import com.project.libmanager.repository.LoginDetailRepository;
 
@@ -44,6 +45,12 @@ public class CustomDecoder implements JwtDecoder {
 
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
             String jwtID = claimsSet.getJWTID();
+            String typeToken = claimsSet.getStringClaim("type");
+
+            if (!TokenType.ACCESS.name().equals(typeToken)) {
+                log.error("Token is not access token");
+                throw new BadJwtException("Token is invalid because not an access token");
+            }
 
             LoginDetail loginDetail = loginDetailRepository.findByJti(jwtID)
                     .orElseThrow(() -> new BadJwtException("User does not exist"));

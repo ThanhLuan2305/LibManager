@@ -1,4 +1,4 @@
-package com.project.libmanager.sercurity;
+package com.project.libmanager.security;
 
 import com.project.libmanager.entity.User;
 import com.project.libmanager.service.IUserService;
@@ -19,7 +19,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.findByEmail(username);
-        userStatusValidator.validate(user);
-        return new CustomUserDetails(user);
+        return new CustomUserDetails(user, userStatusValidator);
     }
 }

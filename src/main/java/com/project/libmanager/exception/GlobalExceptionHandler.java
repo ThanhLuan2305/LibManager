@@ -8,11 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestControllerAdvice
@@ -49,11 +52,22 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse<Void>> handlingVadidation(MethodArgumentNotValidException ex) {
-        String enumKey = Optional.ofNullable(ex.getFieldError())
-                .map(FieldError::getDefaultMessage)
-                .orElse("UNKNOWN_ERROR");
+        log.error("Field Errors: {}", ex.getBindingResult().getFieldErrors());
+        log.error("Global Errors: {}", ex.getBindingResult().getGlobalErrors());
 
-        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
+        List<String> errorMessages = new ArrayList<>();
+
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errorMessages.add(fieldError.getDefaultMessage());
+        }
+
+        for (ObjectError globalError : ex.getBindingResult().getGlobalErrors()) {
+            errorMessages.add(globalError.getDefaultMessage());
+        }
+
+        String errorMessage = errorMessages.isEmpty() ? "UNCATEGORIZED_EXCEPTION" : errorMessages.get(0);
+
+        ErrorCode errorCode = ErrorCode.valueOf(errorMessage);
 
         return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
                 .code(errorCode.getCode())
@@ -64,8 +78,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AuthenticationServiceException.class)
     ResponseEntity<ApiResponse<Void>> handlingAuthenticationException(AuthenticationServiceException ex) {
         log.error("Authentication error: {}", ex.getMessage());
-        return ResponseEntity.status(ErrorCode.UNAUTHORIZED.getStatusCode()).body(ApiResponse.<Void>builder()
-                .code(ErrorCode.UNAUTHORIZED.getCode())
+        return ResponseEntity.status(ErrorCode.LOGIN_ERROR.getStatusCode()).body(ApiResponse.<Void>builder()
+                .code(ErrorCode.LOGIN_ERROR.getCode())
                 .message("Authentication failed: " + ex.getMessage())
                 .build());
     }

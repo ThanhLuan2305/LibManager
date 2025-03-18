@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatusCode;
 
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
+    LOGIN_ERROR(1000, "Login failed, please double-check your email and password. ", HttpStatus.UNAUTHORIZED),
     INVALID_KEY(1001, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1003, "Invalid email address", HttpStatus.BAD_REQUEST),
@@ -17,7 +18,7 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(1010, "Your email is not verified", HttpStatus.BAD_REQUEST),
     OTP_NOT_EXISTED(1011, "Otp not existed", HttpStatus.BAD_REQUEST),
     OTP_EXPIRED(1012, "OTP has expired", HttpStatus.BAD_REQUEST),
-    PASSWORD_NOT_MATCH(1013, "Password not match", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1013, "New password and confirm password are not match", HttpStatus.BAD_REQUEST),
     PASSWORD_DUPLICATED(1014, "New password must be different from old password", HttpStatus.BAD_REQUEST),
     BOOK_NOT_EXISTED(1015, "Book not existed", HttpStatus.NOT_FOUND),
     BOOKTYPE_NOT_EXISTED(1016, "Book type not existed", HttpStatus.NOT_FOUND),

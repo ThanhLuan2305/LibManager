@@ -28,7 +28,7 @@
         <insert tableName="users">
             <column name="email" value="admin@gmail.com"/>
             <column name="phone_number" value="0388336411"/>
-            <column name="password" value="$2b$12$2WWchKSKpvhn5oVu74MNI.8KZXPJDuTjLmcqbYuk72Ja.KXx4m11C"/>
+            <column name="password" value="$2b$12$xGnC5z4FzgL3P4iduG65B.MWc04jDdlZVEUgqSMYd0kMVKagEBIiK"/>
             <column name="verification_status" value="FULLY_VERIFIED"/>
             <column name="full_name" value="Admin User"/>
             <column name="deleted" valueNumeric="0"/>
@@ -43,7 +43,7 @@
         <insert tableName="users">
             <column name="email" value="john.doe@gmail.com"/>
             <column name="phone_number" value="0388336412"/>
-            <column name="password" value="$2b$12$N6q9jvH6G5wB9B93z9tpXeNJ7oG3GZbzF7/SF8yBoPTjRT5HP9X5W"/>
+            <column name="password" value="$2b$12$1YDW6T5uXC9Gv9iUl3w5/OzsyxVnFalYAe5wucEtVS9gjSuUksQM6"/>
             <column name="verification_status" value="EMAIL_VERIFIED"/>
             <column name="full_name" value="John Doe"/>
             <column name="deleted" valueNumeric="0"/>
@@ -58,7 +58,7 @@
         <insert tableName="users">
             <column name="email" value="jane.smith@gmail.com"/>
             <column name="phone_number" value="0388336413"/>
-            <column name="password" value="$2b$12$Y0w/RpWb9xF7hWtrqJpXeM9F8LgSe4/MJ7xAfpUbKwEUPnH5pHp7m"/>
+            <column name="password" value="$2b$12$7LP.UgLfDarldimi1DRSU.YMOc6LRxzp3zprmsy.dloaQUUYFCVKm"/>
             <column name="verification_status" value="PHONE_VERIFIED"/>
             <column name="full_name" value="Jane Smith"/>
             <column name="deleted" valueNumeric="0"/>
@@ -108,7 +108,7 @@
         <insert tableName="books">
             <column name="isbn" value="9780134685991"/>
             <column name="title" value="Effective Java"/>
-            <column name="cover_image_url" value="img1.com"/>
+            <column name="cover_image_url" value="https://res.cloudinary.com/ddvgzy4xh/image/upload/v1742179674/EffectiveJava_imhdyi.jpg"/>
             <column name="author" value="Joshua Bloch"/>
             <column name="type_id" value="1"/>
             <column name="stock" value="5"/>
@@ -125,7 +125,7 @@
         <insert tableName="books">
             <column name="isbn" value="9781492078005"/>
             <column name="title" value="Designing Data-Intensive Applications"/>
-            <column name="cover_image_url" value="img2.com"/>
+            <column name="cover_image_url" value="https://res.cloudinary.com/ddvgzy4xh/image/upload/v1742179665/DesigningData-IntensiveApplications_etyhe1.jpg"/>
             <column name="author" value="Martin Kleppmann"/>
             <column name="type_id" value="2"/>
             <column name="stock" value="8"/>

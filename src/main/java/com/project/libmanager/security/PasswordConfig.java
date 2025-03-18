@@ -1,4 +1,4 @@
-package com.project.libmanager.sercurity;
+package com.project.libmanager.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

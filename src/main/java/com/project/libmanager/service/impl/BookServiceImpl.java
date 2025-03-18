@@ -276,7 +276,7 @@ public class BookServiceImpl implements IBookService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
-        if (book.getStock() <= 0) {
+        if (book.getStock() < 1) {
             throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
         }
 

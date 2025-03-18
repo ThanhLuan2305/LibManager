@@ -17,7 +17,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: ntluanb22352003@gmail.com
-    password: tuwplykziiiliukb
+    password: xcfjgiucrogcjogw
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
@@ -43,7 +43,7 @@ app:
 jwt:
   signing.key: yGIVSMe9sP0iJDJMpSIph503ZM1uhQlfiPVjp/Hi1Yyv6Nd0kbwQ6omdwcAgA7xt
   valid-duration: 3600
-  refresh-duration: 360000
+  refresh-duration: 2592000
 
 security:
   public-endpoints-post: /auth/**,/account/**,/password/**,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/search

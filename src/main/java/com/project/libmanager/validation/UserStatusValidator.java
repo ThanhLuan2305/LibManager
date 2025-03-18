@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserStatusValidator {
-    public void validate(User user) {
+    public boolean validate(User user) {
         if (user.isDeleted()) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
         }
@@ -18,5 +18,6 @@ public class UserStatusValidator {
         if (user.isResetPassword()) {
             throw new AppException(ErrorCode.USER_NEED_CHANGE_PASSWORD);
         }
+        return true;
     }
 }

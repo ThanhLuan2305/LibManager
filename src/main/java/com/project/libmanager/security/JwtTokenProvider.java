@@ -1,4 +1,4 @@
-package com.project.libmanager.sercurity;
+package com.project.libmanager.security;
 
 
 import com.nimbusds.jose.JOSEException;
@@ -12,8 +12,6 @@ import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.TokenType;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
-import com.project.libmanager.service.dto.request.TokenRequest;
-import com.project.libmanager.service.dto.response.IntrospectResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,7 +93,6 @@ public class JwtTokenProvider {
         }
     }
 
-
     private String buildScope(User user) {
         if (user == null) {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
@@ -106,13 +103,4 @@ public class JwtTokenProvider {
                 .orElse("");
     }
 
-    public IntrospectResponse introspectToken(TokenRequest iRequest) {
-        try {
-            verifyToken(iRequest.getToken(), false);
-            return IntrospectResponse.builder().valid(true).build();
-        } catch (Exception e) {
-            log.error("Invalid token {}: {}", iRequest.getToken(), e.getMessage(), e);
-            throw new AppException(ErrorCode.JWT_TOKEN_INVALID);
-        }
-    }
 }

@@ -1,5 +1,6 @@
 package com.project.libmanager.service.dto.request;
 
+import com.project.libmanager.validation.PasswordMatch;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Data;
 
 @Data
 @Builder
+@PasswordMatch()
 @AllArgsConstructor
 public class ChangePasswordRequest {
     @NotBlank(message = "NOT_BLANK")

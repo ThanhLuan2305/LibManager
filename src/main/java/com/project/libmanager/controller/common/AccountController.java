@@ -26,7 +26,7 @@ public class AccountController {
         UserResponse result = accountService.registerUser(registerRequest);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
                 .result(result)
-                .message("Register successfully, please verify your email to login!")
+                .message("Register successfully, please verify your email and phone to login!")
                 .build();
         return ResponseEntity.ok(response);
     }

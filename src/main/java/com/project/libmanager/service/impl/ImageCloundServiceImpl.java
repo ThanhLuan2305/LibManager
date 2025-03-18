@@ -119,7 +119,7 @@ public class ImageCloundServiceImpl implements IImageCloundService {
      * @param oldFileName The name of the old image file.
      * @param newFile     The new image file to be uploaded.
      * @return The secure URL of the new image.
-     * @throws IOException If the update process encounters an error.
+     * @throws Exception If the update process encounters an error.
      * @implNote This method first deletes the old image (if it exists) and then
      *           uploads the new image to Cloudinary.
      */

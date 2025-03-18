@@ -66,10 +66,6 @@ public class PasswordServiceImpl implements IPasswordService {
             throw new AppException(ErrorCode.PASSWORD_DUPLICATED);
         }
 
-        if (!cpRequest.getNewPassword().equals(cpRequest.getConfirmPassword())) {
-            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
-        }
-
         user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
         userRepository.save(user);
         return true;
