@@ -2,7 +2,6 @@ package com.project.libmanager.controller.common;
 
 import com.project.libmanager.service.IAuthenticationService;
 import com.project.libmanager.service.dto.request.AuthenticationRequest;
-import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,8 +31,8 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(
-            @RequestBody TokenRequest logoutRequest, HttpServletResponse response) {
-        aService.logout(logoutRequest, response);
+            @CookieValue(name = "accessToken", required = false) String accessToken, HttpServletResponse response) {
+        aService.logout(accessToken, response);
         ApiResponse<String> apiResponse = ApiResponse.<String>builder()
                 .message("Logout successfully")
                 .result("success")
@@ -41,10 +40,10 @@ public class AuthenticationController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PutMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(
-            @RequestBody TokenRequest rfRequest, HttpServletResponse response) {
-        AuthenticationResponse result = aService.refreshToken(rfRequest, response);
+            @CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
+        AuthenticationResponse result = aService.refreshToken(refreshToken, response);
         ApiResponse<AuthenticationResponse> apiResponse = ApiResponse.<AuthenticationResponse>builder()
                 .result(result)
                 .message("Token refreshed successfully.")

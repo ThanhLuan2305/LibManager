@@ -1,6 +1,7 @@
 package com.project.libmanager.security;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Objects;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -46,6 +47,11 @@ public class CustomDecoder implements JwtDecoder {
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
             String jwtID = claimsSet.getJWTID();
             String typeToken = claimsSet.getStringClaim("type");
+
+            if (claimsSet.getExpirationTime() == null || claimsSet.getExpirationTime().before(new Date())) {
+                log.error("Token has expired");
+                throw new BadJwtException("Token has expired");
+            }
 
             if (!TokenType.ACCESS.name().equals(typeToken)) {
                 log.error("Token is not access token");

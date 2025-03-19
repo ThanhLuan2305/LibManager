@@ -118,13 +118,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     /**
      * Logs out a user by invalidating their access and refresh tokens.
      *
-     * @param logoutRequest The request containing the access and refresh tokens to be invalidated.
+     * @param accessToken The request containing the access and refresh tokens to be invalidated.
      * @throws AppException If the tokens are already expired or if there is a failure during logout.
      */
     @Override
-    public void logout(TokenRequest logoutRequest, HttpServletResponse response) {
+    public void logout(String accessToken, HttpServletResponse response) {
         try {
-            SignedJWT signedJWT = jwtTokenProvider.verifyToken(logoutRequest.getToken(), true);
+            SignedJWT signedJWT = jwtTokenProvider.verifyToken(accessToken, false);
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
 
             String jwtID = claimsSet.getJWTID();
@@ -142,7 +142,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * invalidating the old token,
      * and generating a new access token and refresh token.
      *
-     * @param refreshRequest the request containing the refresh token.
+     * @param refreshToken the request containing the refresh token.
      * @return an AuthenticationResponse containing the new access token and refresh
      * token.
      * @throws AppException if the user associated with the token does not exist.
@@ -152,10 +152,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
      * authentication tokens.
      */
     @Override
-    public AuthenticationResponse refreshToken(TokenRequest refreshRequest, HttpServletResponse response) {
+    public AuthenticationResponse refreshToken(String refreshToken, HttpServletResponse response) {
         JWTClaimsSet claimsSet;
         String typeToken;
-        SignedJWT signedJWT = jwtTokenProvider.verifyToken(refreshRequest.getToken(), true);
+        SignedJWT signedJWT = jwtTokenProvider.verifyToken(refreshToken, true);
 
         try {
             claimsSet = signedJWT.getJWTClaimsSet();
@@ -176,16 +176,16 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        String accessToken = jwtTokenProvider.generateToken(user, TokenType.ACCESS, jwtID);
-        String refreshToken = jwtTokenProvider.renewRefreshToken(user, jwtID);
+        String accessTokenGrt= jwtTokenProvider.generateToken(user, TokenType.ACCESS, jwtID);
+        String refreshTokenGrt = jwtTokenProvider.renewRefreshToken(user, jwtID);
 
         loginDetailService.updateLoginDetailIsEnable(jwtID, Instant.now().plus(refreshDuration, ChronoUnit.SECONDS));
 
-        cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessToken,(int) validDuration);
-        cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshToken, (int)refreshDuration);
+        cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessTokenGrt,(int) validDuration);
+        cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshTokenGrt, (int)refreshDuration);
         return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(accessTokenGrt)
+                .refreshToken(refreshTokenGrt)
                 .build();
     }
 }
