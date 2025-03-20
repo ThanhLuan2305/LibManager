@@ -37,7 +37,7 @@ public class PasswordController {
                                                              @RequestParam("isPhone") boolean isPhone) {
         String result = passwordService.resetPassword(otp, contactInfo, isPhone);
         ApiResponse<String> response = ApiResponse.<String>builder()
-                .message("Reset password successfully, you can login with new password")
+                .message("Reset password successfully, you can change it and login with new password")
                 .result(result)
                 .build();
         return ResponseEntity.ok(response);
