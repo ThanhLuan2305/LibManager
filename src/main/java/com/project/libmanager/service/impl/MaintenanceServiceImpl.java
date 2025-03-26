@@ -1,9 +1,15 @@
 package com.project.libmanager.service.impl;
 
+import com.project.libmanager.constant.ErrorCode;
+import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.entity.User;
+import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.UserRepository;
+import com.project.libmanager.service.IActivityLogService;
 import com.project.libmanager.util.AsyncMailSender;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.project.libmanager.service.IMaintenanceService;
@@ -19,6 +25,7 @@ import java.util.List;
 public class MaintenanceServiceImpl implements IMaintenanceService {
     private final UserRepository userRepository;
     private final AsyncMailSender asyncMailSender;
+    private final IActivityLogService activityLogService;
     @Value("${app.maintenance-mode:false}")
     private boolean maintenanceMode;
 
@@ -49,6 +56,26 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
                 .filter(email -> email != null && !email.isEmpty())
                 .toList();
 
+        User user = getAuthenticatedUser();
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.SYSTEM_MAINTENANCE_MODE,
+                "Admin set maintenance mode is: " + maintenanceMode
+        );
         asyncMailSender.sendMaintenanceEmails(emails, maintenanceMode);
+    }
+
+    private User getAuthenticatedUser() {
+        SecurityContext jwtContext = SecurityContextHolder.getContext();
+        if (jwtContext == null || jwtContext.getAuthentication() == null ||
+                !jwtContext.getAuthentication().isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        log.info("Authentication {}", jwtContext.getAuthentication().getName());
+
+        String email = jwtContext.getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
 }

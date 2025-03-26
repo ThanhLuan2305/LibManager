@@ -13,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.criteria.BookCriteria;
+import com.project.libmanager.service.IActivityLogService;
 import com.project.libmanager.specification.BookQueryService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -61,6 +63,7 @@ public class BookServiceImpl implements IBookService {
     private final BorrowingRepository borrowingRepository;
     private final BorrowingMapper borrowingMapper;
     private final BookQueryService bookQueryService;
+    private final IActivityLogService activityLogService;
 
     /**
      * Creates a new book or updates an existing book if the ISBN already exists.
@@ -96,6 +99,13 @@ public class BookServiceImpl implements IBookService {
             Book book = bookMapper.toBook(bookCreateRequest);
             book.setType(type);
             book = bookRepository.save(book);
+            User user = getAuthenticatedUser();
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.ADD_BOOK,
+                    "Admin add new book with id: " + book.getId()
+            );
             return bookMapper.toBookResponse(book);
         } catch (DataAccessException e) {
             log.error("Database error: {}", e.getMessage(), e);
@@ -137,6 +147,14 @@ public class BookServiceImpl implements IBookService {
             bookMapper.updateBook(book, bookUpdateRequest);
             book.setType(type);
             book = bookRepository.save(book);
+
+            User user = getAuthenticatedUser();
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.UPDATE_BOOK_INFO,
+                    "Admin update book with id: " + book.getId()
+            );
             return bookMapper.toBookResponse(book);
         } catch (DataAccessException e) {
             log.error(e.getMessage());
@@ -163,6 +181,14 @@ public class BookServiceImpl implements IBookService {
         try {
             book.setDeleted(true);
             bookRepository.save(book);
+
+            User user = getAuthenticatedUser();
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.DELETE_BOOK,
+                    "Admin deleted book with id: " + book.getId()
+            );
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -315,6 +341,12 @@ public class BookServiceImpl implements IBookService {
             book.setStock(book.getStock() - 1);
             bookRepository.save(book);
 
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.BOOK_BORROWED,
+                    "User borrowed book with id: " + book.getId()
+            );
             return borrowingMapper.toBorrowingResponse(borrowing);
         } catch (Exception e) {
             log.error("Error borrowing book: {}", e.getMessage());
@@ -353,6 +385,12 @@ public class BookServiceImpl implements IBookService {
             book.setStock(book.getStock() + 1);
             bookRepository.save(book);
 
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.BOOK_RETURNED,
+                    "User returned book with id: " + book.getId()
+            );
             return borrowingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
         } catch (Exception e) {
             log.error("Error returning book: {}", e.getMessage());
@@ -499,6 +537,14 @@ public class BookServiceImpl implements IBookService {
 
             bookRepository.saveAll(booksToUpdate.values());
             bookRepository.saveAll(newBooks);
+
+            User user = getAuthenticatedUser();
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.BOOK_BORROWED,
+                    "Admin import book by file csv success!"
+            );
         } catch (AppException e) {
             log.error(e.getMessage(), e);
             throw e;

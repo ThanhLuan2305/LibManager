@@ -30,7 +30,7 @@ public class MaintenanceFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         String requestURI = httpRequest.getRequestURI();
         if (requestURI.equals("/auth/login") ||
-                requestURI.equals("/config/getMaintenanceMode") ||
+                requestURI.equals("/config/maintenance/status") ||
                 requestURI.equals("/auth/refresh") ||
                 requestURI.equals("/auth/info")) {
             chain.doFilter(request, response);

@@ -1,7 +1,9 @@
 package com.project.libmanager.service.impl;
 
 import com.project.libmanager.constant.ErrorCode;
+import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.criteria.UserCriteria;
+import com.project.libmanager.service.IActivityLogService;
 import com.project.libmanager.service.dto.request.UserCreateRequest;
 import com.project.libmanager.service.dto.request.UserUpdateRequest;
 import com.project.libmanager.service.dto.response.UserResponse;
@@ -41,6 +43,7 @@ public class UserServiceImpl implements IUserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
+    private final IActivityLogService activityLogService;
 
     /**
      * Creates a new user and assigns a default role.
@@ -70,13 +73,35 @@ public class UserServiceImpl implements IUserService {
                         .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
                 .collect(Collectors.toSet()));
 
+        User userAction = getAuthenticatedUser();
         try {
             user.setRoles(roles);
             userRepository.save(user);
+
+            activityLogService.logAction(
+                    userAction.getId(),
+                    userAction.getEmail(),
+                    UserAction.ADMIN_CREATE_USER,
+                    "Admin create new user with email: "+ user.getEmail()
+            );
+
             return userMapper.toUserResponse(user);
         } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+    }
+
+    private User getAuthenticatedUser() {
+        SecurityContext jwtContext = SecurityContextHolder.getContext();
+        if (jwtContext == null || jwtContext.getAuthentication() == null ||
+                !jwtContext.getAuthentication().isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        log.info("Authentication {}", jwtContext.getAuthentication().getName());
+
+        String email = jwtContext.getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
 
     /**
@@ -196,6 +221,7 @@ public class UserServiceImpl implements IUserService {
         if (u.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
             throw new AppException(ErrorCode.CANNOT_UPDATE_ADMIN);
         }
+        User userAction = getAuthenticatedUser();
         try {
             userMapper.updateUser(u, request);
 
@@ -211,6 +237,12 @@ public class UserServiceImpl implements IUserService {
             u.setRoles(roles);
             u = userRepository.save(u);
 
+            activityLogService.logAction(
+                    userAction.getId(),
+                    userAction.getEmail(),
+                    UserAction.ADMIN_UPDATE_USER,
+                    "Admin update user with email: "+ u.getEmail()
+            );
             return userMapper.toUserResponse(u);
         } catch (AppException e) {
             log.error("Error updating user: {}", e.getMessage(), e);
@@ -240,9 +272,16 @@ public class UserServiceImpl implements IUserService {
         if (!user.getBorrowings().isEmpty()) {
             throw new AppException(ErrorCode.USER_CANNOT_BE_DELETED);
         }
+        User userAction = getAuthenticatedUser();
         try {
             user.setDeleted(true);
             userRepository.save(user);
+            activityLogService.logAction(
+                    userAction.getId(),
+                    userAction.getEmail(),
+                    UserAction.ADMIN_DELETE_USER,
+                    "Admin create new user with email: "+ user.getEmail()
+            );
         } catch (Exception e) {
             log.error("Error deleting user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);

@@ -1,9 +1,6 @@
 package com.project.libmanager.service.impl;
 
-import com.project.libmanager.constant.ErrorCode;
-import com.project.libmanager.constant.OtpType;
-import com.project.libmanager.constant.PredefinedRole;
-import com.project.libmanager.constant.VerificationStatus;
+import com.project.libmanager.constant.*;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.Role;
 import com.project.libmanager.entity.User;
@@ -11,6 +8,7 @@ import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
 import com.project.libmanager.service.IAccountService;
+import com.project.libmanager.service.IActivityLogService;
 import com.project.libmanager.service.IMailService;
 import com.project.libmanager.service.IOtpVerificationService;
 import com.project.libmanager.service.dto.request.*;
@@ -28,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -40,6 +39,7 @@ public class AccountServiceImpl implements IAccountService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final IOtpVerificationService otpVerificationService;
+    private final IActivityLogService activityLogService;
     private final CommonUtil commonUtil;
     /**
      * Registers a new user by saving their details, encoding the password,
@@ -75,7 +75,7 @@ public class AccountServiceImpl implements IAccountService {
             user.setVerificationStatus(VerificationStatus.UNVERIFIED);
             user.setDeleted(false);
             user.setResetPassword(false);
-            userRepository.save(user);
+            user = userRepository.save(user);
 
             String otpEmail = commonUtil.generateOTP();
             Instant expiredAtEmail = Instant.now().plus(Duration.ofMinutes(5));
@@ -99,7 +99,12 @@ public class AccountServiceImpl implements IAccountService {
                     .type(OtpType.VERIFY_PHONE)
                     .build();
             otpVerificationService.createOtp(otpVerificationPhone, true);
-
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.REGISTER,
+                    "User registered success with email: " + user.getEmail()
+            );
             return userMapper.toUserResponse(user);
         } catch (Exception e) {
             log.error("Error when update: {}", e.getMessage());
@@ -128,6 +133,12 @@ public class AccountServiceImpl implements IAccountService {
             user.setVerificationStatus(VerificationStatus.EMAIL_VERIFIED);
         }
         userRepository.save(user);
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.EMAIL_VERIFICATION,
+                "User verify email success with email: " + user.getEmail()
+        );
         return rs;
     }
 
@@ -142,6 +153,12 @@ public class AccountServiceImpl implements IAccountService {
             user.setVerificationStatus(VerificationStatus.PHONE_VERIFIED);
         }
         userRepository.save(user);
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.PHONE_VERIFICATION,
+                "User verify phone success with phone: " + user.getPhoneNumber()
+        );
         return rs;
     }
 
@@ -174,6 +191,13 @@ public class AccountServiceImpl implements IAccountService {
 
         user.setEmail(changeMailRequest.getNewEmail());
         userRepository.save(user);
+
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.EMAIL_VERIFICATION,
+                "User verify change email success with email: " + changeMailRequest.getNewEmail()
+        );
     }
 
     /**
@@ -216,8 +240,14 @@ public class AccountServiceImpl implements IAccountService {
 
         otpVerificationService.createOtp(otpVerificationPhone, false);
 
-        mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.CHANGED_EMAIL,
+                "User require change email success with email: " + cMailRequest.getNewEmail()
+        );
 
+        mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
         mailService.sendSimpleEmail(
                 cMailRequest.getOldEmail(),
                 "Thông báo: Tài khoản yêu cầu đổi email",
@@ -243,6 +273,13 @@ public class AccountServiceImpl implements IAccountService {
 
         user.setPhoneNumber(request.getNewPhoneNumber());
         userRepository.save(user);
+
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.PHONE_VERIFICATION,
+                "User verify change phone success with phone: " + request.getNewPhoneNumber()
+        );
     }
 
     @Override
@@ -275,5 +312,18 @@ public class AccountServiceImpl implements IAccountService {
                 .build();
 
         otpVerificationService.createOtp(otpVerificationPhone, true);
+
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.CHANGED_PHONE,
+                "User require change phone success with phone: " + request.getNewPhoneNumber()
+        );
     }
+
+    @Override
+    public List<String> getRolesUser() {
+        return List.of();
+    }
+
 }

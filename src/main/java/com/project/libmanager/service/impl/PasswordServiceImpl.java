@@ -2,11 +2,13 @@ package com.project.libmanager.service.impl;
 
 import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.OtpType;
+import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.constant.VerificationStatus;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.UserRepository;
+import com.project.libmanager.service.IActivityLogService;
 import com.project.libmanager.service.IMailService;
 import com.project.libmanager.service.IOtpVerificationService;
 import com.project.libmanager.service.IPasswordService;
@@ -32,6 +34,7 @@ public class PasswordServiceImpl implements IPasswordService {
     private final IOtpVerificationService otpVerificationService;
     private final PasswordEncoder passwordEncoder;
     private final CommonUtil commonUtil;
+    private final IActivityLogService activityLogService;
 
     /**
      * Changes the user's password.
@@ -64,6 +67,12 @@ public class PasswordServiceImpl implements IPasswordService {
 
         user.setPassword(passwordEncoder.encode(cpRequest.getNewPassword()));
         userRepository.save(user);
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.PASSWORD_CHANGED,
+                "User changed new password successfully with email: " + user.getEmail()
+        );
         return true;
     }
 
@@ -98,6 +107,12 @@ public class PasswordServiceImpl implements IPasswordService {
         user.setResetPassword(false);
         userRepository.save(user);
 
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.PASSWORD_CHANGED,
+                "User changed new password after reset password successfully with email: " + user.getEmail()
+        );
         return true;
     }
 
@@ -131,6 +146,13 @@ public class PasswordServiceImpl implements IPasswordService {
             otpBuilder.email(contactInfo);
         }
         otpVerificationService.createOtp(otpBuilder.build(), false);
+        activityLogService.logAction(
+                user.getId(),
+                user.getEmail(),
+                UserAction.PASSWORD_RESET_REQUEST,
+                "User request reset passowrd with email: " + user.getEmail()
+        );
+
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
     }
 
@@ -155,11 +177,17 @@ public class PasswordServiceImpl implements IPasswordService {
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         }
         try {
-            String password = commonUtil.generatePassword(8);
+            String password = CommonUtil.generatePassword(8);
             user.setPassword(passwordEncoder.encode(password));
             user.setResetPassword(true);
             userRepository.save(user);
 
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.PASSWORD_RESET_SUCCESS,
+                    "User reset passowrd success with email: " + user.getEmail()
+            );
             return password;
         } catch (Exception e) {
             log.error(e.getMessage());

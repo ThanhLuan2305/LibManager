@@ -5,19 +5,16 @@ import com.nimbusds.jwt.SignedJWT;
 import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.PredefinedRole;
 import com.project.libmanager.constant.TokenType;
+import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.entity.Role;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
 import com.project.libmanager.security.JwtTokenProvider;
-import com.project.libmanager.service.IAuthenticationService;
-import com.project.libmanager.service.ILoginDetailService;
-import com.project.libmanager.service.IMaintenanceService;
-import com.project.libmanager.service.IUserService;
+import com.project.libmanager.service.*;
 import com.project.libmanager.service.dto.request.AuthenticationRequest;
 import com.project.libmanager.service.dto.request.LoginDetailRequest;
-import com.project.libmanager.service.dto.request.TokenRequest;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
 import com.project.libmanager.util.CommonUtil;
 import com.project.libmanager.util.CookieUtil;
@@ -47,6 +44,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
     private final IUserService userService;
     private final ILoginDetailService loginDetailService;
     private final CommonUtil commonUtil;
+    private final IActivityLogService activityLogService;
     private final CookieUtil cookieUtil;
 
     @Value("${jwt.refresh-duration}")
@@ -94,6 +92,13 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
         cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessToken,(int)validDuration);
         cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshToken, (int)refreshDuration);
 
+        activityLogService.logAction(
+                userDB.getId(),
+                userDB.getEmail(),
+                UserAction.LOGIN,
+                "User login success!!!"
+        );
+
         return AuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
                 .build();
     }
@@ -134,6 +139,14 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             loginDetailService.disableLoginDetailById(jwtID);
             cookieUtil.removeCookie(response, ACCESS_TOKEN_STR);
             cookieUtil.removeCookie(response, REFRESH_TOKEN_STR);
+
+            User userDB = userService.findByEmail(claimsSet.getSubject());
+            activityLogService.logAction(
+                    userDB.getId(),
+                    userDB.getEmail(),
+                    UserAction.LOGOUT,
+                    "User log out success!!!"
+            );
         } catch (Exception e) {
             log.error("Error logout token", e);
             throw new AppException(ErrorCode.UNAUTHENTICATED);
