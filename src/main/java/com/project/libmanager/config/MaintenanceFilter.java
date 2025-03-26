@@ -1,24 +1,18 @@
 package com.project.libmanager.config;
 
-import java.io.IOException;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.libmanager.constant.ErrorCode;
+import com.project.libmanager.service.IMaintenanceService;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.libmanager.constant.ErrorCode;
-import com.project.libmanager.service.IMaintenanceService;
-
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
 
 @Component
 public class MaintenanceFilter implements Filter {
@@ -35,7 +29,10 @@ public class MaintenanceFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         String requestURI = httpRequest.getRequestURI();
-        if (requestURI.equals("/auth/login")) {
+        if (requestURI.equals("/auth/login") ||
+                requestURI.equals("/config/getMaintenanceMode") ||
+                requestURI.equals("/auth/refresh") ||
+                requestURI.equals("/auth/info")) {
             chain.doFilter(request, response);
             return;
         }

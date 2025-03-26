@@ -10,6 +10,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.project.libmanager.constant.TokenType;
 import com.project.libmanager.entity.LoginDetail;
+import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.LoginDetailRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,7 @@ public class CustomDecoder implements JwtDecoder {
         } catch (ParseException e) {
             log.error("Error parsing token claims", e);
             throw new BadJwtException("Error parsing token claims");
-        } catch (JwtException e) {
+        } catch (JwtException | AppException e) {
             throw e;
         } catch (Exception e) {
             log.error("Unexpected error decoding JWT", e);

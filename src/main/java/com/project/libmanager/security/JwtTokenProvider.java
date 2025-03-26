@@ -39,7 +39,8 @@ public class JwtTokenProvider {
     private static final JWSAlgorithm SIGNING_ALGORITHM = JWSAlgorithm.HS512;
 
     public String generateToken(User user, TokenType tokenType, String jti) {
-        long duration = (tokenType == TokenType.REFRESH) ? refreshDuration : validDuration;
+        long duration = (tokenType.equals(TokenType.REFRESH)) ? refreshDuration : validDuration;
+        log.info("Generating token: {}, duration: {}",tokenType, duration);
         return buildToken(user, tokenType, duration, jti);
     }
 

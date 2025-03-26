@@ -3,6 +3,9 @@ package com.project.libmanager.controller.admin;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.project.libmanager.criteria.BookCriteria;
+import com.project.libmanager.service.dto.response.BorrowingResponse;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +38,17 @@ import lombok.RequiredArgsConstructor;
 @SecurityRequirement(name = "JWT Authentication")
 public class AdminBookController {
     private final IBookService bookService;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBooks(@RequestParam(defaultValue = "0") int offset,
+                                                                    @RequestParam(defaultValue = "10") int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                .result(bookService.getBooksForAdmin(pageable))
+                .message("Books retrieved successfully")
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<BookResponse>> createBook(
@@ -70,12 +84,12 @@ public class AdminBookController {
     }
 
     @GetMapping("/borrow-by-user")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrowByUser(@RequestParam Long userId,
-            @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<ApiResponse<Page<BorrowingResponse>>> getBookBorrowByUser(@RequestParam Long userId,
+                                                                                    @RequestParam(defaultValue = "0") int offset,
+                                                                                    @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        Page<BookResponse> bookPage = bookService.getBookBorrowByUser(userId, pageable);
-        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+        Page<BorrowingResponse> bookPage = bookService.getBookBorrowByUser(userId, pageable);
+        ApiResponse<Page<BorrowingResponse>> response = ApiResponse.<Page<BorrowingResponse>>builder()
                 .message("Fetched books borrowed by user successfully")
                 .result(bookPage)
                 .build();
@@ -100,6 +114,25 @@ public class AdminBookController {
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .message("Books imported successfully!")
                 .result("success")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@ParameterObject BookCriteria criteria,
+                                                                       Pageable pageable) {
+        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+                .message("Search book successfully")
+                .result(bookService.searchBook(criteria, pageable))
+                .build();
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("/{bookId}")
+    public ResponseEntity<ApiResponse<BookResponse>> getBook(@PathVariable Long bookId) {
+        ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+                .result(bookService.getBookForAdmin(bookId))
+                .message("Book retrieved successfully")
                 .build();
         return ResponseEntity.ok(response);
     }

@@ -1,0 +1,23 @@
+package com.project.libmanager.constant;
+
+public enum UserAction {
+    USER_LOGIN,
+    USER_LOGOUT,
+    USER_REGISTER,
+    USER_CHANGE_PHONE,
+    USER_CHANGE_EMAIL,
+    USER_CHANGE_PASSWORD,
+
+    BOOK_CREATE,
+    BOOK_UPDATE,
+    BOOK_DELETE,
+    BOOK_BORROW,
+    BOOK_RETURN,
+
+    ADMIN_CREATE_USER,
+    ADMIN_UPDATE_USER,
+    ADMIN_DELETE_USER,
+
+    SYSTEM_MAINTENANCE_START,
+    SYSTEM_MAINTENANCE_END,
+}

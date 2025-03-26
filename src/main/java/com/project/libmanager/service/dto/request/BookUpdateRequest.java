@@ -47,5 +47,5 @@ public class BookUpdateRequest {
     @Size(max = 255, message = "CHARACTER_LIMIT_EXCEEDED")
     private String coverImageUrl;
 
-    private String deleted;
+    private boolean deleted;
 }

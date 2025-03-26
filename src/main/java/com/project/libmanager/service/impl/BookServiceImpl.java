@@ -156,14 +156,13 @@ public class BookServiceImpl implements IBookService {
     @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
-
+        boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
+        if (isBorrowed) {
+            throw new AppException(ErrorCode.BOOK_IS_BORROW);
+        }
         try {
-            boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
-            if (isBorrowed) {
-                book.setDeleted(true);
-                bookRepository.save(book);
-            } else
-                bookRepository.delete(book);
+            book.setDeleted(true);
+            bookRepository.save(book);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -181,6 +180,16 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public Page<BookResponse> getBooks(Pageable pageable) {
+        Page<Book> pageBook = bookRepository.findAllAvailableBooks(pageable);
+        if (pageBook.isEmpty()) {
+            log.error("Book not found in the database");
+            throw new AppException(ErrorCode.BOOK_NOT_EXISTED);
+        }
+        return mapBookPageBookResponsePage(pageBook);
+    }
+
+    @Override
+    public Page<BookResponse> getBooksForAdmin(Pageable pageable) {
         Page<Book> pageBook = bookRepository.findAll(pageable);
         if (pageBook.isEmpty()) {
             log.error("Book not found in the database");
@@ -197,8 +206,7 @@ public class BookServiceImpl implements IBookService {
      * @implNote This method maps the content of the book page to a list of book
      *           responses and returns a paginated response.
      */
-    @Override
-    public Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage) {
+    private Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage) {
         List<BookResponse> bookResponses = bookPage.getContent().stream()
                 .map(book -> mapToBookResponseByMapper(book.getId()))
                 .toList();
@@ -215,11 +223,9 @@ public class BookServiceImpl implements IBookService {
      * @implNote This method retrieves a single book from the repository and returns
      *           its response.
      */
-    @Override
-    public BookResponse mapToBookResponseByMapper(Long id) {
+    private BookResponse mapToBookResponseByMapper(Long id) {
 
         Book book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
-
         BookResponse bookResponse = bookMapper.toBookResponse(book);
         bookResponse.setBookType(bookTypeMapper.toBookTypeResponse(book.getType()));
         return bookResponse;
@@ -235,6 +241,15 @@ public class BookServiceImpl implements IBookService {
      */
     @Override
     public BookResponse getBook(Long id) {
+        Book book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
+        if (book.isDeleted()) {
+            throw  new AppException(ErrorCode.BOOK_IS_DELETED);
+        }
+        return mapToBookResponseByMapper(id);
+    }
+
+    @Override
+    public BookResponse getBookForAdmin(Long id) {
         return mapToBookResponseByMapper(id);
     }
 
@@ -356,19 +371,11 @@ public class BookServiceImpl implements IBookService {
      *           in a paginated format.
      */
     @Override
-    public Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
+    public Page<BorrowingResponse> getBookBorrowByUser(Long userId, Pageable pageable) {
         try {
-            List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId);
-            List<BookResponse> lstBook = borrowings.stream()
-                    .map(b -> bookMapper.toBookResponse(b.getBook()))
-                    .toList();
+            Page<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(userId, pageable);
 
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), lstBook.size());
-            List<BookResponse> pageContent = lstBook.subList(start, end);
-
-            return new PageImpl<>(pageContent, pageable, lstBook.size());
-
+            return mapBorrowPageBrorrowResponsePage(borrowings);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -388,25 +395,49 @@ public class BookServiceImpl implements IBookService {
      *           format.
      */
     @Override
-    public Page<BookResponse> getBookBorrowForUser(Pageable pageable) {
+    public Page<BorrowingResponse> getBookBorrowForUser(Pageable pageable) {
         try {
             User user = getAuthenticatedUser();
-            List<Borrowing> borrowings = borrowingRepository.findByUserIdAndReturnDateIsNull(user.getId());
-            List<BookResponse> lstBook = borrowings.stream()
-                    .map(b -> bookMapper.toBookResponse(b.getBook()))
-                    .toList();
+            Page<Borrowing> borrowingsBook = borrowingRepository.findByUserIdAndReturnDateIsNull(user.getId(), pageable);
 
-            int start = (int) pageable.getOffset();
-            int end = Math.min((start + pageable.getPageSize()), lstBook.size());
-            List<BookResponse> pageContent = lstBook.subList(start, end);
-
-            return new PageImpl<>(pageContent, pageable, lstBook.size());
+            return mapBorrowPageBrorrowResponsePage(borrowingsBook);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+    }
+
+    @Override
+    public Page<BorrowingResponse> getBookReturnForUser(Pageable pageable) {
+        try {
+            User user = getAuthenticatedUser();
+            Page<Borrowing> bookReturn = borrowingRepository.findByUserIdAndReturnDateIsNotNull(user.getId(), pageable);
+
+            return mapBorrowPageBrorrowResponsePage(bookReturn);
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    private Page<BorrowingResponse> mapBorrowPageBrorrowResponsePage(Page<Borrowing> borrowingPage) {
+        List<BorrowingResponse> borrowingResponse = borrowingPage.getContent().stream()
+                .map(borrowing -> mapToBorrowResponseByMapper(borrowing.getId()))
+                .toList();
+
+        return new PageImpl<>(borrowingResponse, borrowingPage.getPageable(), borrowingPage.getTotalElements());
+    }
+
+
+    private BorrowingResponse mapToBorrowResponseByMapper(Long id) {
+
+        Borrowing borrowing = borrowingRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BORROW_NOT_FOUND));
+
+        return borrowingMapper.toBorrowingResponse(borrowing);
     }
 
     /**
@@ -482,6 +513,4 @@ public class BookServiceImpl implements IBookService {
         Page<Book> books = bookQueryService.findByCriteria(criteria, pageable);
         return mapBookPageBookResponsePage(books);
     }
-
-
 }

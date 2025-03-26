@@ -1,6 +1,8 @@
 package com.project.libmanager.security;
 
+import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.entity.User;
+import com.project.libmanager.exception.AppException;
 import com.project.libmanager.service.IUserService;
 import com.project.libmanager.validation.UserStatusValidator;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.findByEmail(username);
+        if(user == null) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
         return new CustomUserDetails(user, userStatusValidator);
     }
 }

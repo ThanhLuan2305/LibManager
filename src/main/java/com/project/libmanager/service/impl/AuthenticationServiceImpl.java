@@ -88,7 +88,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         saveRefreshToken(refreshToken);
 
-        cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessToken,(int) validDuration);
+
+        cookieUtil.removeCookie(response, ACCESS_TOKEN_STR);
+        cookieUtil.removeCookie(response, REFRESH_TOKEN_STR);
+        cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessToken,(int)validDuration);
         cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshToken, (int)refreshDuration);
 
         return AuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
@@ -181,6 +184,8 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
         loginDetailService.updateLoginDetailIsEnable(jwtID, Instant.now().plus(refreshDuration, ChronoUnit.SECONDS));
 
+        cookieUtil.removeCookie(response, ACCESS_TOKEN_STR);
+        cookieUtil.removeCookie(response, REFRESH_TOKEN_STR);
         cookieUtil.addCookie(response, ACCESS_TOKEN_STR, accessTokenGrt,(int) validDuration);
         cookieUtil.addCookie(response, REFRESH_TOKEN_STR, refreshTokenGrt, (int)refreshDuration);
         return AuthenticationResponse.builder()

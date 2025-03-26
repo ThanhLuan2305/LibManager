@@ -193,6 +193,9 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if (u.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+            throw new AppException(ErrorCode.CANNOT_UPDATE_ADMIN);
+        }
         try {
             userMapper.updateUser(u, request);
 
@@ -231,16 +234,15 @@ public class UserServiceImpl implements IUserService {
     @Override
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+            throw new AppException(ErrorCode.CANNOT_DELETE_ADMIN);
+        }
+        if (!user.getBorrowings().isEmpty()) {
+            throw new AppException(ErrorCode.USER_CANNOT_BE_DELETED);
+        }
         try {
-            if (!user.getBorrowings().isEmpty()) {
-                user.setDeleted(true);
-                userRepository.save(user);
-            } else {
-                user.getRoles().clear();
-                userRepository.save(user);
-                userRepository.delete(user);
-            }
+            user.setDeleted(true);
+            userRepository.save(user);
         } catch (Exception e) {
             log.error("Error deleting user: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);

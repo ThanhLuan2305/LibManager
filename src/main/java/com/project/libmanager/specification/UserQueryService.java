@@ -39,6 +39,10 @@ public class UserQueryService extends QueryService<User> {
             specification = specification.and(buildStringSpecification(criteria.getFullName(), User_.fullName));
         }
 
+        if (criteria.getPhoneNumber() != null) {
+            specification = specification.and(buildStringSpecification(criteria.getPhoneNumber(), User_.phoneNumber));
+        }
+
         if (criteria.getBirthDate() != null) {
             specification = specification.and(buildRangeSpecification(criteria.getBirthDate(), User_.birthDate));
         }

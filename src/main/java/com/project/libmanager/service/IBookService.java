@@ -9,7 +9,6 @@ import com.project.libmanager.service.dto.request.BookCreateRequest;
 import com.project.libmanager.service.dto.request.BookUpdateRequest;
 import com.project.libmanager.service.dto.response.BookResponse;
 import com.project.libmanager.service.dto.response.BorrowingResponse;
-import com.project.libmanager.entity.Book;
 
 public interface IBookService {
 
@@ -21,19 +20,22 @@ public interface IBookService {
 
     Page<BookResponse> getBooks(Pageable pageable);
 
-    Page<BookResponse> mapBookPageBookResponsePage(Page<Book> bookPage);
 
-    BookResponse mapToBookResponseByMapper(Long id);
+    Page<BookResponse> getBooksForAdmin(Pageable pageable);
 
     BookResponse getBook(Long id);
+
+    BookResponse getBookForAdmin(Long id);
 
     BorrowingResponse borrowBook(Long bookId);
 
     BorrowingResponse returnBook(Long bookId);
 
-    Page<BookResponse> getBookBorrowByUser(Long userId, Pageable pageable);
+    Page<BorrowingResponse> getBookBorrowByUser(Long userId, Pageable pageable);
 
-    Page<BookResponse> getBookBorrowForUser(Pageable pageable);
+    Page<BorrowingResponse> getBookBorrowForUser(Pageable pageable);
+
+    Page<BorrowingResponse> getBookReturnForUser(Pageable pageable);
 
     void importBooks(MultipartFile file);
 

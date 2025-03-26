@@ -59,6 +59,10 @@ public class BookQueryService extends QueryService<Book> {
             specification = specification.and(buildStringSpecification(criteria.getLocation(), Book_.location));
         }
 
+        if (criteria.getDeleted() != null) {
+            specification = specification.and(buildSpecification(criteria.getDeleted(), Book_.deleted));
+        }
+
         return specification;
     }
 }

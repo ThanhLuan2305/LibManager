@@ -5,7 +5,8 @@ import org.springframework.http.HttpStatusCode;
 
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
-    LOGIN_ERROR(1000, "Login failed, please double-check your email and password. ", HttpStatus.UNAUTHORIZED),
+    JWT_HAVE_ISSUE(9998, "JWT have a problem when decoder", HttpStatus.UNAUTHORIZED),
+    LOGIN_ERROR(9997, "Login failed, please double-check your email and password. ", HttpStatus.UNAUTHORIZED),
     INVALID_KEY(1001, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     USER_EXISTED(1002, "User existed", HttpStatus.BAD_REQUEST),
     EMAIL_INVALID(1003, "Invalid email address", HttpStatus.BAD_REQUEST),
@@ -55,6 +56,12 @@ public enum ErrorCode {
     PHONE_EXISTED(1045, "Phone existed", HttpStatus.BAD_REQUEST),
     OLD_PHONE_NOT_EXISTED(1045, "Old phone not existed", HttpStatus.NOT_FOUND),
     OLD_PHONE_INVALID(1045, "Old phone is invalid", HttpStatus.BAD_REQUEST),
+    BORROW_NOT_FOUND(1046, "Don't found borrow book", HttpStatus.NOT_FOUND),
+    CANNOT_DELETE_ADMIN(1047, "You can not delete admin!", HttpStatus.BAD_REQUEST),
+    CANNOT_UPDATE_ADMIN(1048, "You can not update admin!", HttpStatus.BAD_REQUEST),
+    BOOK_IS_DELETED(1049, "Book is deleted!", HttpStatus.BAD_REQUEST),
+    BOOK_IS_BORROW(1050, "Book is currently borrowed!", HttpStatus.BAD_REQUEST),
+    USER_CANNOT_BE_DELETED(1051, "User is currently borrowing books, cannot delete!", HttpStatus.BAD_REQUEST),
     ;
 
     private int code;

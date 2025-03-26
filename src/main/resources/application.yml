@@ -31,6 +31,9 @@ spring:
   liquibase:
     enabled: false
     # change-log: classpath:db/changelog/db.changelog-master.xml
+  data:
+    mongodb:
+      url: mongodb://localhost:27017/activity_log_db
 
 server:
   port: 8080

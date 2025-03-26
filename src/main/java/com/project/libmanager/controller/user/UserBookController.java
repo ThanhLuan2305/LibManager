@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.libmanager.service.dto.response.ApiResponse;
-import com.project.libmanager.service.dto.response.BookResponse;
 import com.project.libmanager.service.dto.response.BorrowingResponse;
 import com.project.libmanager.service.IBookService;
 
@@ -47,12 +46,23 @@ public class UserBookController {
     }
 
     @GetMapping("/books-borrow")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> getBookBorrow(@RequestParam(defaultValue = "0") int offset,
+    public ResponseEntity<ApiResponse<Page<BorrowingResponse>>> getBookBorrow(@RequestParam(defaultValue = "0") int offset,
             @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
-        ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
+        ApiResponse<Page<BorrowingResponse>> response = ApiResponse.<Page<BorrowingResponse>>builder()
                 .message("List of borrowed books.")
                 .result(bookService.getBookBorrowForUser(pageable))
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/books-return")
+    public ResponseEntity<ApiResponse<Page<BorrowingResponse>>> getBookReturn(@RequestParam(defaultValue = "0") int offset,
+                                                                         @RequestParam(defaultValue = "10") int limit) {
+        Pageable pageable = PageRequest.of(offset, limit);
+        ApiResponse<Page<BorrowingResponse>> response = ApiResponse.<Page<BorrowingResponse>>builder()
+                .message("List of borrowed books.")
+                .result(bookService.getBookReturnForUser(pageable))
                 .build();
         return ResponseEntity.ok(response);
     }

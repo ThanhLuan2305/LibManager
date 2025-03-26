@@ -11,6 +11,8 @@ public class UserCriteria {
 
     private StringFilter fullName;
 
+    private StringFilter phoneNumber;
+
     private InstantFilter birthDate;
 
     private IntegerFilter lateReturnCount;

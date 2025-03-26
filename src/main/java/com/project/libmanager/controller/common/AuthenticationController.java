@@ -1,9 +1,11 @@
 package com.project.libmanager.controller.common;
 
 import com.project.libmanager.service.IAuthenticationService;
+import com.project.libmanager.service.IUserService;
 import com.project.libmanager.service.dto.request.AuthenticationRequest;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import com.project.libmanager.service.dto.response.AuthenticationResponse;
+import com.project.libmanager.service.dto.response.UserResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "JWT Authentication")
 public class AuthenticationController {
     private final IAuthenticationService aService;
+    private final IUserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthenticationResponse>> authenticate(
@@ -49,5 +52,14 @@ public class AuthenticationController {
                 .message("Token refreshed successfully.")
                 .build();
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo() {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .message("Get info successfully!")
+                .build();
+        return ResponseEntity.ok(response);
     }
 }
