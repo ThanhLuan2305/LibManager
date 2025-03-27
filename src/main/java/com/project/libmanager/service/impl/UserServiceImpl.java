@@ -3,7 +3,12 @@ package com.project.libmanager.service.impl;
 import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.criteria.UserCriteria;
+import com.project.libmanager.entity.LoginDetail;
+import com.project.libmanager.repository.BorrowingRepository;
+import com.project.libmanager.repository.LoginDetailRepository;
 import com.project.libmanager.service.IActivityLogService;
+import com.project.libmanager.service.IAuthenticationService;
+import com.project.libmanager.service.ILoginDetailService;
 import com.project.libmanager.service.dto.request.UserCreateRequest;
 import com.project.libmanager.service.dto.request.UserUpdateRequest;
 import com.project.libmanager.service.dto.response.UserResponse;
@@ -44,6 +49,9 @@ public class UserServiceImpl implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
     private final IActivityLogService activityLogService;
+    private final BorrowingRepository borrowingRepository;
+    private final LoginDetailRepository loginDetailRepository;
+    private final ILoginDetailService loginDetailService;
 
     /**
      * Creates a new user and assigns a default role.
@@ -77,15 +85,17 @@ public class UserServiceImpl implements IUserService {
         try {
             user.setRoles(roles);
             userRepository.save(user);
-
+            UserResponse userResponse = userMapper.toUserResponse(user);
             activityLogService.logAction(
                     userAction.getId(),
                     userAction.getEmail(),
                     UserAction.ADMIN_CREATE_USER,
-                    "Admin create new user with email: "+ user.getEmail()
+                    "Admin create new user with email: "+ user.getEmail(),
+                    null,
+                    userResponse
             );
 
-            return userMapper.toUserResponse(user);
+            return userResponse;
         } catch (DataIntegrityViolationException exception) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
@@ -218,6 +228,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User u = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        UserResponse oldeUserResponse = userMapper.toUserResponse(u);
         if (u.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
             throw new AppException(ErrorCode.CANNOT_UPDATE_ADMIN);
         }
@@ -235,15 +246,17 @@ public class UserServiceImpl implements IUserService {
                             .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED)))
                     .collect(Collectors.toSet()));
             u.setRoles(roles);
-            u = userRepository.save(u);
-
+            User newUser = userRepository.save(u);
+            UserResponse userResponse = userMapper.toUserResponse(newUser);
             activityLogService.logAction(
                     userAction.getId(),
                     userAction.getEmail(),
                     UserAction.ADMIN_UPDATE_USER,
-                    "Admin update user with email: "+ u.getEmail()
+                    "Admin update user with email: "+ u.getEmail(),
+                    oldeUserResponse,
+                    userResponse
             );
-            return userMapper.toUserResponse(u);
+            return userResponse;
         } catch (AppException e) {
             log.error("Error updating user: {}", e.getMessage(), e);
             throw e;
@@ -269,18 +282,25 @@ public class UserServiceImpl implements IUserService {
         if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
             throw new AppException(ErrorCode.CANNOT_DELETE_ADMIN);
         }
-        if (!user.getBorrowings().isEmpty()) {
+        if (borrowingRepository.existsByUserIdAndReturnDateIsNull(userId)) {
             throw new AppException(ErrorCode.USER_CANNOT_BE_DELETED);
         }
+
         User userAction = getAuthenticatedUser();
         try {
             user.setDeleted(true);
+            List<LoginDetail> userLoginDetails = loginDetailRepository.findByUserId(user.getId());
+            for (LoginDetail loginDetail : userLoginDetails) {
+                loginDetailService.disableLoginDetailById(loginDetail.getJti());
+            }
             userRepository.save(user);
             activityLogService.logAction(
                     userAction.getId(),
                     userAction.getEmail(),
                     UserAction.ADMIN_DELETE_USER,
-                    "Admin create new user with email: "+ user.getEmail()
+                    "Admin create new user with email: "+ user.getEmail(),
+                    userMapper.toUserResponse(userAction),
+                    null
             );
         } catch (Exception e) {
             log.error("Error deleting user: {}", e.getMessage(), e);

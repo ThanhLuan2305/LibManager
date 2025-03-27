@@ -96,7 +96,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                 userDB.getId(),
                 userDB.getEmail(),
                 UserAction.LOGIN,
-                "User login success!!!"
+                "User login success!!!",
+                null,
+                null
         );
 
         return AuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken)
@@ -145,7 +147,9 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                     userDB.getId(),
                     userDB.getEmail(),
                     UserAction.LOGOUT,
-                    "User log out success!!!"
+                    "User log out success!!!",
+                    null,
+                    null
             );
         } catch (Exception e) {
             log.error("Error logout token", e);

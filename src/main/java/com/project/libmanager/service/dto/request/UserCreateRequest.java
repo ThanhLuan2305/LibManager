@@ -30,7 +30,7 @@ public class UserCreateRequest {
     private String phoneNumber;
 
     @NotBlank(message = "NOT_BLANK")
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "INVALID_PASSWORD")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$", message = "INVALID_PASSWORD")
     private String password;
 
     @NotBlank(message = "NOT_BLANK")

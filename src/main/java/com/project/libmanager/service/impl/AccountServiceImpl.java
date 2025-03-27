@@ -1,5 +1,7 @@
 package com.project.libmanager.service.impl;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.project.libmanager.constant.*;
 import com.project.libmanager.entity.OtpVerification;
 import com.project.libmanager.entity.Role;
@@ -7,6 +9,7 @@ import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
+import com.project.libmanager.security.JwtTokenProvider;
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IActivityLogService;
 import com.project.libmanager.service.IMailService;
@@ -15,16 +18,20 @@ import com.project.libmanager.service.dto.request.*;
 import com.project.libmanager.service.dto.response.UserResponse;
 import com.project.libmanager.service.mapper.UserMapper;
 import com.project.libmanager.util.CommonUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +47,7 @@ public class AccountServiceImpl implements IAccountService {
     private final RoleRepository roleRepository;
     private final IOtpVerificationService otpVerificationService;
     private final IActivityLogService activityLogService;
+    private final JwtTokenProvider jwtTokenProvider;
     private final CommonUtil commonUtil;
     /**
      * Registers a new user by saving their details, encoding the password,
@@ -99,13 +107,17 @@ public class AccountServiceImpl implements IAccountService {
                     .type(OtpType.VERIFY_PHONE)
                     .build();
             otpVerificationService.createOtp(otpVerificationPhone, true);
+
+            UserResponse userResponse = userMapper.toUserResponse(user);
             activityLogService.logAction(
                     user.getId(),
                     user.getEmail(),
                     UserAction.REGISTER,
-                    "User registered success with email: " + user.getEmail()
+                    "User registered success with email: " + user.getEmail(),
+                    null,
+                    userResponse
             );
-            return userMapper.toUserResponse(user);
+            return userResponse;
         } catch (Exception e) {
             log.error("Error when update: {}", e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -137,7 +149,10 @@ public class AccountServiceImpl implements IAccountService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.EMAIL_VERIFICATION,
-                "User verify email success with email: " + user.getEmail()
+                "User verify email success with email: " + user.getEmail(),
+                null,
+                null
+
         );
         return rs;
     }
@@ -157,7 +172,9 @@ public class AccountServiceImpl implements IAccountService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.PHONE_VERIFICATION,
-                "User verify phone success with phone: " + user.getPhoneNumber()
+                "User verify phone success with phone: " + user.getPhoneNumber(),
+                null,
+                null
         );
         return rs;
     }
@@ -196,7 +213,9 @@ public class AccountServiceImpl implements IAccountService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.EMAIL_VERIFICATION,
-                "User verify change email success with email: " + changeMailRequest.getNewEmail()
+                "User verify change email success with email: " + changeMailRequest.getNewEmail(),
+                null,
+                null
         );
     }
 
@@ -244,7 +263,9 @@ public class AccountServiceImpl implements IAccountService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.CHANGED_EMAIL,
-                "User require change email success with email: " + cMailRequest.getNewEmail()
+                "User require change email success with email: " + cMailRequest.getNewEmail(),
+                cMailRequest.getOldEmail(),
+                cMailRequest.getNewEmail()
         );
 
         mailService.sendEmailOTP(otp, cMailRequest.getNewEmail(), false, user.getFullName());
@@ -259,13 +280,7 @@ public class AccountServiceImpl implements IAccountService {
     public void verifyChangePhone(VerifyChangePhoneRequest request) {
         otpVerificationService.verifyOtp(request.getOtp(), request.getNewPhoneNumber(),OtpType.CHANGE_PHONE,true );
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
-
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = getAuthenticatedUser();
 
         if(!user.getPhoneNumber().equals(request.getOldPhoneNumber())) {
             throw new AppException(ErrorCode.OLD_PHONE_INVALID);
@@ -278,21 +293,15 @@ public class AccountServiceImpl implements IAccountService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.PHONE_VERIFICATION,
-                "User verify change phone success with phone: " + request.getNewPhoneNumber()
+                "User verify change phone success with phone: " + request.getNewPhoneNumber(),
+                null,
+                null
         );
     }
 
     @Override
     public void changePhone(ChangePhoneRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
-
-        String currentEmail = authentication.getName();
-        User user = userRepository.findByEmail(currentEmail)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        User user = getAuthenticatedUser();
         if(!user.getPhoneNumber().equals(request.getOldPhoneNumber())) {
             throw new AppException(ErrorCode.OLD_PHONE_NOT_EXISTED);
         }
@@ -317,13 +326,38 @@ public class AccountServiceImpl implements IAccountService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.CHANGED_PHONE,
-                "User require change phone success with phone: " + request.getNewPhoneNumber()
+                "User require change phone success with phone: " + request.getNewPhoneNumber(),
+                request.getOldPhoneNumber(),
+                request.getNewPhoneNumber()
         );
     }
 
+    private User getAuthenticatedUser() {
+        SecurityContext jwtContext = SecurityContextHolder.getContext();
+        if (jwtContext == null || jwtContext.getAuthentication() == null ||
+                !jwtContext.getAuthentication().isAuthenticated()) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        log.info("Authentication {}", jwtContext.getAuthentication().getName());
+
+        String email = jwtContext.getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+    }
+
     @Override
-    public List<String> getRolesUser() {
-        return List.of();
+    public List<String> getRolesUser(String token, HttpServletResponse response) {
+        JWTClaimsSet claimsSet;
+        SignedJWT signedJWT = jwtTokenProvider.verifyToken(token, false);
+
+        try {
+            claimsSet = signedJWT.getJWTClaimsSet();
+            String scope = claimsSet.getStringClaim("scope");
+            return scope != null ? Arrays.asList(scope.split(" ")) : List.of();
+        } catch (ParseException e) {
+            log.error("Error parsing token claims", e);
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
     }
 
 }

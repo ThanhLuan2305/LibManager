@@ -19,4 +19,6 @@ public class ActivityLog {
     private UserAction action;
     private String details;
     private Instant timestamp;
+    private Object beforeChange;
+    private Object afterChange;
 }

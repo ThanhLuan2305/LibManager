@@ -24,4 +24,7 @@ public interface BorrowingRepository extends JpaRepository<Borrowing, Long> {
 
     @Query("SELECT COUNT(b) > 0 FROM Borrowing b WHERE b.user.id = :userId AND b.returnDate IS NULL AND b.dueDate < CURRENT_DATE")
     boolean existsOverdueBorrowingsByUser(Long userId);
+
+    @Query("SELECT COUNT(b) > 0 FROM Borrowing b WHERE b.user.id = :userId AND b.returnDate IS NULL")
+    boolean existsByUserIdAndReturnDateIsNull(Long userId);
 }

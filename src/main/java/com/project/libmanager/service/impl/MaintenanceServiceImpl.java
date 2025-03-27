@@ -61,7 +61,9 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.SYSTEM_MAINTENANCE_MODE,
-                "Admin set maintenance mode is: " + maintenanceMode
+                "Admin set maintenance mode is: " + maintenanceMode,
+                null,
+                null
         );
         asyncMailSender.sendMaintenanceEmails(emails, maintenanceMode);
     }

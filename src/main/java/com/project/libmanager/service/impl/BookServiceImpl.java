@@ -100,13 +100,16 @@ public class BookServiceImpl implements IBookService {
             book.setType(type);
             book = bookRepository.save(book);
             User user = getAuthenticatedUser();
+            BookResponse bookResponse = bookMapper.toBookResponse(book);
             activityLogService.logAction(
                     user.getId(),
                     user.getEmail(),
                     UserAction.ADD_BOOK,
-                    "Admin add new book with id: " + book.getId()
+                    "Admin add new book with id: " + book.getId(),
+                    bookResponse,
+                    null
             );
-            return bookMapper.toBookResponse(book);
+            return bookResponse;
         } catch (DataAccessException e) {
             log.error("Database error: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -133,29 +136,34 @@ public class BookServiceImpl implements IBookService {
             throw new AppException(ErrorCode.INVALID_KEY);
         }
 
-        Book book = bookRepository.findById(bookId)
+        Book oldBook = bookRepository.findById(bookId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
 
+        BookResponse oldBookResponse = bookMapper.toBookResponse(oldBook);
         BookType type = bookTypeRepository.findById(bookUpdateRequest.getTypeId())
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKTYPE_NOT_EXISTED));
-        if (!book.getIsbn().equals(bookUpdateRequest.getIsbn())
+        if (!oldBook.getIsbn().equals(bookUpdateRequest.getIsbn())
                 && bookRepository.findByIsbn(bookUpdateRequest.getIsbn()).isPresent()) {
             throw new AppException(ErrorCode.BOOK_EXISTED);
         }
 
         try {
-            bookMapper.updateBook(book, bookUpdateRequest);
-            book.setType(type);
-            book = bookRepository.save(book);
+            bookMapper.updateBook(oldBook, bookUpdateRequest);
+            oldBook.setType(type);
+            Book newBook = bookRepository.save(oldBook);
 
             User user = getAuthenticatedUser();
+
+            BookResponse newBookResponse = bookMapper.toBookResponse(newBook);
             activityLogService.logAction(
                     user.getId(),
                     user.getEmail(),
                     UserAction.UPDATE_BOOK_INFO,
-                    "Admin update book with id: " + book.getId()
+                    "Admin update book with id: " + newBook.getId(),
+                    oldBookResponse,
+                    newBookResponse
             );
-            return bookMapper.toBookResponse(book);
+            return newBookResponse;
         } catch (DataAccessException e) {
             log.error(e.getMessage());
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
@@ -174,6 +182,7 @@ public class BookServiceImpl implements IBookService {
     @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_EXISTED));
+        BookResponse oleBookResponse = bookMapper.toBookResponse(book);
         boolean isBorrowed = borrowingRepository.existsByBookAndReturnDateIsNull(book);
         if (isBorrowed) {
             throw new AppException(ErrorCode.BOOK_IS_BORROW);
@@ -187,7 +196,9 @@ public class BookServiceImpl implements IBookService {
                     user.getId(),
                     user.getEmail(),
                     UserAction.DELETE_BOOK,
-                    "Admin deleted book with id: " + book.getId()
+                    "Admin deleted book with id: " + book.getId(),
+                    oleBookResponse,
+                    null
             );
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -309,6 +320,9 @@ public class BookServiceImpl implements IBookService {
         if (isDeleted) {
             throw new AppException(ErrorCode.USER_IS_DELETED);
         }
+        if(user.isBannedFromBorrowing()) {
+            throw new AppException(ErrorCode.USER_BORROWING_RESTRICTED);
+        }
 
         if (borrowingRepository.existsOverdueBorrowingsByUser(user.getId())) {
             throw new AppException(ErrorCode.USER_HAS_OVERDUE_BOOKS);
@@ -345,7 +359,9 @@ public class BookServiceImpl implements IBookService {
                     user.getId(),
                     user.getEmail(),
                     UserAction.BOOK_BORROWED,
-                    "User borrowed book with id: " + book.getId()
+                    "User borrowed book with id: " + book.getId(),
+                    null,
+                    null
             );
             return borrowingMapper.toBorrowingResponse(borrowing);
         } catch (Exception e) {
@@ -389,7 +405,9 @@ public class BookServiceImpl implements IBookService {
                     user.getId(),
                     user.getEmail(),
                     UserAction.BOOK_RETURNED,
-                    "User returned book with id: " + book.getId()
+                    "User returned book with id: " + book.getId(),
+                    null,
+                    null
             );
             return borrowingMapper.toBorrowingResponse(borrowingRepository.save(borrowing));
         } catch (Exception e) {
@@ -542,8 +560,10 @@ public class BookServiceImpl implements IBookService {
             activityLogService.logAction(
                     user.getId(),
                     user.getEmail(),
-                    UserAction.BOOK_BORROWED,
-                    "Admin import book by file csv success!"
+                    UserAction.IMPORT_BOOK_BY_CSV,
+                    "Admin import book by file csv success!",
+                    null,
+                    null
             );
         } catch (AppException e) {
             log.error(e.getMessage(), e);

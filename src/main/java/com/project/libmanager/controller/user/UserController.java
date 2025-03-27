@@ -3,6 +3,7 @@ package com.project.libmanager.controller.user;
 import com.project.libmanager.service.IAccountService;
 import com.project.libmanager.service.IPasswordService;
 import com.project.libmanager.service.dto.request.*;
+import com.project.libmanager.service.dto.response.UserResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
@@ -12,10 +13,7 @@ import com.project.libmanager.service.IUserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("user/users")
@@ -27,6 +25,15 @@ public class UserController {
     private final IAccountService acountService;
     private final IPasswordService passwordService;
     private static final String RS_SUCCESS = "success";
+
+    @GetMapping("/info")
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo() {
+        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .message("Get info successfully!")
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Boolean>> changePassword(@RequestBody @Valid ChangePasswordRequest cpRequest) {

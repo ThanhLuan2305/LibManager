@@ -62,6 +62,8 @@ public enum ErrorCode {
     BOOK_IS_DELETED(1049, "Book is deleted!", HttpStatus.BAD_REQUEST),
     BOOK_IS_BORROW(1050, "Book is currently borrowed!", HttpStatus.BAD_REQUEST),
     USER_CANNOT_BE_DELETED(1051, "User is currently borrowing books, cannot delete!", HttpStatus.BAD_REQUEST),
+    ACTIVITY_LOG_NOT_EXISTED(1051, "Activity log not existed!", HttpStatus.NOT_FOUND),
+    USER_BORROWING_RESTRICTED(1052, "User is restricted from borrowing due to three late returns!", HttpStatus.FORBIDDEN),
     ;
 
     private int code;

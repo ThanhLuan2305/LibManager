@@ -17,6 +17,6 @@ public class AuthenticationRequest {
     private String email;
 
     @NotBlank(message = "NOT_BLANK")
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "INVALID_PASSWORD")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&]{8,}$", message = "INVALID_PASSWORD")
     private String password;
 }

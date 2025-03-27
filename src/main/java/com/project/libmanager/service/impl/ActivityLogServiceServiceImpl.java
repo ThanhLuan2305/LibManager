@@ -24,26 +24,33 @@ import java.time.Instant;
 public class ActivityLogServiceServiceImpl implements IActivityLogService {
     private final ActivityLogRepository activityLogRepository;
     @Override
-    public void logAction(Long userId, String email, UserAction action, String details) {
+    public void logAction(Long userId, String email, UserAction action, String details, Object beforeChange, Object afterChange) {
         ActivityLog logActivity = ActivityLog.builder()
                 .userId(userId)
                 .email(email)
                 .action(action)
                 .details(details)
                 .timestamp(Instant.now())
+                .beforeChange(beforeChange)
+                .afterChange(afterChange)
                 .build();
         ActivityLog newLog = activityLogRepository.save(logActivity);
         log.info("Check activity log: {}", newLog);
     }
 
     @Override
-    public Page<ActivityLog> getActivityLog(Pageable pageable) {
+    public Page<ActivityLog> getActivityLogs(Pageable pageable) {
         return activityLogRepository.findAll(pageable);
     }
 
     @Override
     public void deleteAllLogs() {
         activityLogRepository.deleteAll();
+    }
+
+    @Override
+    public ActivityLog getActivityLog(String id) {
+        return activityLogRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.ACTIVITY_LOG_NOT_EXISTED));
     }
 
 }

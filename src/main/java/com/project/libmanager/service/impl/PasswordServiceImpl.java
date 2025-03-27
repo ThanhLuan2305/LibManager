@@ -71,7 +71,9 @@ public class PasswordServiceImpl implements IPasswordService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.PASSWORD_CHANGED,
-                "User changed new password successfully with email: " + user.getEmail()
+                "User changed new password successfully with email: " + user.getEmail(),
+                null,
+                null
         );
         return true;
     }
@@ -111,7 +113,9 @@ public class PasswordServiceImpl implements IPasswordService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.PASSWORD_CHANGED,
-                "User changed new password after reset password successfully with email: " + user.getEmail()
+                "User changed new password after reset password successfully with email: " + user.getEmail(),
+                null,
+                null
         );
         return true;
     }
@@ -150,7 +154,9 @@ public class PasswordServiceImpl implements IPasswordService {
                 user.getId(),
                 user.getEmail(),
                 UserAction.PASSWORD_RESET_REQUEST,
-                "User request reset passowrd with email: " + user.getEmail()
+                "User request reset passowrd with email: " + user.getEmail(),
+                null,
+                null
         );
 
         mailService.sendEmailOTP(otp, user.getEmail(), true, user.getFullName());
@@ -186,7 +192,9 @@ public class PasswordServiceImpl implements IPasswordService {
                     user.getId(),
                     user.getEmail(),
                     UserAction.PASSWORD_RESET_SUCCESS,
-                    "User reset passowrd success with email: " + user.getEmail()
+                    "User reset passowrd success with email: " + user.getEmail(),
+                    null,
+                    null
             );
             return password;
         } catch (Exception e) {

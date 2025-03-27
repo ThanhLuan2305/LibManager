@@ -6,7 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface IActivityLogService {
-    void logAction(Long userId, String email, UserAction action, String details);
-    Page<ActivityLog> getActivityLog(Pageable pageable);
+    void logAction(Long userId, String email, UserAction action, String details, Object beforeChange, Object afterChange);
+    Page<ActivityLog> getActivityLogs(Pageable pageable);
     void deleteAllLogs();
+    ActivityLog getActivityLog(String id);
 }

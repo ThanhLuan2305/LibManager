@@ -28,6 +28,7 @@ public enum UserAction {
     BOOK_RETURNED,
     ADD_BOOK,
     DELETE_BOOK,
-    UPDATE_BOOK_INFO
+    UPDATE_BOOK_INFO,
+    IMPORT_BOOK_BY_CSV
 }
 
