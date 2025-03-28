@@ -74,6 +74,10 @@ public class AccountServiceImpl implements IAccountService {
         if (userRepository.existsByEmail(registerRequest.getEmail()))
             throw new AppException(ErrorCode.USER_EXISTED);
 
+        if(userRepository.existsByPhoneNumber(registerRequest.getPhoneNumber())) {
+            throw new AppException(ErrorCode.PHONE_EXISTED);
+        }
+
         Role role = roleRepository.findByName(PredefinedRole.USER_ROLE)
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
         Set<Role> roles = new HashSet<>();
