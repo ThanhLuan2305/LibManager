@@ -41,7 +41,7 @@ public class AdminBookController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BookResponse>>> getBooks(@RequestParam(defaultValue = "0") int offset,
-                                                                    @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
                 .result(bookService.getBooksForAdmin(pageable))
@@ -85,8 +85,8 @@ public class AdminBookController {
 
     @GetMapping("/borrow-by-user")
     public ResponseEntity<ApiResponse<Page<BorrowingResponse>>> getBookBorrowByUser(@RequestParam Long userId,
-                                                                                    @RequestParam(defaultValue = "0") int offset,
-                                                                                    @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit) {
         Pageable pageable = PageRequest.of(offset, limit);
         Page<BorrowingResponse> bookPage = bookService.getBookBorrowByUser(userId, pageable);
         ApiResponse<Page<BorrowingResponse>> response = ApiResponse.<Page<BorrowingResponse>>builder()
@@ -120,7 +120,7 @@ public class AdminBookController {
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(@ParameterObject BookCriteria criteria,
-                                                                       Pageable pageable) {
+            Pageable pageable) {
         ApiResponse<Page<BookResponse>> response = ApiResponse.<Page<BookResponse>>builder()
                 .message("Search book successfully")
                 .result(bookService.searchBook(criteria, pageable))
