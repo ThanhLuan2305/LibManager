@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -73,5 +74,16 @@ public class LoginDetailServiceImpl implements ILoginDetailService {
     @Override
     public LoginDetailResponse getLoginDetailByJti(String jti) {
         return loginDetailMapper.toLoginDetailResponse(loginDetailRepository.findByJti(jti).orElseThrow(() -> new AppException(ErrorCode.LOGINDETAIL_NOTFOUND)));
+    }
+
+    @Override
+    @Transactional
+    public void deleteLoginDetailByUser(User user) {
+        try {
+            loginDetailRepository.deleteByUser(user);
+        } catch (Exception e) {
+            log.error("Error when deleting login detail: {}", e.getMessage());
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 }

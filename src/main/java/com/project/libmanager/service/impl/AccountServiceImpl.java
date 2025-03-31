@@ -10,10 +10,7 @@ import com.project.libmanager.exception.AppException;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
 import com.project.libmanager.security.JwtTokenProvider;
-import com.project.libmanager.service.IAccountService;
-import com.project.libmanager.service.IActivityLogService;
-import com.project.libmanager.service.IMailService;
-import com.project.libmanager.service.IOtpVerificationService;
+import com.project.libmanager.service.*;
 import com.project.libmanager.service.dto.request.*;
 import com.project.libmanager.service.dto.response.UserResponse;
 import com.project.libmanager.service.mapper.UserMapper;
@@ -47,6 +44,7 @@ public class AccountServiceImpl implements IAccountService {
     private final RoleRepository roleRepository;
     private final IOtpVerificationService otpVerificationService;
     private final IActivityLogService activityLogService;
+    private final ILoginDetailService loginDetailService;
     private final JwtTokenProvider jwtTokenProvider;
     private final CommonUtil commonUtil;
     /**
@@ -210,17 +208,24 @@ public class AccountServiceImpl implements IAccountService {
         User user = userRepository.findByEmail(changeMailRequest.getOldEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        user.setEmail(changeMailRequest.getNewEmail());
-        userRepository.save(user);
+        try{
+            user.setEmail(changeMailRequest.getNewEmail());
+            loginDetailService.deleteLoginDetailByUser(user);
+            userRepository.save(user);
 
-        activityLogService.logAction(
-                user.getId(),
-                user.getEmail(),
-                UserAction.EMAIL_VERIFICATION,
-                "User verify change email success with email: " + changeMailRequest.getNewEmail(),
-                null,
-                null
-        );
+            activityLogService.logAction(
+                    user.getId(),
+                    user.getEmail(),
+                    UserAction.EMAIL_VERIFICATION,
+                    "User verify change email success with email: " + changeMailRequest.getNewEmail(),
+                    null,
+                    null
+            );
+            SecurityContextHolder.clearContext();
+        } catch (Exception e) {
+            log.error("Error while verifying change email success with email");
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
     }
 
     /**

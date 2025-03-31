@@ -4,27 +4,24 @@ import com.project.libmanager.constant.ErrorCode;
 import com.project.libmanager.constant.UserAction;
 import com.project.libmanager.criteria.UserCriteria;
 import com.project.libmanager.entity.LoginDetail;
-import com.project.libmanager.repository.BorrowingRepository;
-import com.project.libmanager.repository.LoginDetailRepository;
-import com.project.libmanager.service.IActivityLogService;
-import com.project.libmanager.service.IAuthenticationService;
-import com.project.libmanager.service.ILoginDetailService;
-import com.project.libmanager.service.dto.request.UserCreateRequest;
-import com.project.libmanager.service.dto.request.UserUpdateRequest;
-import com.project.libmanager.service.dto.response.UserResponse;
 import com.project.libmanager.entity.Role;
 import com.project.libmanager.entity.User;
 import com.project.libmanager.exception.AppException;
-import com.project.libmanager.service.mapper.UserMapper;
+import com.project.libmanager.repository.BorrowingRepository;
+import com.project.libmanager.repository.LoginDetailRepository;
 import com.project.libmanager.repository.RoleRepository;
 import com.project.libmanager.repository.UserRepository;
+import com.project.libmanager.service.IActivityLogService;
+import com.project.libmanager.service.ILoginDetailService;
 import com.project.libmanager.service.IUserService;
-
+import com.project.libmanager.service.dto.request.UserCreateRequest;
+import com.project.libmanager.service.dto.request.UserUpdateRequest;
+import com.project.libmanager.service.dto.response.UserResponse;
+import com.project.libmanager.service.mapper.UserMapper;
 import com.project.libmanager.specification.UserQueryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -62,14 +59,14 @@ public class UserServiceImpl implements IUserService {
      * @throws AppException If the user already exists or there is an error during
      *                      creation.
      * @implNote This method encrypts the user's password and assigns the default
-     *           user role. The user is marked as not verified.
+     * user role. The user is marked as not verified.
      */
     @Transactional
     @Override
     public UserResponse createUser(UserCreateRequest request) {
         User user = userMapper.toUser(request);
         Set<Role> roles = new HashSet<>();
-        
+
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -90,7 +87,7 @@ public class UserServiceImpl implements IUserService {
                     userAction.getId(),
                     userAction.getEmail(),
                     UserAction.ADMIN_CREATE_USER,
-                    "Admin create new user with email: "+ user.getEmail(),
+                    "Admin create new user with email: " + user.getEmail(),
                     null,
                     userResponse
             );
@@ -121,7 +118,7 @@ public class UserServiceImpl implements IUserService {
      * @return A page of users.
      * @throws AppException If there is an error during retrieval.
      * @implNote This method fetches all users from the repository and returns them
-     *           in a paginated format.
+     * in a paginated format.
      */
     @Override
     public Page<UserResponse> getUsers(Pageable pageable) {
@@ -138,7 +135,7 @@ public class UserServiceImpl implements IUserService {
      * @param userPage The page of users.
      * @return A page of user responses.
      * @implNote This method maps the content of the user page to a list of user
-     *           responses and returns the paginated response.
+     * responses and returns the paginated response.
      */
     @Override
     public Page<UserResponse> mapUserPageUserResponsePage(Page<User> userPage) {
@@ -155,7 +152,7 @@ public class UserServiceImpl implements IUserService {
      * @return The response containing the details of the user.
      * @throws AppException If the user does not exist.
      * @implNote This method retrieves a specific user by ID and returns the user
-     *           response.
+     * response.
      */
     @Override
     public UserResponse mapToUserResponseByMapper(Long id) {
@@ -183,7 +180,7 @@ public class UserServiceImpl implements IUserService {
      * @return The response containing the details of the authenticated user.
      * @throws AppException If the user is not authenticated or does not exist.
      * @implNote This method retrieves the currently logged-in user using the
-     *           security context.
+     * security context.
      */
     @Override
     public UserResponse getMyInfo() {
@@ -240,7 +237,7 @@ public class UserServiceImpl implements IUserService {
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 u.setPassword(passwordEncoder.encode(request.getPassword()));
             } else {
-              u.setPassword(oldPassword);
+                u.setPassword(oldPassword);
             }
 
             Set<Role> roles = new HashSet<>();
@@ -255,7 +252,7 @@ public class UserServiceImpl implements IUserService {
                     userAction.getId(),
                     userAction.getEmail(),
                     UserAction.ADMIN_UPDATE_USER,
-                    "Admin update user with email: "+ u.getEmail(),
+                    "Admin update user with email: " + u.getEmail(),
                     oldeUserResponse,
                     userResponse
             );
@@ -276,7 +273,7 @@ public class UserServiceImpl implements IUserService {
      * @throws AppException If the user does not exist or there is an error during
      *                      deletion.
      * @implNote This method checks if the user has borrowings before deleting. If
-     *           so, the user is marked as deleted instead of being fully deleted.
+     * so, the user is marked as deleted instead of being fully deleted.
      */
     @Transactional
     @Override
@@ -301,7 +298,7 @@ public class UserServiceImpl implements IUserService {
                     userAction.getId(),
                     userAction.getEmail(),
                     UserAction.ADMIN_DELETE_USER,
-                    "Admin create new user with email: "+ user.getEmail(),
+                    "Admin create new user with email: " + user.getEmail(),
                     userMapper.toUserResponse(userAction),
                     null
             );
@@ -319,6 +316,6 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
 }
