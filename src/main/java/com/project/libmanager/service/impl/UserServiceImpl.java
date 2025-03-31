@@ -234,10 +234,13 @@ public class UserServiceImpl implements IUserService {
         }
         User userAction = getAuthenticatedUser();
         try {
+            String oldPassword = u.getPassword();
             userMapper.updateUser(u, request);
 
             if (request.getPassword() != null && !request.getPassword().isBlank()) {
                 u.setPassword(passwordEncoder.encode(request.getPassword()));
+            } else {
+              u.setPassword(oldPassword);
             }
 
             Set<Role> roles = new HashSet<>();
