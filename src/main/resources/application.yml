@@ -43,12 +43,14 @@ server:
 app:
   support-email: libmanage.support@gmail.com
   maintenance-mode: false
-  verify-email-url: http://localhost:5173/verify-otp/?otp=
+  verify-email-url: http://localhost:5173/verify-otp/
+  reset-password-url: http://localhost:5173/reset-password/
 
 jwt:
   signing.key: yGIVSMe9sP0iJDJMpSIph503ZM1uhQlfiPVjp/Hi1Yyv6Nd0kbwQ6omdwcAgA7xt
   valid-duration: 3600
   refresh-duration: 2592000
+  reset-duration: 3600
 
 security:
   public-endpoints-post: /auth/**,/account/**,/password/**,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/search

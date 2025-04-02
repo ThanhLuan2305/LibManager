@@ -1,31 +1,21 @@
 package com.project.libmanager.controller.admin;
 
+import com.project.libmanager.criteria.UserCriteria;
+import com.project.libmanager.service.IUserService;
+import com.project.libmanager.service.dto.request.UserCreateRequest;
+import com.project.libmanager.service.dto.request.UserUpdateRequest;
+import com.project.libmanager.service.dto.response.ApiResponse;
+import com.project.libmanager.service.dto.response.UserResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.project.libmanager.criteria.UserCriteria;
-import com.project.libmanager.service.dto.request.UserCreateRequest;
-import com.project.libmanager.service.dto.request.UserUpdateRequest;
-import com.project.libmanager.service.dto.response.ApiResponse;
-import com.project.libmanager.service.dto.response.UserResponse;
-import com.project.libmanager.service.IUserService;
-
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("admin/users")
@@ -68,18 +58,18 @@ public class AdminUserController {
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<UserResponse>>> serachUsers(@ParameterObject UserCriteria criteria,
-            Pageable pageable) {
+                                                                       Pageable pageable) {
 
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()
                 .message("Users retrieved successfully based on search criteria.")
-                .result(userService.searchUSer(criteria, pageable))
+                .result(userService.searchUser(criteria, pageable))
                 .build();
         return ResponseEntity.ok().body(response);
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(@RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "10") int limit) {
+                                                                    @RequestParam(defaultValue = "10") int limit) {
 
         Pageable pageable = PageRequest.of(offset, limit);
         ApiResponse<Page<UserResponse>> response = ApiResponse.<Page<UserResponse>>builder()

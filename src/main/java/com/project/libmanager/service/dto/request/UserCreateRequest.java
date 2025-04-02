@@ -1,20 +1,15 @@
 package com.project.libmanager.service.dto.request;
 
-import com.project.libmanager.constant.VerificationStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Pattern;
-
-import java.time.Instant;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.project.libmanager.constant.VerificationStatus;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
@@ -50,7 +45,4 @@ public class UserCreateRequest {
 
     @NotNull(message = "NOT_BLANK")
     private boolean deleted;
-
-    @NotNull(message = "NOT_BLANK")
-    private boolean resetPassword;
 }

@@ -1,13 +1,13 @@
 package com.project.libmanager.service.dto.response;
 
-import java.time.Instant;
-import java.util.Set;
-
 import com.project.libmanager.constant.VerificationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -27,8 +27,6 @@ public class UserResponse {
     private VerificationStatus verificationStatus;
 
     private boolean deleted;
-
-    private boolean resetPassword;
 
     private int lateReturnCount;
 

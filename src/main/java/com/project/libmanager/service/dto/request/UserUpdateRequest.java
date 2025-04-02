@@ -1,18 +1,17 @@
 package com.project.libmanager.service.dto.request;
 
-import java.time.Instant;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import com.project.libmanager.constant.VerificationStatus;
 import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -34,8 +33,6 @@ public class UserUpdateRequest {
     private List<String> listRole;
 
     private boolean deleted;
-
-    private boolean resetPassword;
 
     private int lateReturnCount;
 }

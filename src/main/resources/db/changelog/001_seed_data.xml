@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    
+
     <changeSet id="001-seed-role" author="admin">
         <insert tableName="roles">
             <column name="name" value="ADMIN"/>
@@ -32,7 +32,6 @@
             <column name="verification_status" value="FULLY_VERIFIED"/>
             <column name="full_name" value="Admin User"/>
             <column name="deleted" valueNumeric="0"/>
-            <column name="reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -47,7 +46,6 @@
             <column name="verification_status" value="EMAIL_VERIFIED"/>
             <column name="full_name" value="John Doe"/>
             <column name="deleted" valueNumeric="0"/>
-            <column name="reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="1"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -62,7 +60,6 @@
             <column name="verification_status" value="PHONE_VERIFIED"/>
             <column name="full_name" value="Jane Smith"/>
             <column name="deleted" valueNumeric="0"/>
-            <column name="reset_password" valueNumeric="0"/>
             <column name="late_return_count" value="0"/>
             <column name="created_at" value="2024-02-02"/>
             <column name="updated_at" value="2024-02-11"/>
@@ -80,7 +77,7 @@
             <column name="user_id" value="2"/>
             <column name="role_id" value="2"/>
         </insert>
-        
+
         <insert tableName="user_roles">
             <column name="user_id" value="3"/>
             <column name="role_id" value="2"/>
@@ -108,7 +105,8 @@
         <insert tableName="books">
             <column name="isbn" value="9780134685991"/>
             <column name="title" value="Effective Java"/>
-            <column name="cover_image_url" value="https://res.cloudinary.com/ddvgzy4xh/image/upload/v1742179674/EffectiveJava_imhdyi.jpg"/>
+            <column name="cover_image_url"
+                    value="https://res.cloudinary.com/ddvgzy4xh/image/upload/v1742179674/EffectiveJava_imhdyi.jpg"/>
             <column name="author" value="Joshua Bloch"/>
             <column name="type_id" value="1"/>
             <column name="stock" value="5"/>
@@ -125,7 +123,8 @@
         <insert tableName="books">
             <column name="isbn" value="9781492078005"/>
             <column name="title" value="Designing Data-Intensive Applications"/>
-            <column name="cover_image_url" value="https://res.cloudinary.com/ddvgzy4xh/image/upload/v1742179665/DesigningData-IntensiveApplications_etyhe1.jpg"/>
+            <column name="cover_image_url"
+                    value="https://res.cloudinary.com/ddvgzy4xh/image/upload/v1742179665/DesigningData-IntensiveApplications_etyhe1.jpg"/>
             <column name="author" value="Martin Kleppmann"/>
             <column name="type_id" value="2"/>
             <column name="stock" value="8"/>

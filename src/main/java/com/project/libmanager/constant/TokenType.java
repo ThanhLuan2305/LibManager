@@ -1,5 +1,5 @@
 package com.project.libmanager.constant;
 
 public enum TokenType {
-    ACCESS, REFRESH
+    ACCESS, REFRESH, RESET_PASSWORD
 }

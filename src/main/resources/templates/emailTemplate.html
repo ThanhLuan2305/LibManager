@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Xác thực Email</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Email Verification</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -62,20 +62,20 @@
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <h2 class="email-title">Xác thực Email của bạn</h2>
-        <p class="email-content">
-            Xin chào, <strong><span th:text="${name}"></span></strong>! <br>
-            Cảm ơn bạn đã đăng ký tài khoản. Vui lòng nhấn vào nút dưới đây để xác thực email của bạn.
-        </p>
+<div class="email-container">
+    <h2 class="email-title">Verify Your Email</h2>
+    <p class="email-content">
+        Hello, <strong><span th:text="${name}"></span></strong>! <br>
+        Thank you for registering an account. Please click the button below to verify your email.
+    </p>
 
-        <a class="verify-button" th:href="${verifyUrl}">
-            Xác thực Email
-        </a>
+    <a class="verify-button" th:href="${verifyUrl}">
+        Verify Email
+    </a>
 
-        <p class="email-footer">
-            Liên kết xác thực chỉ có hiệu lực trong 1 giờ. Vui lòng xác thực để tài khoản có thể hoạt động.
-        </p>
-    </div>
+    <p class="email-footer">
+        The verification link is valid for 1 hour. Please verify your email to activate your account.
+    </p>
+</div>
 </body>
 </html>

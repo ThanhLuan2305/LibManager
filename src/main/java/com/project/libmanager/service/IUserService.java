@@ -1,11 +1,10 @@
 package com.project.libmanager.service;
 
 import com.project.libmanager.criteria.UserCriteria;
+import com.project.libmanager.entity.User;
 import com.project.libmanager.service.dto.request.UserCreateRequest;
 import com.project.libmanager.service.dto.request.UserUpdateRequest;
 import com.project.libmanager.service.dto.response.UserResponse;
-import com.project.libmanager.entity.User;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,7 +26,7 @@ public interface IUserService {
 
     void deleteUser(Long userId);
 
-    Page<UserResponse> searchUSer(UserCriteria criteria, Pageable pageable);
+    Page<UserResponse> searchUser(UserCriteria criteria, Pageable pageable);
 
     User findByEmail(String email);
 }

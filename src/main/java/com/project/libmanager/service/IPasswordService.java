@@ -1,12 +1,13 @@
 package com.project.libmanager.service;
 
 import com.project.libmanager.service.dto.request.ChangePasswordRequest;
-import com.project.libmanager.service.dto.response.ChangePassAfterResetRequest;
+import com.project.libmanager.service.dto.request.ResetPasswordRequest;
 
 
 public interface IPasswordService {
     boolean changePassword(ChangePasswordRequest request);
-    boolean changePasswordAfterReset(ChangePassAfterResetRequest request);
-    void forgetPassword(String contactInfo, boolean isPhone);
-    String resetPassword(String token, String contactInfo, boolean isPhone);
+
+    void forgetPassword(String email);
+
+    void resetPassword(ResetPasswordRequest resetPasswordRequest);
 }
