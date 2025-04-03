@@ -106,12 +106,12 @@ public class UserServiceImpl implements IUserService {
             UserResponse userResponse = userMapper.toUserResponse(user);
             // Log the creation action by admin
             activityLogService.logAction(
-                    userAction.getId(),           // Admin's ID
-                    userAction.getEmail(),        // Admin's email
-                    UserAction.ADMIN_CREATE_USER, // Action type
-                    "Admin create new user with email: " + user.getEmail(), // Description
-                    null,                         // No previous data
-                    userResponse                  // New user data
+                    userAction.getId(),
+                    userAction.getEmail(),
+                    UserAction.ADMIN_CREATE_USER,
+                    "Admin create new user with email: " + user.getEmail(),
+                    null,
+                    userResponse
             );
 
             // Return the response to the caller

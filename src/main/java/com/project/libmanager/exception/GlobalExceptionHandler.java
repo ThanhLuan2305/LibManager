@@ -34,8 +34,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse<Void>> handlingRuntimeException(RuntimeException runtimeException) {
-        // Use generic error code; fallback for unhandled runtime issues
-        return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.<Void>builder()
                 .code(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode())
                 .message(runtimeException.getMessage())
                 .build());
@@ -51,7 +50,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse<Void>> handlingAppException(AppException appException) {
         ErrorCode errorCode = appException.getErrorCode();
-        // Log error details; provides context for debugging
         log.error("Handling AppException: Code={}, Message={}", errorCode.getCode(), errorCode.getMessage());
         return ResponseEntity.status(errorCode.getStatusCode()).body(ApiResponse.<Void>builder()
                 .code(errorCode.getCode())
@@ -79,16 +77,13 @@ public class GlobalExceptionHandler {
      * Handles validation errors from request body or parameters.
      *
      * @param ex the {@link MethodArgumentNotValidException} containing validation errors
-     * @return a {@link ResponseEntity} with 400 status and error details from first validation message
-     * @implNote Logs field and global errors, maps first error message to an {@link ErrorCode}.
+     * @return a {@link ApiResponse  * @implNote Logs field and global errors, maps first error message to an {@link ErrorCode}.
      */
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse<Void>> handlingVadidation(MethodArgumentNotValidException ex) {
-        // Log all errors; aids debugging validation issues
+    ResponseEntity<ApiResponse<Void>> handlingValidation(MethodArgumentNotValidException ex) {
         log.error("Field Errors: {}", ex.getBindingResult().getFieldErrors());
         log.error("Global Errors: {}", ex.getBindingResult().getGlobalErrors());
 
-        // Collect error messages; combines field and global errors
         List<String> errorMessages = new ArrayList<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             errorMessages.add(fieldError.getDefaultMessage());
@@ -97,11 +92,15 @@ public class GlobalExceptionHandler {
             errorMessages.add(globalError.getDefaultMessage());
         }
 
-        // Use first error message or fallback; assumes message matches ErrorCode name
         String errorMessage = errorMessages.isEmpty() ? "UNCATEGORIZED_EXCEPTION" : errorMessages.get(0);
-        ErrorCode errorCode = ErrorCode.valueOf(errorMessage); // Converts message to ErrorCode enum
+        ErrorCode errorCode;
+        try {
+            errorCode = ErrorCode.valueOf(errorMessage);
+        } catch (IllegalArgumentException e) {
+            errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
+        }
 
-        return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.<Void>builder()
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .build());
@@ -116,7 +115,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = AuthenticationServiceException.class)
     ResponseEntity<ApiResponse<Void>> handlingAuthenticationException(AuthenticationServiceException ex) {
-        // Log authentication failure; provides context
         log.error("Authentication error: {}", ex.getMessage());
         return ResponseEntity.status(ErrorCode.LOGIN_ERROR.getStatusCode()).body(ApiResponse.<Void>builder()
                 .code(ErrorCode.LOGIN_ERROR.getCode())
@@ -148,12 +146,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ApiResponse<Void>> handleNullPointerException(NullPointerException ex) {
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .code(500)
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.<Void>builder()
+                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("Error system: " + ex.getMessage())
                 .result(null)
-                .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+                .build());
     }
 
     /**
@@ -165,7 +162,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = ParseException.class)
     ResponseEntity<ApiResponse<Void>> handlingParseException(ParseException ex) {
-        // Log parsing failure; specific to JWT context
         log.error("Failed to parse JWT token: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.<Void>builder()
                 .code(HttpStatus.BAD_REQUEST.value())
