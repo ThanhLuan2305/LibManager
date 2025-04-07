@@ -256,7 +256,7 @@ public class UserServiceImpl implements IUserService {
 
             // Fetch user by email from database
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                    .orElseThrow(() -> new AppException(ErrorCode.ROOM_IS_PRIVATE));
 
             // check null user (already handled by orElseThrow)
             if (user == null) {

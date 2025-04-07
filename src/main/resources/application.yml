@@ -54,7 +54,7 @@ jwt:
 
 security:
   public-endpoints-post: /auth/**,/account/**,/password/**,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/search
-  public-endpoints-get: /auth/verify-email,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/all,/books/detail
+  public-endpoints-get: /auth/verify-email,/swagger-ui/**,/v3/api-docs/**,/v3/api-docs,/swagger-resources/**,/webjars/**,/v3/api-docs.yaml,/assets/**,/favicon.ico,/books/all,/books/detail,/chat/**
   permissions:
     admin_role: /admin/**
     user_role: /user/**
