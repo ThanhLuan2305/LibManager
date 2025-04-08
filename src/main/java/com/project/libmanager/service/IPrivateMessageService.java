@@ -12,6 +12,4 @@ public interface IPrivateMessageService {
     PrivateMessageResponse sendMessagePrivate(PrivateMessageRequest request);
 
     Map<Long, List<PrivateMessageResponse>> getMessAdminWithAllUser();
-
-    void deleteMessage(String messageId);
 }

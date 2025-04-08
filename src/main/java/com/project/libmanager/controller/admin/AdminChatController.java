@@ -1,5 +1,6 @@
 package com.project.libmanager.controller.admin;
 
+import com.project.libmanager.exception.AppException;
 import com.project.libmanager.service.IPrivateMessageService;
 import com.project.libmanager.service.dto.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for managing admin chat-related operations.
+ * Provides endpoints for retrieving private messages between the admin and all users.
+ */
 @RestController
 @RequestMapping("admin/chat")
 @RequiredArgsConstructor
@@ -19,9 +24,18 @@ import org.springframework.web.bind.annotation.RestController;
 @SecurityRequirement(name = "JWT Authentication")
 @Tag(name = "Admin Chat Management", description = "Endpoints for managing chat by admin")
 public class AdminChatController {
-    private final IPrivateMessageService privateMessageService;
+    private final IPrivateMessageService privateMessageService; // Service for private message operations
 
-    @Operation(summary = "Get all private messages between admin and all users", description = "Only admin to watch all message of user")
+    /**
+     * Retrieves all private messages between the admin and all users.
+     *
+     * @return a {@link ResponseEntity} containing:
+     * - an {@link ApiResponse} with a map of user IDs to their message lists
+     * @throws AppException if the authenticated admin user cannot be retrieved
+     * @implNote Delegates to {@link IPrivateMessageService} to fetch messages and wraps the result in an {@link ApiResponse}.
+     */
+    @Operation(summary = "Get all private messages between admin and all users",
+            description = "Retrieves all private messages between the authenticated admin and all non-admin users.")
     @GetMapping("/private/admin/all")
     public ResponseEntity<ApiResponse<Object>> getAllMessagesWithUsers() {
         var result = privateMessageService.getMessAdminWithAllUser();
@@ -31,5 +45,4 @@ public class AdminChatController {
                 .build();
         return ResponseEntity.ok(response);
     }
-
 }

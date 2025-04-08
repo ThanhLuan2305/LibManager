@@ -69,7 +69,7 @@ public class PasswordServiceImpl implements IPasswordService {
         boolean rs = passwordEncoder.matches(cpRequest.getOldPassword(), user.getPassword());
         // Fail if old password doesn't match; reuses UNAUTHENTICATED for simplicity
         if (!rs) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED); // Indicates authentication failure
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH); // Indicates authentication failure
         }
 
         // Check if new password is different from old; prevents redundant updates

@@ -64,9 +64,7 @@ public enum ErrorCode {
     USER_CANNOT_BE_DELETED(1051, "User is currently borrowing books, cannot delete!", HttpStatus.BAD_REQUEST),
     ACTIVITY_LOG_NOT_EXISTED(1051, "Activity log not existed!", HttpStatus.NOT_FOUND),
     USER_BORROWING_RESTRICTED(1052, "User is restricted from borrowing due to three late returns!", HttpStatus.FORBIDDEN),
-    ROOM_EXISTED(1053, "Room with this roomId already exists.", HttpStatus.BAD_REQUEST),
-    ROOM_NOT_EXISTED(1053, "Room with this roomId not exists.", HttpStatus.NOT_FOUND),
-    ROOM_IS_PRIVATE(1053, "Room private only existed two user in the room.", HttpStatus.NOT_FOUND),
+    ADMIN_ONLY_ONE(1052, "The system has only one admin!", HttpStatus.FORBIDDEN),
     ;
 
     private int code;

@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface OtpVerificationRepository extends JpaRepository<OtpVerification, Long> {
-    Optional<OtpVerification> findByOtp(String otp);
 
     @Query("SELECT COUNT(o) > 0 FROM OtpVerification o WHERE " +
             "(:isPhone = TRUE AND o.phoneNumber = :phoneOrEmail AND o.type = :type) OR " +

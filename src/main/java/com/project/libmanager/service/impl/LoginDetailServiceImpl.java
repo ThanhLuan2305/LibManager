@@ -63,39 +63,6 @@ public class LoginDetailServiceImpl implements ILoginDetailService {
     }
 
     /**
-     * Updates an existing login detail entry.
-     *
-     * @param loginRequest the {@link LoginDetailRequest} containing updated fields:
-     *                     - jti: JWT identifier (not updated)
-     *                     - email: user's email (required)
-     *                     - other metadata (e.g., expiredAt)
-     * @param id           the unique identifier of the login detail to update
-     * @throws AppException if:
-     *                      - login detail not found (ErrorCode.LOGINDETAIL_NOTFOUND)
-     *                      - user not found by email (ErrorCode.ROLE_NOT_EXISTED)
-     * @implNote Updates login detail fields and user association transactionally.
-     */
-    @Override
-    @Transactional
-    public void updateLoginDetail(LoginDetailRequest loginRequest, Long id) {
-        // Fetch existing login detail by ID; fails if not found
-        LoginDetail loginDetail = loginDetailRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.LOGINDETAIL_NOTFOUND));
-
-        // Apply updates from request; assumes mapper merges fields correctly
-        loginDetailMapper.updateLoginDetail(loginDetail, loginRequest);
-
-        // Fetch user by email; re-links user even if unchanged, error code seems off
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
-        // Update user association; ensures consistency
-        loginDetail.setUser(user);
-
-        // Save updated entity; transactional ensures rollback on failure
-        loginDetailRepository.save(loginDetail);
-    }
-
-    /**
      * Disables a login detail by setting its enabled status to false.
      *
      * @param jti the JWT identifier of the login detail to disable
@@ -132,22 +99,6 @@ public class LoginDetailServiceImpl implements ILoginDetailService {
         loginDetail.setExpiredAt(expTime);
         // Save changes; transactional ensures consistency
         loginDetailRepository.save(loginDetail);
-    }
-
-    /**
-     * Retrieves a login detail by its JTI.
-     *
-     * @param jti the JWT identifier of the login detail
-     * @return a {@link LoginDetailResponse} containing login detail data
-     * @throws AppException if login detail not found (ErrorCode.LOGINDETAIL_NOTFOUND)
-     * @implNote Maps entity to response DTO; assumes mapper handles all fields.
-     */
-    @Override
-    public LoginDetailResponse getLoginDetailByJti(String jti) {
-        // Fetch and map login detail in one step; concise but relies on repository
-        return loginDetailMapper.toLoginDetailResponse(
-                loginDetailRepository.findByJti(jti)
-                        .orElseThrow(() -> new AppException(ErrorCode.LOGINDETAIL_NOTFOUND)));
     }
 
     /**

@@ -53,7 +53,7 @@ public class UserCreateRequest {
     private VerificationStatus verificationStatus;
 
     @NotNull(message = "NOT_BLANK")
-    @Schema(description = "List of roles assigned to the user", example = "[\"USER\", \"ADMIN\"]")
+    @Schema(description = "List of roles assigned to the user", example = "[\"USER\"]")
     private List<String> listRole;
 
     @NotNull(message = "NOT_BLANK")

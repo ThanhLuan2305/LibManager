@@ -20,7 +20,6 @@ public interface IBookService {
 
     Page<BookResponse> getBooks(Pageable pageable);
 
-
     Page<BookResponse> getBooksForAdmin(Pageable pageable);
 
     BookResponse getBook(Long id);
@@ -39,5 +38,5 @@ public interface IBookService {
 
     void importBooks(MultipartFile file);
 
-    Page<BookResponse> searchBook( BookCriteria criteria, Pageable pageable);
+    Page<BookResponse> searchBook(BookCriteria criteria, Pageable pageable);
 }

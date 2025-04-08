@@ -53,6 +53,8 @@ public class UserServiceImpl implements IUserService {
     private final LoginDetailRepository loginDetailRepository; // Repository for login details
     private final ILoginDetailService loginDetailService;     // Service for managing login details
 
+    private static final String ROLE_ADMIN = "ADMIN";
+
     /**
      * Creates a new user and assigns a default role.
      *
@@ -87,6 +89,13 @@ public class UserServiceImpl implements IUserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             // Throw exception if email is already taken
             throw new AppException(ErrorCode.USER_EXISTED);
+        }
+
+        // Check role admin, deny create user with role admin
+        for (String r : request.getListRole()) {
+            if (r.equals(ROLE_ADMIN)) {
+                throw new AppException(ErrorCode.ADMIN_ONLY_ONE);
+            }
         }
 
         // Populate roles set with Role entities based on role names from request
@@ -256,7 +265,7 @@ public class UserServiceImpl implements IUserService {
 
             // Fetch user by email from database
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new AppException(ErrorCode.ROOM_IS_PRIVATE));
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_EXISTED));
 
             // check null user (already handled by orElseThrow)
             if (user == null) {
@@ -298,8 +307,14 @@ public class UserServiceImpl implements IUserService {
         // Store current user state as response DTO to save activity log
         UserResponse oldeUserResponse = userMapper.toUserResponse(u);
         // Check if user has ADMIN role
-        if (u.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+        if (u.getRoles().stream().anyMatch(role -> role.getName().equals(ROLE_ADMIN))) {
             throw new AppException(ErrorCode.CANNOT_UPDATE_ADMIN);
+        }
+        // Check role admin, deny update user with change role admin
+        for (String r : request.getListRole()) {
+            if (r.equals(ROLE_ADMIN)) {
+                throw new AppException(ErrorCode.ADMIN_ONLY_ONE);
+            }
         }
         // Get authenticated admin performing the update
         User userAction = getAuthenticatedUser();
@@ -369,7 +384,7 @@ public class UserServiceImpl implements IUserService {
         // Fetch user by ID
         User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         // Check if user has ADMIN role
-        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals(ROLE_ADMIN))) {
             throw new AppException(ErrorCode.CANNOT_DELETE_ADMIN);
         }
         // Check if user has active borrowings (return date is null)
