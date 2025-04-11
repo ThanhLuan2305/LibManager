@@ -62,10 +62,15 @@ public enum ErrorCode {
     BOOK_IS_DELETED(1049, "Book is deleted!", HttpStatus.BAD_REQUEST),
     BOOK_IS_BORROW(1050, "Book is currently borrowed!", HttpStatus.BAD_REQUEST),
     USER_CANNOT_BE_DELETED(1051, "User is currently borrowing books, cannot delete!", HttpStatus.BAD_REQUEST),
-    ACTIVITY_LOG_NOT_EXISTED(1051, "Activity log not existed!", HttpStatus.NOT_FOUND),
-    USER_BORROWING_RESTRICTED(1052, "User is restricted from borrowing due to three late returns!", HttpStatus.FORBIDDEN),
-    ADMIN_ONLY_ONE(1052, "The system has only one admin!", HttpStatus.FORBIDDEN),
-    ;
+    ACTIVITY_LOG_NOT_EXISTED(1052, "Activity log not existed!", HttpStatus.NOT_FOUND),
+    USER_BORROWING_RESTRICTED(1053, "User is restricted from borrowing due to three late returns!", HttpStatus.FORBIDDEN),
+    ADMIN_ONLY_ONE(1054, "The system has only one admin!", HttpStatus.FORBIDDEN),
+    INVALID_TOPIC(1055, "Topic cannot be empty!", HttpStatus.NOT_FOUND),
+    ALREADY_SUBSCRIBED(1056, "User already subscribed to topic", HttpStatus.BAD_REQUEST),
+    NOT_SUBSCRIBED(1057, "User must subscribe to topic", HttpStatus.BAD_REQUEST),
+    INVALID_MESSAGE_CONTENT(1057, "Message content cannot be empty", HttpStatus.BAD_REQUEST),
+    TOPIC_NOT_EXISTED(1058, "Topic not existed", HttpStatus.NOT_FOUND),
+    TOPIC_ALREADY_EXISTS(1059, "Topic have already existed", HttpStatus.BAD_REQUEST);
 
     private int code;
     private String message;

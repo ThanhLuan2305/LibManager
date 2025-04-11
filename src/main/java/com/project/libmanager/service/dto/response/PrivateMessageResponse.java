@@ -1,6 +1,5 @@
 package com.project.libmanager.service.dto.response;
 
-import com.project.libmanager.constant.MessageType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +30,7 @@ public class PrivateMessageResponse {
     @Schema(description = "Timestamp when the message was sent", example = "2023-06-01T12:00:00Z")
     private Instant timestamp;
 
-    @Schema(description = "Type of the message (e.g., TEXT, IMAGE)", example = "TEXT")
-    private MessageType messageType;
+    private boolean delivered;
+
+    private boolean read;
 }

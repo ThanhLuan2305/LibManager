@@ -7,21 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Instant;
-
 @Data
 @Builder
-@Document(collection = "messages")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
+@Document(collection = "topic_subscriptions")
+public class TopicSubscription {
     @Id
     private String id;
-    private Long senderId;
-    private Long receiverId;
+    private String userId;
     private String topic;
-    private String content;
-    private Instant timestamp;
-    private boolean delivered;
-    private boolean read;
 }
