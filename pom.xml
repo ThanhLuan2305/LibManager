@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.project</groupId>
-    <artifactId>LibManager</artifactId>
+    <artifactId>libmanager</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>LibManager</name>
+    <name>libmanager</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>
@@ -62,7 +62,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -171,6 +178,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>1.18.36</version>
                         </path>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -217,10 +225,10 @@
                 </executions>
                 <configuration>
                     <excludes>
-                        <exclude>com/project/LibManager/dto/**</exclude>
-                        <exclude>com/project/LibManager/entity/**</exclude>
-                        <exclude>com/project/LibManager/mapper/**</exclude>
-                        <exclude>com/project/LibManager/config/**</exclude>
+                        <exclude>com/project/libmanager/dto/**</exclude>
+                        <exclude>com/project/libmanager/entity/**</exclude>
+                        <exclude>com/project/libmanager/mapper/**</exclude>
+                        <exclude>com/project/libmanager/config/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
