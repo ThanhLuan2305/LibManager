@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>Email Verification</title>
+    <title>Reset Your Password</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -36,22 +36,14 @@
             margin-top: 10px;
         }
 
-        .verify-button {
-            display: inline-block;
-            padding: 12px 20px;
-            font-size: 16px;
+        .otp-code {
+            font-size: 24px;
             font-weight: bold;
-            color: white !important;
-            background: linear-gradient(45deg, #28a745, #218838);
-            text-decoration: none;
+            color: #d9534f;
+            background: #f8d7da;
+            padding: 10px 20px;
             border-radius: 5px;
-            transition: 0.3s;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .verify-button:hover {
-            background: linear-gradient(45deg, #218838, #1e7e34);
-            box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+            display: inline-block;
         }
 
         .email-footer {
@@ -63,18 +55,18 @@
 </head>
 <body>
 <div class="email-container">
-    <h2 class="email-title">Verify Your Email</h2>
+    <h2 class="email-title"><span th:text="${caption}"></span></h2>
     <p class="email-content">
         Hello, <strong><span th:text="${name}"></span></strong>! <br>
-        Thank you for registering an account. Please click the button below to verify your email.
+        You have requested to <span th:text="${request}"></span>. Please use the OTP code below to confirm:
     </p>
 
-    <a class="verify-button" th:href="${verifyUrl}">
-        Verify Email
-    </a>
+    <!-- OTP Code -->
+    <div class="otp-code" th:text="${otpCode}"></div>
 
     <p class="email-footer">
-        The verification link is valid for 1 hour. Please verify your email to activate your account.
+        The OTP code is valid for <strong>5 minutes</strong>. If you did not make this request, please ignore this
+        email.
     </p>
 </div>
 </body>
